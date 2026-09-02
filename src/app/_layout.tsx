@@ -21,6 +21,10 @@ export default function RootLayout() {
             >
               <Stack.Screen name="index" />
               <Stack.Screen name="auth" />
+              <Stack.Screen name="(tabs)" />
+              <Stack.Screen name="product/[id]" />
+              <Stack.Screen name="category/[id]" />
+              <Stack.Screen name="search" />
             </Stack>
           </AuthProvider>
         </QueryProvider>
