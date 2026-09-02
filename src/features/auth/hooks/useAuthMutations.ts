@@ -38,3 +38,13 @@ export function useResetPasswordMutation() {
     mutationFn: (payload: ResetPasswordPayload) => authService.resetPassword(payload),
   });
 }
+
+export function useGoogleAuthMutation() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: () => authService.signInWithGoogle(),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["session"] });
+    },
+  });
+}

@@ -1,5 +1,15 @@
+import { Platform } from "react-native";
+import * as Linking from "expo-linking";
+import * as WebBrowser from "expo-web-browser";
 import { supabase } from "@/lib/supabase";
-import type { LoginPayload, RegisterPayload, ResetPasswordPayload } from "../types";
+import type {
+  LoginPayload,
+  RegisterPayload,
+  ResetPasswordPayload,
+} from "../types";
+
+// Required for WebBrowser auth session to complete correctly on iOS/Android
+WebBrowser.maybeCompleteAuthSession();
 
 export const authService = {
   async signIn({ email, password }: LoginPayload) {
@@ -33,11 +43,14 @@ export const authService = {
           full_name: fullName?.trim() || null,
           role: "customer",
         },
-        { onConflict: "id" }
+        { onConflict: "id" },
       );
       // Silently ignore profile errors if table not yet created (Phase 1 migration pending)
       if (profileError && __DEV__) {
-        console.warn("[authService] profile upsert warning:", profileError.message);
+        console.warn(
+          "[authService] profile upsert warning:",
+          profileError.message,
+        );
       }
     }
 
@@ -53,7 +66,7 @@ export const authService = {
     // No redirect URL needed for MVP; Supabase will send email with recovery link.
     // For Expo, you could add redirectTo via Linking.createURL if handling deep links.
     const { data, error } = await supabase.auth.resetPasswordForEmail(
-      email.trim().toLowerCase()
+      email.trim().toLowerCase(),
     );
     if (error) throw error;
     return data;
@@ -69,5 +82,84 @@ export const authService = {
     const { data, error } = await supabase.auth.getUser();
     if (error) throw error;
     return data.user;
+  },
+
+  /**
+   * Initiate Google OAuth via Supabase.
+   * - Web: Supabase redirects the browser (default implicit/pkce flow).
+   // - Native (Expo): uses WebBrowser.openAuthSessionAsync + PKCE code exchange.
+   * Requires Supabase Auth > Providers > Google enabled and redirect URL whitelisted:
+   *   Site URL + `dressshop://` (scheme from app.json) or Expo proxy when using Expo Go.
+   */
+  async signInWithGoogle() {
+    // Web: let Supabase handle redirect directly
+    if (Platform.OS === "web") {
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider: "google",
+        options: {
+          // On web Supabase will navigate; no need for skipBrowserRedirect
+        },
+      });
+      if (error) throw error;
+      return data;
+    }
+
+    // Native: PKCE flow via WebBrowser
+    const redirectTo = Linking.createURL("/"); // → dressshop:/// or exp:// with proxy
+
+    const { data, error } = await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: {
+        redirectTo,
+        skipBrowserRedirect: true,
+      },
+    });
+    if (error) throw error;
+    if (!data?.url) throw new Error("Google sign-in failed to return URL");
+
+    const result = await WebBrowser.openAuthSessionAsync(data.url, redirectTo);
+    if (result.type === "dismiss" || result.type === "cancel") {
+      throw new Error("Google sign-in was cancelled");
+    }
+    if (result.type !== "success" || !result.url) {
+      throw new Error("Google sign-in failed");
+    }
+
+    // PKCE: URL contains `code` query param
+    const url = new URL(result.url);
+    const code = url.searchParams.get("code");
+
+    // Older implicit flow may return tokens in hash fragment; handle as fallback
+    if (code) {
+      const { data: exchangeData, error: exchangeError } =
+        await supabase.auth.exchangeCodeForSession(code);
+      if (exchangeError) throw exchangeError;
+      return exchangeData;
+    }
+
+    // Fallback: extract tokens from fragment if present (e.g. #access_token=...)
+    const fragment = result.url.split("#")[1];
+    if (fragment) {
+      const params = new URLSearchParams(fragment);
+      const access_token = params.get("access_token");
+      const refresh_token = params.get("refresh_token");
+      if (access_token && refresh_token) {
+        const { data: sessionData, error: sessionError } =
+          await supabase.auth.setSession({
+            access_token,
+            refresh_token,
+          });
+        if (sessionError) throw sessionError;
+        return sessionData;
+      }
+    }
+
+    // If no code/tokens, rely on onAuthStateChange having fired via deep link;
+    // fetch current session as final check
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
+    if (!session) throw new Error("Google sign-in completed but no session found");
+    return { session } as unknown as typeof data;
   },
 };

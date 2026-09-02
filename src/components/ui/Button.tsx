@@ -83,13 +83,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     borderWidth: 1,
     borderColor: "transparent",
-    // Editorial soft shadow — per sample luxury feel
-    shadowColor: colors.ink,
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.12,
-    shadowRadius: 12,
-    elevation: 3,
-  },
+    // Standard boxShadow per request (replaces shadow* + elevation)
+    boxShadow: "0 6px 12px rgba(42, 27, 22, 0.12)",
+  } as unknown as ViewStyle,
   primary: {
     backgroundColor: colors.primary, // ink
   },
@@ -106,10 +102,12 @@ const styles = StyleSheet.create({
   ghost: {
     backgroundColor: "transparent",
     borderColor: "transparent",
-  },
+    boxShadow: "none",
+  } as unknown as ViewStyle,
   disabled: {
     opacity: 0.45,
-  },
+    boxShadow: "none",
+  } as unknown as ViewStyle,
   text: {
     fontSize: 11,
     fontWeight: "800",

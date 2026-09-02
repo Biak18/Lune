@@ -1,0 +1,2 @@
+-- 002_catalog_foundation — applied remotely via MCP on 20260902093943
+-- See supabase_migrations.schema_migrations for full statements

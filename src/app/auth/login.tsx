@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/Button";
 import { FormError } from "@/components/ui/FormError";
 import { Divider } from "@/components/ui/Divider";
 import { AuthHeader } from "@/features/auth/components/AuthHeader";
-import { useLoginMutation } from "@/features/auth/hooks/useAuthMutations";
+import { useLoginMutation, useGoogleAuthMutation } from "@/features/auth/hooks/useAuthMutations";
 import { loginSchema, type LoginFormValues } from "@/utils/validation";
 import { getAuthErrorMessage } from "@/utils/errors";
 import { colors } from "@/design/colors";
@@ -21,6 +21,7 @@ export default function LoginScreen() {
   const [showPassword, setShowPassword] = useState(false);
   const [providerError, setProviderError] = useState<string | null>(null);
   const login = useLoginMutation();
+  const googleAuth = useGoogleAuthMutation();
 
   const {
     control,
@@ -39,9 +40,14 @@ export default function LoginScreen() {
   };
 
   const handleGooglePress = () => {
-    setProviderError("Currently not available");
+    setProviderError(null);
+    googleAuth.mutate(undefined, {
+      onSuccess: () => router.replace("/"),
+      onError: (e) => setProviderError(getAuthErrorMessage(e)),
+    });
   };
 
+  const googleError = googleAuth.isError ? getAuthErrorMessage(googleAuth.error) : null;
   const formError = login.isError ? getAuthErrorMessage(login.error) : null;
   const isEnvMissing = !env.isSupabaseConfigured();
 
@@ -76,7 +82,7 @@ export default function LoginScreen() {
 
         <View style={styles.form}>
         <Animated.View entering={FadeInUp.delay(100).duration(420).springify()}>
-          <FormError message={providerError ?? formError} />
+          <FormError message={providerError ?? googleError ?? formError} />
         </Animated.View>
 
         <Animated.View entering={FadeInUp.delay(140).duration(420).springify()}>
@@ -160,6 +166,8 @@ export default function LoginScreen() {
             title="Continue with Google"
             variant="secondary"
             onPress={handleGooglePress}
+            loading={googleAuth.isPending}
+            disabled={isEnvMissing}
             style={styles.googleBtn}
           />
         </Animated.View>

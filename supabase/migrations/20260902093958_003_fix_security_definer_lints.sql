@@ -1,0 +1,2 @@
+-- 003_fix_security_definer_lints — applied remotely via MCP on 20260902093958
+-- See supabase_migrations.schema_migrations for full statements

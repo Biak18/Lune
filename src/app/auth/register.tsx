@@ -12,7 +12,7 @@ import { Button } from "@/components/ui/Button";
 import { FormError } from "@/components/ui/FormError";
 import { Divider } from "@/components/ui/Divider";
 import { AuthHeader } from "@/features/auth/components/AuthHeader";
-import { useRegisterMutation } from "@/features/auth/hooks/useAuthMutations";
+import { useRegisterMutation, useGoogleAuthMutation } from "@/features/auth/hooks/useAuthMutations";
 import { registerSchema, type RegisterFormValues } from "@/utils/validation";
 import { getAuthErrorMessage } from "@/utils/errors";
 import { colors } from "@/design/colors";
@@ -24,6 +24,7 @@ export default function RegisterScreen() {
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   const register = useRegisterMutation();
+  const googleAuth = useGoogleAuthMutation();
 
   const {
     control,
@@ -53,8 +54,15 @@ export default function RegisterScreen() {
     );
   };
 
-  const handleGooglePress = () => setProviderError("Currently not available");
+  const handleGooglePress = () => {
+    setProviderError(null);
+    googleAuth.mutate(undefined, {
+      onSuccess: () => router.replace("/"),
+      onError: (e) => setProviderError(getAuthErrorMessage(e)),
+    });
+  };
 
+  const googleError = googleAuth.isError ? getAuthErrorMessage(googleAuth.error) : null;
   const formError = register.isError ? getAuthErrorMessage(register.error) : null;
   const isEnvMissing = !env.isSupabaseConfigured();
 
@@ -89,7 +97,7 @@ export default function RegisterScreen() {
 
         <View style={styles.form}>
         <Animated.View entering={FadeInUp.delay(100).duration(420).springify()}>
-          <FormError message={providerError ?? formError} />
+          <FormError message={providerError ?? googleError ?? formError} />
         </Animated.View>
         {successMessage ? (
           <Animated.View entering={FadeInUp.delay(120).duration(420).springify()}>
@@ -210,7 +218,7 @@ export default function RegisterScreen() {
         </Animated.View>
 
         <Animated.View entering={FadeInUp.delay(500).duration(420).springify()}>
-          <Button title="Continue with Google" variant="secondary" onPress={handleGooglePress} style={styles.googleBtn} />
+          <Button title="Continue with Google" variant="secondary" onPress={handleGooglePress} loading={googleAuth.isPending} disabled={isEnvMissing} style={styles.googleBtn} />
         </Animated.View>
 
         <Animated.View entering={FadeInUp.delay(560).duration(420).springify()} style={styles.footer}>
