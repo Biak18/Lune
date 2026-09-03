@@ -26,7 +26,7 @@ export default function CheckoutSuccessScreen() {
         <Text style={styles.title}>Order placed</Text>
         <Text style={styles.desc}>Your order was created successfully.</Text>
         <Text style={styles.orderId}>{orderId}</Text>
-        <Button title="View orders" onPress={() => router.replace("/(tabs)/profile" as any)} style={{ marginTop: 16 }} />
+        <Button title="View orders" onPress={() => router.replace("/orders" as any)} style={{ marginTop: 16 }} />
         <Pressable onPress={() => router.replace("/(tabs)/shop" as any)} style={{ marginTop: 12 }}>
           <Text style={styles.link}>Continue shopping</Text>
         </Pressable>
@@ -60,8 +60,8 @@ export default function CheckoutSuccessScreen() {
           </View>
         </View>
         <View style={{ gap: 10, marginTop: 16, width: "100%" }}>
-          <Button title="Continue shopping" onPress={() => router.replace("/(tabs)/shop" as any)} />
-          <Button title="View bag" variant="secondary" onPress={() => router.replace("/(tabs)/cart" as any)} />
+          <Button title="View order" onPress={() => router.replace(`/orders/${order.id}` as any)} />
+          <Button title="Continue shopping" variant="secondary" onPress={() => router.replace("/(tabs)/shop" as any)} />
         </View>
       </View>
     </View>

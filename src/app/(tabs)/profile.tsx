@@ -30,7 +30,10 @@ export default function ProfileScreen() {
         {user?.user_metadata?.full_name ? <Text style={styles.meta}>Name: {String(user.user_metadata.full_name)}</Text> : null}
         <Text style={styles.meta}>User ID: {user?.id.slice(0, 8)}…</Text>
       </View>
-      <Button title="Sign out" variant="secondary" onPress={() => logout.mutate(undefined, { onSuccess: () => router.replace("/auth/login") })} loading={logout.isPending} />
+      <View style={{ gap: 12 }}>
+        <Button title="My orders" onPress={() => router.push("/orders" as any)} />
+        <Button title="Sign out" variant="secondary" onPress={() => logout.mutate(undefined, { onSuccess: () => router.replace("/auth/login") })} loading={logout.isPending} />
+      </View>
     </View>
   );
 }
