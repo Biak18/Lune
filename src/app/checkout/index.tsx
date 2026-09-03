@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { View, Text, ScrollView, Pressable, StyleSheet, ActivityIndicator, Alert } from "react-native";
+import { View, Text, ScrollView, Pressable, StyleSheet, ActivityIndicator, Alert, Keyboard } from "react-native";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import { router } from "expo-router";
 import { useAuthStore } from "@/stores/authStore";
@@ -40,6 +40,7 @@ export default function CheckoutScreen() {
 
   const handleCreateAddress = async (values: AddressFormValues) => {
     try {
+      Keyboard.dismiss();
       const addr = await createAddr.mutateAsync({
         recipient_name: values.recipient_name,
         phone: values.phone || null,
@@ -54,6 +55,7 @@ export default function CheckoutScreen() {
       } as any);
       setSelectedId(addr.id);
       setShowForm(false);
+      Keyboard.dismiss();
       try {
         await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       } catch {}
@@ -78,6 +80,9 @@ export default function CheckoutScreen() {
       Alert.alert("Select address", "Please select a shipping address");
       return;
     }
+    Keyboard.dismiss();
+    // small delay to let KeyboardAwareScrollView release its view handle before navigation
+    await new Promise((r) => setTimeout(r, 80));
     try {
       const order = await createOrder.mutateAsync({
         cartItems: cartItems!,
@@ -154,9 +159,11 @@ export default function CheckoutScreen() {
         contentContainerStyle={styles.scroll}
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
-        enableOnAndroid
-        extraScrollHeight={24}
-        enableAutomaticScroll
+        enableOnAndroid={false}
+        enableAutomaticScroll={false}
+        extraScrollHeight={0}
+        keyboardOpeningTime={0}
+        enableResetScrollToCoords={false}
       >
         <Pressable onPress={() => router.back()} style={styles.back} hitSlop={8} accessibilityRole="button" accessibilityLabel="Back to bag">
           <Text style={styles.backText}>← Back to bag</Text>
