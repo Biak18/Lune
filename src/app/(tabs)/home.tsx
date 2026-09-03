@@ -6,6 +6,7 @@ import { spacing, radius } from "@/design/spacing";
 import { useCategoriesQuery, useProductsQuery } from "@/features/products/hooks/useProducts";
 import { ProductCard } from "@/features/products/components/ProductCard";
 import { Skeleton } from "@/components/ui/Skeleton";
+import { NotificationBell } from "@/features/notifications/components/NotificationBell";
 
 export default function HomeScreen() {
   const { data: categories, isLoading: catsLoading } = useCategoriesQuery();
@@ -16,7 +17,10 @@ export default function HomeScreen() {
     <ScrollView style={styles.root} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
       {/* Header */}
       <View style={styles.header}>
-        <Text style={styles.wordmark}>MUSE <Text style={{ color: colors.clay }}>/ 09</Text></Text>
+        <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
+          <Text style={styles.wordmark}>MUSE <Text style={{ color: colors.clay }}>/ 09</Text></Text>
+          <NotificationBell size={18} />
+        </View>
         <Pressable onPress={() => router.push("/shop" as any)}>
           <Text style={styles.headerLink}>Shop all</Text>
         </Pressable>

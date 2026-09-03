@@ -32,6 +32,7 @@ export default function ProfileScreen() {
       </View>
       <View style={{ gap: 12 }}>
         <Button title="My orders" onPress={() => router.push("/orders" as any)} />
+        <Button title="Notifications" variant="secondary" onPress={() => router.push("/notifications" as any)} />
         <Button title="Sign out" variant="secondary" onPress={() => logout.mutate(undefined, { onSuccess: () => router.replace("/auth/login") })} loading={logout.isPending} />
       </View>
     </View>

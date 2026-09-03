@@ -100,6 +100,21 @@ export const orderService = {
     // Clear cart
     await supabase.from("cart_items").delete().eq("user_id", userId);
 
+    // Create notification for order confirmed (respect prefs)
+    try {
+      const { data: prefs } = await supabase.from("notification_preferences").select("order_updates").eq("user_id", userId).maybeSingle();
+      const allow = prefs ? (prefs as any).order_updates !== false : true;
+      if (allow) {
+        await supabase.from("notifications").insert({
+          user_id: userId,
+          type: "order_confirmed",
+          title: "Order confirmed",
+          body: `Your order #${order.id.slice(0, 8).toUpperCase()} is confirmed. We'll notify when it ships.`,
+          data: { order_id: order.id, total: order.total },
+        } as any);
+      }
+    } catch {}
+
     return order as Order;
   },
 };
