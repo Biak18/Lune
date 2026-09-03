@@ -2,8 +2,8 @@ import { colors } from "@/design/colors";
 import { radius, spacing } from "@/design/spacing";
 import { AdminGuard } from "@/features/admin/components/AdminGuard";
 import { adminService } from "@/features/admin/services/adminService";
+import { OrderStatusControl } from "@/features/orders/components/OrderStatusControl";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import * as Haptics from "expo-haptics";
 import { router } from "expo-router";
 import {
   ActivityIndicator,
@@ -13,21 +13,6 @@ import {
   Text,
   View,
 } from "react-native";
-import Animated, { FadeIn, FadeOut, SlideInRight, SlideOutLeft } from "react-native-reanimated";
-
-const FLOW = ["pending", "confirmed", "processing", "shipped", "out_for_delivery", "delivered"] as const;
-type FlowStatus = (typeof FLOW)[number];
-const ALL_STATUSES = [...FLOW, "cancelled"] as const;
-
-function getPrevNext(current: string) {
-  if (current === "cancelled") return { prev: null, next: null };
-  const idx = FLOW.indexOf(current as FlowStatus);
-  if (idx === -1) return { prev: null, next: FLOW[0] as string };
-  return {
-    prev: idx > 0 ? FLOW[idx - 1] : null,
-    next: idx < FLOW.length - 1 ? FLOW[idx + 1] : null,
-  };
-}
 
 export default function AdminOrdersScreen() {
   const qc = useQueryClient();
@@ -97,83 +82,11 @@ export default function AdminOrdersScreen() {
                 </View>
                 <View style={{ minWidth: 160, gap: 6, flex: 1 }}>
                   <Text style={styles.label}>Status: {item.status.replace(/_/g, " ")}</Text>
-                  {(() => {
-                    const { prev, next } = getPrevNext(item.status);
-                    const isEdge = !prev || !next;
-                    // Edge: single button centered with pretty slide animation
-                    if (isEdge) {
-                      const singleStatus = next ?? prev;
-                      const isNext = !!next;
-                      const label = !prev && next ? `${next} →` : next ? `${next} →` : prev ? `← ${prev}` : item.status;
-                      const disabled = (!isNext && !prev) || item.status === "cancelled" || item.status === "delivered" || update.isPending;
-                      // For pending, single is next (confirmed); for delivered/cancelled, show completed disabled
-                      const isCompleted = item.status === "delivered" || item.status === "cancelled";
-                      return (
-                        <Animated.View
-                          key={`${item.id}-${item.status}`}
-                          entering={SlideInRight.duration(380).springify().damping(16)}
-                          exiting={SlideOutLeft.duration(220)}
-                          style={styles.singleWrap}
-                        >
-                          <Pressable
-                            onPress={async () => {
-                              if (disabled || isCompleted) return;
-                              const target = isNext ? next! : prev!;
-                              try {
-                                await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-                              } catch {}
-                              update.mutate({ id: item.id, status: target });
-                            }}
-                            disabled={disabled || isCompleted}
-                            style={[styles.singleBtn, isCompleted && styles.singleBtnCompleted, disabled && styles.navBtnDisabled]}
-                            accessibilityRole="button"
-                            accessibilityLabel={isCompleted ? `Status ${item.status}` : `Move to ${singleStatus}`}
-                          >
-                            <Text style={[styles.singleText, isCompleted && styles.singleTextCompleted]}>{isCompleted ? `${item.status} ✓` : label}</Text>
-                          </Pressable>
-                        </Animated.View>
-                      );
-                    }
-                    return (
-                      <Animated.View
-                        key={`${item.id}-${item.status}`}
-                        entering={FadeIn.duration(260)}
-                        exiting={FadeOut.duration(180)}
-                        style={styles.navRow}
-                      >
-                        <Pressable
-                          onPress={async () => {
-                            if (!prev) return;
-                            try {
-                              await Haptics.selectionAsync();
-                            } catch {}
-                            update.mutate({ id: item.id, status: prev });
-                          }}
-                          disabled={!prev || update.isPending}
-                          style={[styles.navBtn, !prev && styles.navBtnDisabled]}
-                          accessibilityRole="button"
-                          accessibilityLabel={prev ? `Previous status ${prev}` : "No previous status"}
-                        >
-                          <Text style={[styles.navText, !prev && styles.navTextDisabled]}>{prev ? `← ${prev}` : "—"}</Text>
-                        </Pressable>
-                        <Pressable
-                          onPress={async () => {
-                            if (!next) return;
-                            try {
-                              await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-                            } catch {}
-                            update.mutate({ id: item.id, status: next });
-                          }}
-                          disabled={!next || update.isPending}
-                          style={[styles.navBtn, styles.navBtnNext, !next && styles.navBtnDisabled]}
-                          accessibilityRole="button"
-                          accessibilityLabel={next ? `Next status ${next}` : "No next status"}
-                        >
-                          <Text style={[styles.navText, styles.navTextNext, !next && styles.navTextDisabled]}>{next ? `${next} →` : "—"}</Text>
-                        </Pressable>
-                      </Animated.View>
-                    );
-                  })()}
+                  <OrderStatusControl
+                    currentStatus={item.status}
+                    onStatusChange={(nextStatus) => update.mutate({ id: item.id, status: nextStatus })}
+                    disabled={update.isPending}
+                  />
                 </View>
               </View>
             )}
