@@ -4,12 +4,14 @@ import { spacing } from "@/design/spacing";
 import { useAuthStore } from "@/stores/authStore";
 import { Button } from "@/components/ui/Button";
 import { useLogoutMutation } from "@/features/auth/hooks/useAuthMutations";
+import { useIsAdmin } from "@/features/admin/hooks/useIsAdmin";
 import { router } from "expo-router";
 
 export default function ProfileScreen() {
   const user = useAuthStore((s) => s.user);
   const session = useAuthStore((s) => s.session);
   const logout = useLogoutMutation();
+  const { data: isAdmin } = useIsAdmin();
 
   if (!session) {
     return (
@@ -33,6 +35,7 @@ export default function ProfileScreen() {
       <View style={{ gap: 12 }}>
         <Button title="My orders" onPress={() => router.push("/orders" as any)} />
         <Button title="Notifications" variant="secondary" onPress={() => router.push("/notifications" as any)} />
+        {isAdmin && <Button title="Admin dashboard" variant="secondary" onPress={() => router.push("/admin" as any)} />}
         <Button title="Sign out" variant="secondary" onPress={() => logout.mutate(undefined, { onSuccess: () => router.replace("/auth/login") })} loading={logout.isPending} />
       </View>
     </View>

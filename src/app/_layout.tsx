@@ -31,6 +31,10 @@ export default function RootLayout() {
               <Stack.Screen name="orders/[id]" options={{ headerShown: false }} />
               <Stack.Screen name="style-finder/index" options={{ headerShown: false }} />
               <Stack.Screen name="notifications/index" options={{ headerShown: false }} />
+              <Stack.Screen name="admin/index" options={{ headerShown: false }} />
+              <Stack.Screen name="admin/products" options={{ headerShown: false }} />
+              <Stack.Screen name="admin/orders" options={{ headerShown: false }} />
+              <Stack.Screen name="admin/inventory" options={{ headerShown: false }} />
             </Stack>
           </AuthProvider>
         </QueryProvider>
