@@ -12,6 +12,11 @@ import { SizeSelector } from "@/features/products/components/SizeSelector";
 import { StockBadge } from "@/features/products/components/StockBadge";
 import { WishlistButton } from "@/features/wishlist/components/WishlistButton";
 import { useAddToCart } from "@/features/cart/hooks/useCart";
+import { RatingStars } from "@/features/reviews/components/RatingStars";
+import { ReviewCard } from "@/features/reviews/components/ReviewCard";
+import { ReviewForm } from "@/features/reviews/components/ReviewForm";
+import { useReviewsQuery, useReviewAvgQuery, useVerifiedPurchaseQuery, useCreateReview, useUpdateReview, useDeleteReview } from "@/features/reviews/hooks/useReviews";
+import { useAuthStore } from "@/stores/authStore";
 import {
   getActiveVariants,
   getUniqueColors,
@@ -137,6 +142,20 @@ export default function ProductScreen() {
   const hasVariants = activeVariants.length > 0;
   const showVariantSection = hasVariants && (colorsList.length > 0 || sizesList.length > 0);
 
+  const user = useAuthStore((s) => s.user);
+  const { data: reviews, isLoading: reviewsLoading } = useReviewsQuery(product?.id ?? "");
+  const { data: avgData } = useReviewAvgQuery(product?.id ?? "");
+  const { data: verifiedData } = useVerifiedPurchaseQuery(product?.id ?? "");
+  const createReview = useCreateReview(product?.id ?? "");
+  const updateReview = useUpdateReview(product?.id ?? "");
+  const deleteReview = useDeleteReview(product?.id ?? "");
+  const [editingId, setEditingId] = useState<string | null>(null);
+
+  const avg = avgData?.avg ?? 0;
+  const count = avgData?.count ?? 0;
+  const myReview = reviews?.find((r) => r.user_id === user?.id) ?? null;
+  const isVerified = verifiedData?.verified ?? false;
+
   return (
     <View style={styles.root}>
       <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
@@ -157,6 +176,13 @@ export default function ProductScreen() {
                 ) : null}
               </View>
               {product.category ? <Text style={styles.category}>{product.category.name}</Text> : null}
+              <View style={{ flexDirection: "row", alignItems: "center", gap: 6, marginTop: 2 }}>
+                <RatingStars value={avg} size={14} />
+                <Text style={styles.ratingText}>
+                  {count ? `${avg.toFixed(1)} • ${count} ${count === 1 ? "review" : "reviews"}` : "No reviews yet"}
+                </Text>
+                {isVerified && <Text style={styles.verifiedHint}>• Verified buyer eligible</Text>}
+              </View>
             </View>
             <WishlistButton productId={product.id} size={42} style={{ marginTop: 2 }} />
           </View>
@@ -196,6 +222,92 @@ export default function ProductScreen() {
             </View>
           </>
         ) : null}
+
+        {/* Reviews */}
+        <View style={styles.reviewsSection}>
+          <Text style={styles.sectionTitle}>Reviews</Text>
+          {reviewsLoading ? (
+            <View style={styles.centerSmall}>
+              <ActivityIndicator color={colors.foreground} />
+            </View>
+          ) : (
+            <>
+              {!myReview && (
+                <>
+                  {!user ? (
+                    <View style={styles.notice}>
+                      <Text style={styles.noticeText}>Sign in to write a review.</Text>
+                      <Pressable onPress={() => router.push("/auth/login" as any)} style={{ marginTop: 8 }}>
+                        <Text style={styles.link}>Sign in</Text>
+                      </Pressable>
+                    </View>
+                  ) : (
+                    <ReviewForm
+                      submitting={createReview.isPending}
+                      onSubmit={async ({ rating, body }) => {
+                        try {
+                          await createReview.mutateAsync({ rating, body });
+                          try {
+                            await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+                          } catch {}
+                        } catch (e) {
+                          try {
+                            await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+                          } catch {}
+                        }
+                      }}
+                    />
+                  )}
+                  {!isVerified && user && <Text style={styles.verifiedHint}>Purchase this item to get a verified badge.</Text>}
+                </>
+              )}
+
+              {myReview && editingId !== myReview.id ? (
+                <ReviewCard
+                  review={myReview}
+                  onEdit={() => setEditingId(myReview.id)}
+                  onDelete={async () => {
+                    try {
+                      await deleteReview.mutateAsync(myReview.id);
+                      try {
+                        await Haptics.selectionAsync();
+                      } catch {}
+                    } catch {}
+                  }}
+                />
+              ) : null}
+
+              {myReview && editingId === myReview.id && (
+                <ReviewForm
+                  initialRating={myReview.rating}
+                  initialBody={myReview.body ?? ""}
+                  submitting={updateReview.isPending}
+                  submitLabel="Update review"
+                  onSubmit={async ({ rating, body }) => {
+                    await updateReview.mutateAsync({ reviewId: myReview.id, rating, body });
+                    setEditingId(null);
+                    try {
+                      await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+                    } catch {}
+                  }}
+                  onCancel={() => setEditingId(null)}
+                />
+              )}
+
+              {reviews?.filter((r) => r.id !== myReview?.id).length ? (
+                <View style={{ gap: 10 }}>
+                  {reviews
+                    .filter((r) => r.id !== myReview?.id)
+                    .map((r) => (
+                      <ReviewCard key={r.id} review={r} />
+                    ))}
+                </View>
+              ) : !myReview ? (
+                <Text style={styles.stockHint}>No reviews yet. Be the first to review.</Text>
+              ) : null}
+            </>
+          )}
+        </View>
       </ScrollView>
 
       <View style={styles.footer}>
@@ -347,5 +459,33 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: colors.border,
     backgroundColor: colors.surface,
+  },
+  ratingText: {
+    fontSize: 12,
+    color: colors.muted,
+    fontWeight: "600",
+  },
+  verifiedHint: {
+    fontSize: 11,
+    color: colors.success,
+    fontWeight: "600",
+  },
+  reviewsSection: {
+    gap: 12,
+    paddingTop: 8,
+    borderTopWidth: 1,
+    borderTopColor: colors.border,
+    marginTop: 4,
+  },
+  sectionTitle: {
+    fontSize: 11,
+    fontWeight: "800",
+    letterSpacing: 0.7,
+    textTransform: "uppercase",
+    color: colors.foreground,
+  },
+  centerSmall: {
+    padding: 16,
+    alignItems: "center",
   },
 });
