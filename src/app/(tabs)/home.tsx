@@ -133,6 +133,18 @@ export default function HomeScreen() {
         </Pressable>
       </View>
 
+      {/* AI Assistant */}
+      <View style={[styles.finderCard, { backgroundColor: colors.foreground, borderColor: colors.foreground }]}>
+        <View style={{ flex: 1, gap: 6 }}>
+          <Text style={[styles.finderEyebrow, { color: colors.gold }]}>AI Assistant</Text>
+          <Text style={[styles.finderTitle, { color: colors.surface }]}>Chat with stylist</Text>
+          <Text style={[styles.finderDesc, { color: colors.surface, opacity: 0.8 }]}>“I need a dress for a wedding” → curated picks</Text>
+        </View>
+        <Pressable style={[styles.finderBtn, { backgroundColor: colors.surface }]} onPress={() => router.push("/assistant" as any)}>
+          <Text style={[styles.finderBtnText, { color: colors.foreground }]}>Chat</Text>
+        </Pressable>
+      </View>
+
       {/* Shop by Occasion */}
       <View style={{ gap: 12 }}>
         <Text style={styles.sectionTitle}>Shop by Occasion</Text>
