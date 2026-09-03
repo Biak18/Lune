@@ -36,9 +36,6 @@ export default function AdminOrdersScreen() {
             <Text style={styles.backText}>← Admin</Text>
           </Pressable>
           <Text style={styles.heading}>Orders</Text>
-          <Text style={styles.sub}>
-            Admin can update status via RLS is_admin()
-          </Text>
         </View>
 
         {isLoading ? (
@@ -65,12 +62,12 @@ export default function AdminOrdersScreen() {
             }}
             renderItem={({ item }: any) => (
               <View style={styles.card}>
-                <View style={{ flex: 1, gap: 4 }}>
-                  <Text style={styles.id}>
+                <View style={styles.cardInfo}>
+                  <Text style={styles.id} numberOfLines={1}>
                     #{item.id.slice(0, 8).toUpperCase()} • $
                     {Number(item.total).toFixed(2)}
                   </Text>
-                  <Text style={styles.meta}>
+                  <Text style={styles.meta} numberOfLines={1}>
                     {new Date(item.created_at).toLocaleString()} •{" "}
                     {item.user_id.slice(0, 8)}…
                   </Text>
@@ -80,11 +77,16 @@ export default function AdminOrdersScreen() {
                     <Text style={styles.link}>View order</Text>
                   </Pressable>
                 </View>
-                <View style={{ minWidth: 160, gap: 6, flex: 1 }}>
-                  <Text style={styles.label}>Status: {item.status.replace(/_/g, " ")}</Text>
+
+                <View style={styles.cardControls}>
+                  <Text style={styles.label}>
+                    Status: {item.status.replace(/_/g, " ")}
+                  </Text>
                   <OrderStatusControl
                     currentStatus={item.status}
-                    onStatusChange={(nextStatus) => update.mutate({ id: item.id, status: nextStatus })}
+                    onStatusChange={(nextStatus) =>
+                      update.mutate({ id: item.id, status: nextStatus })
+                    }
                     disabled={update.isPending}
                   />
                 </View>
@@ -112,10 +114,6 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     color: colors.foreground,
     marginTop: 4,
-  },
-  sub: {
-    fontSize: 11,
-    color: colors.muted,
   },
   back: {
     alignSelf: "flex-start",
@@ -156,6 +154,11 @@ const styles = StyleSheet.create({
     letterSpacing: 0.7,
     textTransform: "uppercase",
   },
+
+  // Card is stacked: info on top, full-width status control below.
+  // A side-by-side row layout was tried and dropped — it left too little
+  // width for OrderStatusControl's two pill buttons on typical phone
+  // screens (~360-400dp), causing label wrap/clip.
   card: {
     flexDirection: "column",
     gap: 12,
@@ -164,7 +167,12 @@ const styles = StyleSheet.create({
     backgroundColor: colors.surface,
     borderWidth: 1,
     borderColor: colors.border,
-    alignItems: "center",
+  },
+  cardInfo: {
+    gap: 4,
+  },
+  cardControls: {
+    gap: 6,
   },
   id: {
     fontSize: 12,
@@ -187,95 +195,5 @@ const styles = StyleSheet.create({
     letterSpacing: 0.6,
     textTransform: "uppercase",
     color: colors.muted,
-  },
-  statusChip: {
-    paddingHorizontal: 10,
-    height: 28,
-    borderRadius: 999,
-    borderWidth: 1,
-    borderColor: colors.border,
-    backgroundColor: colors.surface,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  statusChipActive: {
-    backgroundColor: colors.foreground,
-    borderColor: colors.foreground,
-  },
-  statusText: {
-    fontSize: 10,
-    fontWeight: "700",
-    color: colors.foreground,
-    textTransform: "uppercase",
-  },
-  statusTextActive: {
-    color: colors.surface,
-  },
-  navRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    gap: 8,
-  },
-  navBtn: {
-    flex: 1,
-    height: 36,
-    borderRadius: 999,
-    borderWidth: 1,
-    borderColor: colors.border,
-    backgroundColor: colors.surfaceMuted,
-    alignItems: "center",
-    justifyContent: "center",
-    paddingHorizontal: 10,
-  },
-  navBtnNext: {
-    backgroundColor: colors.foreground,
-    borderColor: colors.foreground,
-  },
-  navBtnDisabled: {
-    opacity: 0.4,
-    backgroundColor: colors.surface,
-    borderColor: colors.border,
-  },
-  navText: {
-    fontSize: 11,
-    fontWeight: "700",
-    color: colors.foreground,
-    textTransform: "capitalize",
-  },
-  navTextNext: {
-    color: colors.surface,
-  },
-  navTextDisabled: {
-    color: colors.mutedLight,
-  },
-  singleWrap: {
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  singleBtn: {
-    minWidth: 140,
-    height: 38,
-    borderRadius: 999,
-    backgroundColor: colors.foreground,
-    borderWidth: 1,
-    borderColor: colors.foreground,
-    alignItems: "center",
-    justifyContent: "center",
-    paddingHorizontal: 18,
-    alignSelf: "center",
-  },
-  singleBtnCompleted: {
-    backgroundColor: colors.successBackground,
-    borderColor: colors.success,
-  },
-  singleText: {
-    fontSize: 12,
-    fontWeight: "800",
-    color: colors.surface,
-    textTransform: "capitalize",
-    letterSpacing: 0.3,
-  },
-  singleTextCompleted: {
-    color: colors.success,
   },
 });
