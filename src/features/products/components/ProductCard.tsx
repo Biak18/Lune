@@ -1,9 +1,9 @@
 import { View, Text, Pressable, StyleSheet } from "react-native";
 import { Image } from "expo-image";
 import { Link } from "expo-router";
-import { Ionicons } from "@expo/vector-icons";
 import { colors } from "@/design/colors";
-import { radius, spacing } from "@/design/spacing";
+import { radius } from "@/design/spacing";
+import { WishlistButton } from "@/features/wishlist/components/WishlistButton";
 import type { ProductWithRelations } from "../types";
 
 type Props = {
@@ -26,9 +26,9 @@ export function ProductCard({ product, onPress }: Props) {
             transition={200}
             cachePolicy="memory-disk"
           />
-          <Pressable style={styles.wish} hitSlop={8} onPress={() => {}}>
-            <Ionicons name="heart-outline" size={14} color={colors.foreground} />
-          </Pressable>
+          <View style={styles.wish} pointerEvents="box-none">
+            <WishlistButton productId={product.id} />
+          </View>
         </View>
         <View style={styles.meta}>
           <Text style={styles.name} numberOfLines={1}>
@@ -60,19 +60,6 @@ const styles = StyleSheet.create({
     position: "absolute",
     right: 8,
     bottom: 8,
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    backgroundColor: colors.surface,
-    alignItems: "center",
-    justifyContent: "center",
-    borderWidth: 1,
-    borderColor: colors.border,
-  },
-  wishText: {
-    fontSize: 13,
-    lineHeight: 16,
-    color: colors.foreground,
   },
   meta: {
     gap: 2,

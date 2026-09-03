@@ -1,10 +1,21 @@
-import { useEffect, useRef, useState, useCallback } from "react";
-import { View, StyleSheet, Pressable, FlatList, useWindowDimensions } from "react-native";
-import { Image } from "expo-image";
-import * as Haptics from "expo-haptics";
-import Animated, { useSharedValue, useAnimatedStyle, withTiming, withSequence } from "react-native-reanimated";
 import { colors } from "@/design/colors";
 import { radius, spacing } from "@/design/spacing";
+import * as Haptics from "expo-haptics";
+import { Image } from "expo-image";
+import { useCallback, useEffect, useRef, useState } from "react";
+import {
+  FlatList,
+  Pressable,
+  StyleSheet,
+  useWindowDimensions,
+  View,
+} from "react-native";
+import Animated, {
+  useAnimatedStyle,
+  useSharedValue,
+  withSequence,
+  withTiming,
+} from "react-native-reanimated";
 import type { ProductImage } from "../types";
 
 type Props = {
@@ -21,15 +32,20 @@ export function ProductGallery({ images, selectedColor, colorsList }: Props) {
   const listRef = useRef<FlatList<ProductImage>>(null);
   const opacity = useSharedValue(1);
 
-  const sorted = images.length ? [...images].sort((a, b) => {
-    if (a.is_primary !== b.is_primary) return a.is_primary ? -1 : 1;
-    return (a.sort_order ?? 0) - (b.sort_order ?? 0);
-  }) : [];
+  const sorted = images.length
+    ? [...images].sort((a, b) => {
+        if (a.is_primary !== b.is_primary) return a.is_primary ? -1 : 1;
+        return (a.sort_order ?? 0) - (b.sort_order ?? 0);
+      })
+    : [];
 
   const fade = useCallback(() => {
     // shared value mutation is intentional for reanimated fade
     // eslint-disable-next-line react-hooks/immutability
-    opacity.value = withSequence(withTiming(0.35, { duration: 140 }), withTiming(1, { duration: 260 }));
+    opacity.value = withSequence(
+      withTiming(0.35, { duration: 140 }),
+      withTiming(1, { duration: 260 }),
+    );
   }, [opacity]);
 
   const scrollToIndex = useCallback(
@@ -42,7 +58,10 @@ export function ProductGallery({ images, selectedColor, colorsList }: Props) {
           await Haptics.selectionAsync();
         } catch {}
       }
-      listRef.current?.scrollToOffset({ offset: clamped * pagerWidth, animated: true });
+      listRef.current?.scrollToOffset({
+        offset: clamped * pagerWidth,
+        animated: true,
+      });
       setActiveIndex(clamped);
     },
     [sorted.length, pagerWidth, fade],
@@ -59,7 +78,10 @@ export function ProductGallery({ images, selectedColor, colorsList }: Props) {
       return;
     }
     fade();
-    listRef.current?.scrollToOffset({ offset: target * pagerWidth, animated: true });
+    listRef.current?.scrollToOffset({
+      offset: target * pagerWidth,
+      animated: true,
+    });
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setActiveIndex(target);
   }, [selectedColor, colorsList, sorted.length, pagerWidth, activeIndex, fade]);
@@ -91,7 +113,12 @@ export function ProductGallery({ images, selectedColor, colorsList }: Props) {
 
   return (
     <View style={styles.wrap}>
-      <View style={[styles.pagerWrap, { width: pagerWidth, height: pagerWidth / 0.78 }]}>
+      <View
+        style={[
+          styles.pagerWrap,
+          { width: pagerWidth, height: pagerWidth / 0.78 },
+        ]}
+      >
         <FlatList
           ref={listRef}
           data={sorted}
@@ -103,7 +130,11 @@ export function ProductGallery({ images, selectedColor, colorsList }: Props) {
           snapToAlignment="start"
           decelerationRate="fast"
           bounces={false}
-          getItemLayout={(_, index) => ({ length: pagerWidth, offset: pagerWidth * index, index })}
+          getItemLayout={(_, index) => ({
+            length: pagerWidth,
+            offset: pagerWidth * index,
+            index,
+          })}
           onMomentumScrollEnd={(e) => {
             const idx = Math.round(e.nativeEvent.contentOffset.x / pagerWidth);
             setActiveIndex(idx);

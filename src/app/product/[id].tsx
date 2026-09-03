@@ -10,6 +10,7 @@ import { ProductGallery } from "@/features/products/components/ProductGallery";
 import { ColorSelector } from "@/features/products/components/ColorSelector";
 import { SizeSelector } from "@/features/products/components/SizeSelector";
 import { StockBadge } from "@/features/products/components/StockBadge";
+import { WishlistButton } from "@/features/wishlist/components/WishlistButton";
 import {
   getActiveVariants,
   getUniqueColors,
@@ -137,14 +138,19 @@ export default function ProductScreen() {
         <ProductGallery images={product.images} selectedColor={selectedColor} colorsList={colorsList} />
 
         <View style={{ gap: 8 }}>
-          <Text style={styles.name}>{product.name}</Text>
-          <View style={{ flexDirection: "row", alignItems: "baseline", gap: 8 }}>
-            <Text style={styles.price}>${Number(price ?? product.base_price).toFixed(0)}</Text>
-            {selectedVariant?.price != null && Number(selectedVariant.price) !== Number(product.base_price) ? (
-              <Text style={styles.basePrice}>${Number(product.base_price).toFixed(0)}</Text>
-            ) : null}
+          <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start", gap: 12 }}>
+            <View style={{ flex: 1, gap: 4 }}>
+              <Text style={styles.name}>{product.name}</Text>
+              <View style={{ flexDirection: "row", alignItems: "baseline", gap: 8 }}>
+                <Text style={styles.price}>${Number(price ?? product.base_price).toFixed(0)}</Text>
+                {selectedVariant?.price != null && Number(selectedVariant.price) !== Number(product.base_price) ? (
+                  <Text style={styles.basePrice}>${Number(product.base_price).toFixed(0)}</Text>
+                ) : null}
+              </View>
+              {product.category ? <Text style={styles.category}>{product.category.name}</Text> : null}
+            </View>
+            <WishlistButton productId={product.id} size={42} style={{ marginTop: 2 }} />
           </View>
-          {product.category ? <Text style={styles.category}>{product.category.name}</Text> : null}
           {product.description ? <Text style={styles.desc}>{product.description}</Text> : null}
         </View>
 
