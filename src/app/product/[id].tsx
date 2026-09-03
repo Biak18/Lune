@@ -17,6 +17,7 @@ import { ReviewCard } from "@/features/reviews/components/ReviewCard";
 import { ReviewForm } from "@/features/reviews/components/ReviewForm";
 import { useReviewsQuery, useReviewAvgQuery, useVerifiedPurchaseQuery, useCreateReview, useUpdateReview, useDeleteReview } from "@/features/reviews/hooks/useReviews";
 import { useAuthStore } from "@/stores/authStore";
+import { CompleteTheLook } from "@/features/outfit/components/CompleteTheLook";
 import {
   getActiveVariants,
   getUniqueColors,
@@ -310,6 +311,8 @@ export default function ProductScreen() {
             </>
           )}
         </View>
+
+        <CompleteTheLook product={product} />
       </ScrollView>
 
       <View style={styles.footer}>
