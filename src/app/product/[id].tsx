@@ -87,6 +87,22 @@ export default function ProductScreen() {
   const ctaDisabled = !isValid || (selectedVariant ? !isVariantInStock(selectedVariant) : true);
   const addToCart = useAddToCart();
 
+  // Reviews hooks must be before any early returns to keep hook order stable
+  const user = useAuthStore((s) => s.user);
+  const productIdForReviews = product?.id ?? id ?? "";
+  const { data: reviews, isLoading: reviewsLoading } = useReviewsQuery(productIdForReviews);
+  const { data: avgData } = useReviewAvgQuery(productIdForReviews);
+  const { data: verifiedData } = useVerifiedPurchaseQuery(productIdForReviews);
+  const createReview = useCreateReview(productIdForReviews);
+  const updateReview = useUpdateReview(productIdForReviews);
+  const deleteReview = useDeleteReview(productIdForReviews);
+  const [editingId, setEditingId] = useState<string | null>(null);
+
+  const avg = avgData?.avg ?? 0;
+  const count = avgData?.count ?? 0;
+  const myReview = reviews?.find((r) => r.user_id === user?.id) ?? null;
+  const isVerified = verifiedData?.verified ?? false;
+
   const handleAddToBag = async () => {
     if (!validation || !validation.ok || !selectedVariant) {
       try {
@@ -141,20 +157,6 @@ export default function ProductScreen() {
 
   const hasVariants = activeVariants.length > 0;
   const showVariantSection = hasVariants && (colorsList.length > 0 || sizesList.length > 0);
-
-  const user = useAuthStore((s) => s.user);
-  const { data: reviews, isLoading: reviewsLoading } = useReviewsQuery(product?.id ?? "");
-  const { data: avgData } = useReviewAvgQuery(product?.id ?? "");
-  const { data: verifiedData } = useVerifiedPurchaseQuery(product?.id ?? "");
-  const createReview = useCreateReview(product?.id ?? "");
-  const updateReview = useUpdateReview(product?.id ?? "");
-  const deleteReview = useDeleteReview(product?.id ?? "");
-  const [editingId, setEditingId] = useState<string | null>(null);
-
-  const avg = avgData?.avg ?? 0;
-  const count = avgData?.count ?? 0;
-  const myReview = reviews?.find((r) => r.user_id === user?.id) ?? null;
-  const isVerified = verifiedData?.verified ?? false;
 
   return (
     <View style={styles.root}>
