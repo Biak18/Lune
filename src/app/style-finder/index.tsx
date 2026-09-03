@@ -1,5 +1,5 @@
-import { useState, useMemo } from "react";
-import { View, Text, ScrollView, Pressable, StyleSheet } from "react-native";
+import { useState } from "react";
+import { View, Text, ScrollView, Pressable, StyleSheet, FlatList } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { router } from "expo-router";
 import { colors } from "@/design/colors";
@@ -137,13 +137,23 @@ export default function StyleFinderScreen() {
             </View>
 
             {isLoading ? (
-              <View style={styles.resultGrid}>
-                {[1, 2, 3, 4].map((i) => (
-                  <View key={i} style={{ flex: 1, minWidth: "47%", gap: 8 }}>
-                    <Skeleton style={{ aspectRatio: 0.78, borderRadius: radius.lg }} />
-                    <Skeleton style={{ height: 12, width: "70%" }} />
-                  </View>
-                ))}
+              <View style={{ gap: 12 }}>
+                <View style={{ flexDirection: "row", gap: 12 }}>
+                  {[1, 2].map((i) => (
+                    <View key={`s-${i}`} style={{ flex: 1, gap: 8 }}>
+                      <Skeleton style={{ aspectRatio: 0.78, borderRadius: radius.lg }} />
+                      <Skeleton style={{ height: 12, width: "70%" }} />
+                    </View>
+                  ))}
+                </View>
+                <View style={{ flexDirection: "row", gap: 12 }}>
+                  {[3, 4].map((i) => (
+                    <View key={`s-${i}`} style={{ flex: 1, gap: 8 }}>
+                      <Skeleton style={{ aspectRatio: 0.78, borderRadius: radius.lg }} />
+                      <Skeleton style={{ height: 12, width: "70%" }} />
+                    </View>
+                  ))}
+                </View>
               </View>
             ) : isError ? (
               <View style={styles.center}>
@@ -161,13 +171,19 @@ export default function StyleFinderScreen() {
             ) : (
               <>
                 <Text style={styles.resultCount}>{products.length} matches • Deterministic filter</Text>
-                <View style={styles.resultGrid}>
-                  {products.map((p) => (
-                    <View key={p.id} style={{ flex: 1, minWidth: "47%" }}>
-                      <ProductCard product={p} />
+                <FlatList
+                  data={products}
+                  keyExtractor={(p) => p.id}
+                  numColumns={2}
+                  scrollEnabled={false}
+                  columnWrapperStyle={{ gap: 12 }}
+                  contentContainerStyle={{ gap: 12 }}
+                  renderItem={({ item }) => (
+                    <View style={{ flex: 1 }}>
+                      <ProductCard product={item} />
                     </View>
-                  ))}
-                </View>
+                  )}
+                />
                 <Button title="Refine choices" variant="secondary" onPress={() => setStep(0)} />
               </>
             )}

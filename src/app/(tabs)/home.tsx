@@ -129,21 +129,6 @@ export default function HomeScreen() {
       </View>
 
       {/* Occasion — quiet pills */}
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Shop by occasion</Text>
-        <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
-          {[
-            { label: "Office", value: "office" },
-            { label: "Vacation", value: "vacation" },
-            { label: "Everyday", value: "everyday" },
-            { label: "Casual", value: "casual" },
-          ].map((o) => (
-            <Pressable key={o.value} onPress={() => router.push({ pathname: "/shop", params: { occasion: o.value } } as any)} style={styles.occChip} hitSlop={4}>
-              <Text style={styles.occText}>{o.label}</Text>
-            </Pressable>
-          ))}
-        </View>
-      </View>
 
       {recentProds && recentProds.length > 0 && (
         <RecommendationCarousel title="Recently viewed" subtitle="Pick up where you left off" products={recentProds} isLoading={loadingRecent} onSeeAll={() => router.push("/(tabs)/shop" as any)} />
