@@ -12,7 +12,6 @@ import { useRecentlyViewedProducts } from "@/features/recommendations/hooks/useR
 
 export default function HomeScreen() {
   const { data: categories, isLoading: catsLoading } = useCategoriesQuery();
-  const { data: newArrivals, isLoading: loadingNew } = useProductsQuery({ categorySlug: "new-arrivals", pageSize: 4, sort: "newest" });
   const { data: featured, isLoading: loadingFeat } = useProductsQuery({ style: "elegant", pageSize: 4 });
   const { data: recentProds, isLoading: loadingRecent } = useRecentlyViewedProducts();
 
@@ -65,36 +64,6 @@ export default function HomeScreen() {
               </Link>
             ))}
           </ScrollView>
-        )}
-      </View>
-
-      {/* New Arrivals */}
-      <View style={{ gap: 12 }}>
-        <View style={styles.sectionRow}>
-          <Text style={styles.sectionTitle}>New Arrivals</Text>
-          <Link href={"/shop" as any} asChild>
-            <Pressable>
-              <Text style={styles.seeAll}>See all</Text>
-            </Pressable>
-          </Link>
-        </View>
-        {loadingNew ? (
-          <View style={{ flexDirection: "row", gap: spacing.lg }}>
-            {[1, 2].map((i) => (
-              <View key={i} style={{ flex: 1, gap: 8 }}>
-                <Skeleton style={{ aspectRatio: 0.78, borderRadius: radius.lg }} />
-                <Skeleton style={{ height: 12, width: "60%" }} />
-              </View>
-            ))}
-          </View>
-        ) : (
-          <View style={{ flexDirection: "row", gap: spacing.lg }}>
-            {newArrivals?.data.slice(0, 2).map((p) => (
-              <View key={p.id} style={{ flex: 1 }}>
-                <ProductCard product={p} />
-              </View>
-            ))}
-          </View>
         )}
       </View>
 
