@@ -114,6 +114,18 @@ export default function HomeScreen() {
         )}
       </View>
 
+      {/* Style Finder */}
+      <View style={styles.finderCard}>
+        <View style={{ flex: 1, gap: 6 }}>
+          <Text style={styles.finderEyebrow}>Style Finder</Text>
+          <Text style={styles.finderTitle}>Find your match</Text>
+          <Text style={styles.finderDesc}>Occasion → Style → Curated picks (no AI, just metadata)</Text>
+        </View>
+        <Pressable style={styles.finderBtn} onPress={() => router.push("/style-finder" as any)}>
+          <Text style={styles.finderBtnText}>Try it</Text>
+        </Pressable>
+      </View>
+
       {/* Shop by Occasion */}
       <View style={{ gap: 12 }}>
         <Text style={styles.sectionTitle}>Shop by Occasion</Text>
@@ -255,5 +267,48 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: "700",
     color: colors.foreground,
+  },
+  finderCard: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+    padding: 16,
+    borderRadius: radius.lg,
+    backgroundColor: colors.surface,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  finderEyebrow: {
+    fontSize: 10,
+    fontWeight: "800",
+    letterSpacing: 0.8,
+    textTransform: "uppercase",
+    color: colors.clay,
+  },
+  finderTitle: {
+    fontSize: 16,
+    fontWeight: "700",
+    color: colors.foreground,
+    letterSpacing: -0.3,
+  },
+  finderDesc: {
+    fontSize: 11,
+    color: colors.muted,
+    lineHeight: 14,
+  },
+  finderBtn: {
+    paddingHorizontal: 16,
+    height: 36,
+    borderRadius: 999,
+    backgroundColor: colors.foreground,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  finderBtnText: {
+    fontSize: 11,
+    fontWeight: "800",
+    letterSpacing: 0.7,
+    textTransform: "uppercase",
+    color: colors.surface,
   },
 });

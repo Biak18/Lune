@@ -29,6 +29,7 @@ export default function RootLayout() {
               <Stack.Screen name="checkout/success" options={{ headerShown: false }} />
               <Stack.Screen name="orders/index" options={{ headerShown: false }} />
               <Stack.Screen name="orders/[id]" options={{ headerShown: false }} />
+              <Stack.Screen name="style-finder/index" options={{ headerShown: false }} />
             </Stack>
           </AuthProvider>
         </QueryProvider>
