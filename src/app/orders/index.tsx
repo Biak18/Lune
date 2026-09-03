@@ -1,5 +1,4 @@
-import { View, Text, StyleSheet, Pressable } from "react-native";
-import { FlashList } from "@shopify/flash-list";
+import { View, Text, StyleSheet, Pressable, FlatList } from "react-native";
 import { router } from "expo-router";
 import { useOrdersQuery } from "@/features/orders/hooks/useOrders";
 import { OrderCard } from "@/features/orders/components/OrderCard";
@@ -78,15 +77,13 @@ export default function OrdersScreen() {
         <Text style={styles.heading}>Orders</Text>
         <Text style={styles.count}>{list.length} orders</Text>
       </View>
-      <View style={{ flex: 1 }}>
-        <FlashList
-          data={list}
-          keyExtractor={(o) => o.id}
-          contentContainerStyle={{ padding: spacing.xl, paddingBottom: 32 }}
-          ItemSeparatorComponent={() => <View style={{ height: 12 }} />}
-          renderItem={({ item }) => <OrderCard order={item} onPress={() => router.push(`/orders/${item.id}` as any)} />}
-        />
-      </View>
+      <FlatList
+        data={list}
+        keyExtractor={(o) => o.id}
+        style={{ flex: 1 }}
+        contentContainerStyle={{ padding: spacing.xl, gap: 12, paddingBottom: 32 }}
+        renderItem={({ item }) => <OrderCard order={item} onPress={() => router.push(`/orders/${item.id}` as any)} />}
+      />
     </View>
   );
 }
