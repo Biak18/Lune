@@ -1,14 +1,16 @@
-import { useState } from "react";
-import { View, Text, Pressable, StyleSheet } from "react-native";
-import { router } from "expo-router";
+import { Screen } from "@/components/ui/Screen";
 import { colors } from "@/design/colors";
 import { spacing } from "@/design/spacing";
-import { useCategoriesQuery, useProductsInfiniteQuery } from "@/features/products/hooks/useProducts";
-import { ProductGrid } from "@/features/products/components/ProductGrid";
 import { CategoryChips } from "@/features/products/components/CategoryChips";
-import { SearchInput } from "@/features/products/components/SearchInput";
 import { FilterSheet } from "@/features/products/components/FilterSheet";
-import { Button } from "@/components/ui/Button";
+import { ProductGrid } from "@/features/products/components/ProductGrid";
+import { SearchInput } from "@/features/products/components/SearchInput";
+import {
+  useCategoriesQuery,
+  useProductsInfiniteQuery,
+} from "@/features/products/hooks/useProducts";
+import { useState } from "react";
+import { Pressable, StyleSheet, Text, View } from "react-native";
 
 export default function ShopScreen() {
   const [search, setSearch] = useState("");
@@ -18,7 +20,9 @@ export default function ShopScreen() {
   const [occasionFilter, setOccasionFilter] = useState<string | null>(null);
   const [pendingSort, setPendingSort] = useState(sort);
   const [pendingStyle, setPendingStyle] = useState<string | null>(styleFilter);
-  const [pendingOccasion, setPendingOccasion] = useState<string | null>(occasionFilter);
+  const [pendingOccasion, setPendingOccasion] = useState<string | null>(
+    occasionFilter,
+  );
   const [filterVisible, setFilterVisible] = useState(false);
 
   const { data: categories, isLoading: catsLoading } = useCategoriesQuery();
@@ -31,7 +35,7 @@ export default function ShopScreen() {
       occasion: occasionFilter ?? undefined,
       sort: sort as any,
     },
-    10
+    10,
   );
 
   const products = query.data?.pages.flatMap((p) => p.data) ?? [];
@@ -61,7 +65,7 @@ export default function ShopScreen() {
   };
 
   return (
-    <View style={styles.root}>
+    <Screen>
       <View style={styles.header}>
         <Text style={styles.title}>Shop</Text>
         <Pressable onPress={openFilter} style={styles.filterBtn}>
@@ -69,16 +73,34 @@ export default function ShopScreen() {
         </Pressable>
       </View>
 
-      <View style={{ paddingHorizontal: spacing.xl, gap: 12, paddingBottom: 12 }}>
-        <SearchInput value={search} onChangeText={setSearch} onClear={() => setSearch("")} onSubmit={() => query.refetch()} />
-        <CategoryChips categories={categories ?? []} selectedId={categoryId} onSelect={setCategoryId} isLoading={catsLoading} />
+      <View
+        style={{ paddingHorizontal: spacing.xl, gap: 12, paddingBottom: 12 }}
+      >
+        <SearchInput
+          value={search}
+          onChangeText={setSearch}
+          onClear={() => setSearch("")}
+          onSubmit={() => query.refetch()}
+        />
+        <CategoryChips
+          categories={categories ?? []}
+          selectedId={categoryId}
+          onSelect={setCategoryId}
+          isLoading={catsLoading}
+        />
         {(styleFilter || occasionFilter || sort !== "recommended") && (
           <View style={{ flexDirection: "row", gap: 8, flexWrap: "wrap" }}>
             {styleFilter ? (
               <Text style={styles.activeFilter}>Style: {styleFilter}</Text>
             ) : null}
-            {occasionFilter ? <Text style={styles.activeFilter}>Occasion: {occasionFilter}</Text> : null}
-            {sort !== "recommended" ? <Text style={styles.activeFilter}>Sort: {sort}</Text> : null}
+            {occasionFilter ? (
+              <Text style={styles.activeFilter}>
+                Occasion: {occasionFilter}
+              </Text>
+            ) : null}
+            {sort !== "recommended" ? (
+              <Text style={styles.activeFilter}>Sort: {sort}</Text>
+            ) : null}
           </View>
         )}
       </View>
@@ -88,10 +110,13 @@ export default function ShopScreen() {
           products={products}
           isLoading={query.isLoading}
           isError={query.isError}
-          errorMessage={query.error ? String((query.error as Error).message) : undefined}
+          errorMessage={
+            query.error ? String((query.error as Error).message) : undefined
+          }
           onRetry={() => query.refetch()}
           onEndReached={() => {
-            if (query.hasNextPage && !query.isFetchingNextPage) query.fetchNextPage();
+            if (query.hasNextPage && !query.isFetchingNextPage)
+              query.fetchNextPage();
           }}
           isFetchingNextPage={query.isFetchingNextPage}
         />
@@ -109,7 +134,7 @@ export default function ShopScreen() {
         onApply={handleApply}
         onClear={handleClear}
       />
-    </View>
+    </Screen>
   );
 }
 

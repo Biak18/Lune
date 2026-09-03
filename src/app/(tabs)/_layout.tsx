@@ -1,6 +1,6 @@
-import { Tabs } from "expo-router";
-import { Ionicons } from "@expo/vector-icons";
 import { colors } from "@/design/colors";
+import { Ionicons } from "@expo/vector-icons";
+import { Tabs } from "expo-router";
 
 export default function TabsLayout() {
   return (
@@ -28,7 +28,11 @@ export default function TabsLayout() {
         options={{
           title: "Home",
           tabBarIcon: ({ focused, color, size }) => (
-            <Ionicons name={focused ? "home" : "home-outline"} size={size} color={color} />
+            <Ionicons
+              name={focused ? "home" : "home-outline"}
+              size={size}
+              color={color}
+            />
           ),
         }}
       />
@@ -37,7 +41,11 @@ export default function TabsLayout() {
         options={{
           title: "Shop",
           tabBarIcon: ({ focused, color, size }) => (
-            <Ionicons name={focused ? "storefront" : "storefront-outline"} size={size} color={color} />
+            <Ionicons
+              name={focused ? "cart" : "cart-outline"}
+              size={size}
+              color={color}
+            />
           ),
         }}
       />
@@ -46,7 +54,11 @@ export default function TabsLayout() {
         options={{
           title: "Wishlist",
           tabBarIcon: ({ focused, color, size }) => (
-            <Ionicons name={focused ? "heart" : "heart-outline"} size={size} color={color} />
+            <Ionicons
+              name={focused ? "heart" : "heart-outline"}
+              size={size}
+              color={color}
+            />
           ),
         }}
       />
@@ -55,7 +67,11 @@ export default function TabsLayout() {
         options={{
           title: "Cart",
           tabBarIcon: ({ focused, color, size }) => (
-            <Ionicons name={focused ? "bag" : "bag-outline"} size={size} color={color} />
+            <Ionicons
+              name={focused ? "bag" : "bag-outline"}
+              size={size}
+              color={color}
+            />
           ),
         }}
       />
@@ -64,7 +80,11 @@ export default function TabsLayout() {
         options={{
           title: "Profile",
           tabBarIcon: ({ focused, color, size }) => (
-            <Ionicons name={focused ? "person" : "person-outline"} size={size} color={color} />
+            <Ionicons
+              name={focused ? "person" : "person-outline"}
+              size={size}
+              color={color}
+            />
           ),
         }}
       />
