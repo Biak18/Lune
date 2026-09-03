@@ -1,4 +1,5 @@
 import { View, Text, Pressable, StyleSheet } from "react-native";
+import * as Haptics from "expo-haptics";
 import { colors } from "@/design/colors";
 import type { Variant } from "../types";
 import { isSizeAvailable } from "../utils/variant";
@@ -25,7 +26,13 @@ export function SizeSelector({ sizes, selectedSize, onSelect, variants, selected
           return (
             <Pressable
               key={s}
-              onPress={() => !disabled && onSelect(s)}
+              onPress={async () => {
+                if (disabled) return;
+                try {
+                  await Haptics.selectionAsync();
+                } catch {}
+                onSelect(s);
+              }}
               disabled={disabled}
               accessibilityRole="radio"
               accessibilityState={{ selected: active, disabled }}

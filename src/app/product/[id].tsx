@@ -1,6 +1,7 @@
 import { useLocalSearchParams, router } from "expo-router";
 import { View, Text, ScrollView, Pressable, StyleSheet, ActivityIndicator } from "react-native";
 import { useState, useMemo } from "react";
+import * as Haptics from "expo-haptics";
 import { colors } from "@/design/colors";
 import { spacing } from "@/design/spacing";
 import { useProductQuery } from "@/features/products/hooks/useProducts";
@@ -78,10 +79,17 @@ export default function ProductScreen() {
 
   const ctaDisabled = !isValid || (selectedVariant ? !isVariantInStock(selectedVariant) : true);
 
-  const handleAddToBag = () => {
-    if (!validation || !validation.ok) return;
-    // Phase 6 (cart) will handle actual mutation. For Phase 4 we validate.
-    // Placeholder: could show haptics / toast. Keep no-op with validation guard.
+  const handleAddToBag = async () => {
+    if (!validation || !validation.ok) {
+      try {
+        await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
+      } catch {}
+      return;
+    }
+    try {
+      await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    } catch {}
+    // Phase 6 (cart) will handle actual mutation. Haptics confirms valid selection for now.
   };
 
   if (isLoading) {

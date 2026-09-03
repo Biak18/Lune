@@ -1,4 +1,5 @@
 import { View, Text, Pressable, StyleSheet } from "react-native";
+import * as Haptics from "expo-haptics";
 import { colors } from "@/design/colors";
 import type { Variant } from "../types";
 import { isColorAvailable } from "../utils/variant";
@@ -25,7 +26,13 @@ export function ColorSelector({ colorsList, selectedColor, onSelect, variants, s
           return (
             <Pressable
               key={c}
-              onPress={() => !disabled && onSelect(c)}
+              onPress={async () => {
+                if (disabled) return;
+                try {
+                  await Haptics.selectionAsync();
+                } catch {}
+                onSelect(c);
+              }}
               disabled={disabled}
               accessibilityRole="radio"
               accessibilityState={{ selected: active, disabled }}
