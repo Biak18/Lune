@@ -1,4 +1,3 @@
-/* eslint-disable react-hooks/purity */
 import { Button } from "@/components/ui/Button";
 import { colors } from "@/design/colors";
 import { radius, spacing } from "@/design/spacing";
@@ -16,6 +15,11 @@ import {
   View,
 } from "react-native";
 import { KeyboardAvoidingView } from "react-native-keyboard-controller";
+// ASSUMPTION: adjust this import to wherever your Supabase client actually
+// lives (I couldn't confirm the path — GitHub wasn't reachable from here).
+// It just needs to be a configured `createClient(...)` instance so
+// `.functions.invoke()` carries your project's auth headers automatically.
+import { supabase } from "@/lib/supabase";
 
 type Msg = {
   id: string;
@@ -36,12 +40,52 @@ const OCCASIONS = [
 const STYLES = ["minimal", "elegant", "casual", "bold", "romantic"];
 const COLORS = ["Black", "White", "Navy", "Beige", "Olive", "Gray"];
 
-function parseFreeText(input: string) {
+function parseFreeTextLocal(input: string) {
   const low = input.toLowerCase();
   const occ = OCCASIONS.find((o) => low.includes(o));
   const sty = STYLES.find((s) => low.includes(s));
   const col = COLORS.find((c) => low.includes(c.toLowerCase()));
   return { occ, sty, col };
+}
+
+type ParsedIntent = {
+  occasion: string | null;
+  style: string | null;
+  color: string | null;
+};
+
+/**
+ * Calls the `parse-shopping-intent` Supabase Edge Function (Gemini Flash,
+ * server-side key) to extract occasion/style/color from free text.
+ * Falls back to the local keyword matcher on any failure — timeout, network
+ * error, free-tier rate limit (Gemini 429 surfaces as a 502 from the
+ * function), or a malformed response. The chat should never hang or dead-end
+ * just because the AI call didn't come back.
+ */
+async function parseFreeTextViaAI(
+  input: string,
+): Promise<{ occ?: string; sty?: string; col?: string }> {
+  try {
+    const { data, error } = await supabase.functions.invoke<ParsedIntent>(
+      "parse-shopping-intent",
+      {
+        body: { text: input },
+      },
+    );
+    if (error || !data) throw error ?? new Error("Empty response");
+    return {
+      occ: data.occasion ?? undefined,
+      sty: data.style ?? undefined,
+      col: data.color ?? undefined,
+    };
+  } catch (err) {
+    console.warn(
+      "parse-shopping-intent failed, falling back to local parsing",
+      err,
+    );
+    const local = parseFreeTextLocal(input);
+    return { occ: local.occ, sty: local.sty, col: local.col };
+  }
 }
 
 export default function AssistantScreen() {
@@ -148,42 +192,43 @@ export default function AssistantScreen() {
     );
   };
 
+  const [isParsing, setIsParsing] = useState(false);
+
   const handleSend = async () => {
     const trimmed = input.trim();
     if (!trimmed) return;
-    const { occ, sty, col } = parseFreeText(trimmed);
     push({ id: `u-${Date.now()}`, role: "user", text: trimmed });
     setInput("");
+    try {
+      await Haptics.selectionAsync();
+    } catch {}
+
+    // Unlike the old synchronous local parse, this now hits the network —
+    // show a typing indicator so the UI doesn't look stalled while waiting
+    // on the edge function / Gemini round trip.
+    setIsParsing(true);
+    const { occ, sty, col } = await parseFreeTextViaAI(trimmed);
+    setIsParsing(false);
+
     if (occ) setOccasion(occ);
     if (sty) setStyle(sty);
     if (col) setColorPref(col);
     if (occ && sty) {
       setStep(3);
-      setTimeout(
-        () =>
-          push({
-            id: `a-${Date.now()}`,
-            role: "assistant",
-            text: `Got it — ${occ} • ${sty}${col ? ` • ${col}` : ""}. Here are my picks.`,
-            products: true,
-          }),
-        300,
-      );
+      push({
+        id: `a-${Date.now()}`,
+        role: "assistant",
+        text: `Got it — ${occ} • ${sty}${col ? ` • ${col}` : ""}. Here are my picks.`,
+        products: true,
+      });
     } else {
-      setTimeout(
-        () =>
-          push({
-            id: `a-${Date.now()}`,
-            role: "assistant",
-            text: "Tell me occasion (everyday/office/vacation/party) and style (minimal/elegant/casual/bold). Try chips below.",
-            chips: OCCASIONS,
-          }),
-        300,
-      );
+      push({
+        id: `a-${Date.now()}`,
+        role: "assistant",
+        text: "Tell me occasion (everyday/office/vacation/party) and style (minimal/elegant/casual/bold). Try chips below.",
+        chips: OCCASIONS,
+      });
     }
-    try {
-      await Haptics.selectionAsync();
-    } catch {}
   };
 
   const handleReset = async () => {
@@ -334,6 +379,15 @@ export default function AssistantScreen() {
               )}
             </View>
           ))}
+          {isParsing && (
+            <View style={[styles.bubbleRow, styles.rowAssistant]}>
+              <View style={[styles.bubble, styles.bubbleAssistant]}>
+                <Text style={[styles.bubbleText, styles.bubbleTextAssistant]}>
+                  Thinking…
+                </Text>
+              </View>
+            </View>
+          )}
         </ScrollView>
 
         <View style={styles.inputRow}>
@@ -345,11 +399,13 @@ export default function AssistantScreen() {
             style={styles.input}
             onSubmitEditing={handleSend}
             returnKeyType="send"
+            editable={!isParsing}
             accessibilityLabel="Ask assistant"
           />
           <Pressable
             onPress={handleSend}
-            style={styles.send}
+            disabled={isParsing}
+            style={[styles.send, isParsing && styles.sendDisabled]}
             accessibilityRole="button"
             accessibilityLabel="Send"
           >
@@ -517,6 +573,9 @@ const styles = StyleSheet.create({
     backgroundColor: colors.foreground,
     alignItems: "center",
     justifyContent: "center",
+  },
+  sendDisabled: {
+    opacity: 0.5,
   },
   sendText: {
     fontSize: 11,
