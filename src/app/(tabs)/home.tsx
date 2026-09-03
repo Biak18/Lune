@@ -7,11 +7,14 @@ import { useCategoriesQuery, useProductsQuery } from "@/features/products/hooks/
 import { ProductCard } from "@/features/products/components/ProductCard";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { NotificationBell } from "@/features/notifications/components/NotificationBell";
+import { RecommendationCarousel } from "@/features/recommendations/components/RecommendationCarousel";
+import { useRecentlyViewedProducts } from "@/features/recommendations/hooks/useRecommendations";
 
 export default function HomeScreen() {
   const { data: categories, isLoading: catsLoading } = useCategoriesQuery();
   const { data: newArrivals, isLoading: loadingNew } = useProductsQuery({ categorySlug: "new-arrivals", pageSize: 4, sort: "newest" });
   const { data: featured, isLoading: loadingFeat } = useProductsQuery({ style: "elegant", pageSize: 4 });
+  const { data: recentProds, isLoading: loadingRecent } = useRecentlyViewedProducts();
 
   return (
     <ScrollView style={styles.root} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
@@ -145,6 +148,16 @@ export default function HomeScreen() {
           ))}
         </View>
       </View>
+
+      {recentProds && recentProds.length > 0 && (
+        <RecommendationCarousel
+          title="Recently viewed"
+          subtitle="Pick up where you left off"
+          products={recentProds}
+          isLoading={loadingRecent}
+          onSeeAll={() => router.push("/(tabs)/shop" as any)}
+        />
+      )}
     </ScrollView>
   );
 }

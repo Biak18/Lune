@@ -1,6 +1,6 @@
 import { useLocalSearchParams, router } from "expo-router";
 import { View, Text, ScrollView, Pressable, StyleSheet, ActivityIndicator } from "react-native";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import * as Haptics from "expo-haptics";
 import { colors } from "@/design/colors";
 import { spacing } from "@/design/spacing";
@@ -18,6 +18,9 @@ import { ReviewForm } from "@/features/reviews/components/ReviewForm";
 import { useReviewsQuery, useReviewAvgQuery, useVerifiedPurchaseQuery, useCreateReview, useUpdateReview, useDeleteReview } from "@/features/reviews/hooks/useReviews";
 import { useAuthStore } from "@/stores/authStore";
 import { CompleteTheLook } from "@/features/outfit/components/CompleteTheLook";
+import { RecommendationCarousel } from "@/features/recommendations/components/RecommendationCarousel";
+import { useSimilarProducts, useOccasionRecommendations, useRecentlyViewedProducts } from "@/features/recommendations/hooks/useRecommendations";
+import { useRecentlyViewedStore } from "@/stores/recentlyViewedStore";
 import {
   getActiveVariants,
   getUniqueColors,
@@ -103,6 +106,16 @@ export default function ProductScreen() {
   const count = avgData?.count ?? 0;
   const myReview = reviews?.find((r) => r.user_id === user?.id) ?? null;
   const isVerified = verifiedData?.verified ?? false;
+
+  // Recommendations
+  const addRecent = useRecentlyViewedStore((s) => s.add);
+  const { data: similar, isLoading: similarLoading } = useSimilarProducts(product ?? null);
+  const { data: occasionRecs, isLoading: occLoading } = useOccasionRecommendations(product?.occasion ?? null, product?.id);
+  const { data: recentProds, isLoading: recentLoading } = useRecentlyViewedProducts(product?.id);
+
+  useEffect(() => {
+    if (product?.id) addRecent(product.id);
+  }, [product?.id, addRecent]);
 
   const handleAddToBag = async () => {
     if (!validation || !validation.ok || !selectedVariant) {
@@ -313,6 +326,20 @@ export default function ProductScreen() {
         </View>
 
         <CompleteTheLook product={product} />
+
+        <RecommendationCarousel
+          title="Similar in category"
+          subtitle={product.category ? `More from ${product.category.name}` : undefined}
+          products={similar ?? []}
+          isLoading={similarLoading}
+        />
+        <RecommendationCarousel
+          title={`More for ${product.occasion ?? "everyday"}`}
+          subtitle="Occasion-based picks"
+          products={occasionRecs ?? []}
+          isLoading={occLoading}
+        />
+        <RecommendationCarousel title="Recently viewed" products={recentProds ?? []} isLoading={recentLoading} emptyText={undefined} />
       </ScrollView>
 
       <View style={styles.footer}>
