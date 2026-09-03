@@ -134,7 +134,7 @@ export default function ProductScreen() {
           <Text style={styles.backText}>← Back</Text>
         </Pressable>
 
-        <ProductGallery images={product.images} />
+        <ProductGallery images={product.images} selectedColor={selectedColor} colorsList={colorsList} />
 
         <View style={{ gap: 8 }}>
           <Text style={styles.name}>{product.name}</Text>
