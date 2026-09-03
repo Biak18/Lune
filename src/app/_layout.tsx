@@ -25,6 +25,8 @@ export default function RootLayout() {
               <Stack.Screen name="product/[id]" />
               <Stack.Screen name="category/[id]" />
               <Stack.Screen name="search" />
+              <Stack.Screen name="checkout/index" options={{ headerShown: false }} />
+              <Stack.Screen name="checkout/success" options={{ headerShown: false }} />
             </Stack>
           </AuthProvider>
         </QueryProvider>
