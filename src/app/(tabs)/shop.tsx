@@ -65,7 +65,12 @@ export default function ShopScreen() {
   };
 
   return (
-    <Screen>
+    <Screen
+      scrollable={false}
+      contentStyle={styles.root}
+      padded={false}
+      centered={false}
+    >
       <View style={styles.header}>
         <Text style={styles.title}>Shop</Text>
         <Pressable onPress={openFilter} style={styles.filterBtn}>

@@ -1,36 +1,88 @@
 import { useLocalSearchParams, router } from "expo-router";
 import { View, Text, ScrollView, Pressable, StyleSheet, ActivityIndicator } from "react-native";
-import { Image } from "expo-image";
 import { useState, useMemo } from "react";
 import { colors } from "@/design/colors";
-import { spacing, radius } from "@/design/spacing";
+import { spacing } from "@/design/spacing";
 import { useProductQuery } from "@/features/products/hooks/useProducts";
 import { Button } from "@/components/ui/Button";
+import { ProductGallery } from "@/features/products/components/ProductGallery";
+import { ColorSelector } from "@/features/products/components/ColorSelector";
+import { SizeSelector } from "@/features/products/components/SizeSelector";
+import { StockBadge } from "@/features/products/components/StockBadge";
+import {
+  getActiveVariants,
+  getUniqueColors,
+  getUniqueSizes,
+  findVariant,
+  resolveVariantPrice,
+  validateVariantSelection,
+  validationMessage,
+  isVariantInStock,
+} from "@/features/products/utils/variant";
 
 export default function ProductScreen() {
-  const { id } = useLocalSearchParams<{ id: string }>();
-  const { data: product, isLoading, isError, error } = useProductQuery(id);
+  const params = useLocalSearchParams<{ id: string }>();
+  const id = Array.isArray(params.id) ? params.id[0] : params.id;
+  const { data: product, isLoading, isError, error, refetch } = useProductQuery(id ?? "");
+
   const [selectedColor, setSelectedColor] = useState<string | null>(null);
   const [selectedSize, setSelectedSize] = useState<string | null>(null);
 
-  const colorsList = useMemo(() => {
+  const activeVariants = useMemo(() => {
     if (!product) return [];
-    const s = new Set(product.variants.map((v) => v.color).filter(Boolean) as string[]);
-    return Array.from(s);
+    return getActiveVariants(product);
   }, [product]);
-  const sizesList = useMemo(() => {
-    if (!product) return [];
-    const s = new Set(product.variants.map((v) => v.size).filter(Boolean) as string[]);
-    return Array.from(s);
-  }, [product]);
+
+  const colorsList = useMemo(() => getUniqueColors(activeVariants), [activeVariants]);
+  const sizesList = useMemo(() => getUniqueSizes(activeVariants), [activeVariants]);
 
   const selectedVariant = useMemo(() => {
     if (!product) return null;
-    return product.variants.find((v) => v.color === selectedColor && v.size === selectedSize) ?? null;
-  }, [product, selectedColor, selectedSize]);
+    // Use active variants for lookup; inactive should not be purchasable
+    return findVariant(activeVariants, selectedColor, selectedSize);
+  }, [product, activeVariants, selectedColor, selectedSize]);
 
-  const isOutOfStock = selectedVariant ? selectedVariant.stock_quantity <= 0 : false;
-  const primaryImage = product?.images.find((i) => i.is_primary) ?? product?.images[0];
+  const validation = useMemo(() => {
+    if (!product) return null;
+    // If product has no variants at all (edge case), treat as unavailable
+    if (activeVariants.length === 0) return { ok: false as const, reason: "unavailable" as const };
+    return validateVariantSelection(product, selectedColor, selectedSize);
+  }, [product, activeVariants, selectedColor, selectedSize]);
+
+  const isValid = validation?.ok === true;
+  const price = useMemo(() => {
+    if (!product) return null;
+    return resolveVariantPrice(product, selectedVariant);
+  }, [product, selectedVariant]);
+
+  const ctaTitle = useMemo(() => {
+    if (!product) return "Add to bag";
+    if (activeVariants.length === 0) return "Unavailable";
+    if (!validation) return "Select options";
+    if (validation.ok) return "Add to bag";
+    switch (validation.reason) {
+      case "select_color":
+        return "Select color";
+      case "select_size":
+        return "Select size";
+      case "select_variant":
+        return "Select options";
+      case "out_of_stock":
+        return "Out of stock";
+      case "unavailable":
+        return selectedColor && selectedSize ? "Unavailable" : "Select size & color";
+      default:
+        return "Select options";
+    }
+  }, [product, activeVariants.length, validation, selectedColor, selectedSize]);
+
+  const ctaDisabled = !isValid || (selectedVariant ? !isVariantInStock(selectedVariant) : true);
+
+  const handleAddToBag = () => {
+    if (!validation || !validation.ok) return;
+    // Phase 6 (cart) will handle actual mutation. For Phase 4 we validate.
+    // Placeholder: could show haptics / toast. Keep no-op with validation guard.
+  };
 
   if (isLoading) {
     return (
@@ -44,6 +96,9 @@ export default function ProductScreen() {
       <View style={styles.center}>
         <Text style={styles.errorTitle}>We couldn&apos;t load this dress.</Text>
         <Text style={styles.errorSub}>{String((error as Error)?.message ?? "Try again")}</Text>
+        <Pressable onPress={() => refetch()} style={styles.retryBtn}>
+          <Text style={styles.retryText}>Retry</Text>
+        </Pressable>
         <Pressable onPress={() => router.back()}>
           <Text style={styles.link}>Go back</Text>
         </Pressable>
@@ -61,85 +116,72 @@ export default function ProductScreen() {
     );
   }
 
+  const hasVariants = activeVariants.length > 0;
+  const showVariantSection = hasVariants && (colorsList.length > 0 || sizesList.length > 0);
+
   return (
     <View style={styles.root}>
       <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
-        <Pressable onPress={() => router.back()} style={styles.back}>
+        <Pressable onPress={() => router.back()} style={styles.back} accessibilityRole="button" accessibilityLabel="Go back">
           <Text style={styles.backText}>← Back</Text>
         </Pressable>
 
-        <View style={styles.gallery}>
-          <Image source={{ uri: primaryImage?.image_url ?? "https://picsum.photos/600/800" }} style={styles.mainImage} contentFit="cover" />
-          {product.images.length > 1 && (
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8, paddingTop: 8 }}>
-              {product.images.map((img) => (
-                <Image key={img.id} source={{ uri: img.image_url }} style={styles.thumb} contentFit="cover" />
-              ))}
-            </ScrollView>
-          )}
-        </View>
+        <ProductGallery images={product.images} />
 
         <View style={{ gap: 8 }}>
           <Text style={styles.name}>{product.name}</Text>
-          <Text style={styles.price}>${Number(product.base_price).toFixed(0)}</Text>
+          <View style={{ flexDirection: "row", alignItems: "baseline", gap: 8 }}>
+            <Text style={styles.price}>${Number(price ?? product.base_price).toFixed(0)}</Text>
+            {selectedVariant?.price != null && Number(selectedVariant.price) !== Number(product.base_price) ? (
+              <Text style={styles.basePrice}>${Number(product.base_price).toFixed(0)}</Text>
+            ) : null}
+          </View>
           {product.category ? <Text style={styles.category}>{product.category.name}</Text> : null}
           {product.description ? <Text style={styles.desc}>{product.description}</Text> : null}
         </View>
 
-        {/* Color selector */}
-        {colorsList.length > 0 && (
-          <View style={{ gap: 8 }}>
-            <Text style={styles.label}>Color {selectedColor ? `— ${selectedColor}` : ""}</Text>
-            <View style={{ flexDirection: "row", gap: 8, flexWrap: "wrap" }}>
-              {colorsList.map((c) => {
-                const active = selectedColor === c;
-                return (
-                  <Pressable key={c} onPress={() => setSelectedColor(c)} style={[styles.chip, active && styles.chipActive]}>
-                    <Text style={[styles.chipText, active && styles.chipTextActive]}>{c}</Text>
-                  </Pressable>
-                );
-              })}
-            </View>
+        {!hasVariants ? (
+          <View style={styles.notice}>
+            <Text style={styles.noticeText}>This item is currently unavailable.</Text>
           </View>
-        )}
-
-        {/* Size selector */}
-        {sizesList.length > 0 && (
-          <View style={{ gap: 8 }}>
-            <Text style={styles.label}>Size {selectedSize ? `— ${selectedSize}` : ""}</Text>
-            <View style={{ flexDirection: "row", gap: 8, flexWrap: "wrap" }}>
-              {sizesList.map((s) => {
-                const active = selectedSize === s;
-                // Check if variant for this size+color combo exists and in stock
-                const variantForSize = product.variants.find((v) => v.size === s && (selectedColor ? v.color === selectedColor : true));
-                const disabled = !variantForSize || variantForSize.stock_quantity <= 0;
-                return (
-                  <Pressable
-                    key={s}
-                    onPress={() => !disabled && setSelectedSize(s)}
-                    style={[styles.sizeChip, active && styles.chipActive, disabled && styles.chipDisabled]}
-                  >
-                    <Text style={[styles.chipText, active && styles.chipTextActive, disabled && styles.chipTextDisabled]}>{s}</Text>
-                  </Pressable>
-                );
-              })}
+        ) : showVariantSection ? (
+          <>
+            <ColorSelector
+              colorsList={colorsList}
+              selectedColor={selectedColor}
+              onSelect={setSelectedColor}
+              variants={activeVariants}
+              selectedSize={selectedSize}
+            />
+            <SizeSelector
+              sizes={sizesList}
+              selectedSize={selectedSize}
+              onSelect={setSelectedSize}
+              variants={activeVariants}
+              selectedColor={selectedColor}
+            />
+            {/* Stock + variant summary */}
+            <View style={styles.stockWrap}>
+              {selectedColor || selectedSize ? (
+                <StockBadge variant={selectedVariant} />
+              ) : (
+                <Text style={styles.stockHint}>Choose a color and size to see availability</Text>
+              )}
+              {!isValid && validation && validation.reason !== "select_color" && validation.reason !== "select_size" && selectedColor && selectedSize ? (
+                <Text style={styles.validation}>{validationMessage(validation.reason)}</Text>
+              ) : null}
             </View>
-          </View>
-        )}
-
-        {selectedVariant && (
-          <Text style={[styles.stock, isOutOfStock && styles.oos]}>
-            {isOutOfStock ? "Out of stock" : `${selectedVariant.stock_quantity} in stock • SKU ${selectedVariant.sku}`}
-          </Text>
-        )}
+          </>
+        ) : null}
       </ScrollView>
 
       <View style={styles.footer}>
-        <Button
-          title={isOutOfStock ? "Out of stock" : selectedVariant ? "Add to bag" : "Select size & color"}
-          disabled={!selectedVariant || isOutOfStock}
-          onPress={() => {}}
-        />
+        <View style={{ gap: 6 }}>
+          <Button title={ctaTitle} disabled={ctaDisabled} onPress={handleAddToBag} accessibilityLabel={ctaTitle} />
+          {!isValid && hasVariants && selectedColor && selectedSize && validation && !validation.ok ? (
+            <Text style={styles.footerHint}>{validationMessage(validation.reason)}</Text>
+          ) : null}
+        </View>
       </View>
     </View>
   );
@@ -172,6 +214,22 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: colors.muted,
   },
+  retryBtn: {
+    marginTop: 8,
+    height: 36,
+    paddingHorizontal: 16,
+    borderRadius: 999,
+    backgroundColor: colors.foreground,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  retryText: {
+    fontSize: 11,
+    fontWeight: "800",
+    letterSpacing: 0.7,
+    textTransform: "uppercase",
+    color: colors.surface,
+  },
   link: {
     fontSize: 13,
     fontWeight: "700",
@@ -190,21 +248,6 @@ const styles = StyleSheet.create({
     textTransform: "uppercase",
     color: colors.foreground,
   },
-  gallery: {
-    gap: 8,
-  },
-  mainImage: {
-    width: "100%",
-    aspectRatio: 0.78,
-    borderRadius: radius.lg,
-    backgroundColor: colors.surfaceMuted,
-  },
-  thumb: {
-    width: 72,
-    height: 90,
-    borderRadius: 10,
-    backgroundColor: colors.surfaceMuted,
-  },
   name: {
     fontSize: 22,
     fontWeight: "700",
@@ -215,6 +258,12 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: "700",
     color: colors.foreground,
+  },
+  basePrice: {
+    fontSize: 13,
+    fontWeight: "500",
+    color: colors.muted,
+    textDecorationLine: "line-through",
   },
   category: {
     fontSize: 11,
@@ -228,59 +277,38 @@ const styles = StyleSheet.create({
     lineHeight: 18,
     color: colors.muted,
   },
-  label: {
-    fontSize: 11,
-    fontWeight: "800",
-    letterSpacing: 0.7,
-    textTransform: "uppercase",
-    color: colors.foreground,
+  stockWrap: {
+    gap: 6,
+    paddingTop: 4,
+    borderTopWidth: 1,
+    borderTopColor: colors.border,
+    marginTop: 4,
+    paddingBottom: 4,
   },
-  chip: {
-    paddingHorizontal: 14,
-    height: 34,
-    borderRadius: 999,
-    borderWidth: 1,
-    borderColor: colors.border,
-    backgroundColor: colors.surface,
-    alignItems: "center",
-    justifyContent: "center",
+  stockHint: {
+    fontSize: 12,
+    color: colors.muted,
   },
-  sizeChip: {
-    minWidth: 44,
-    paddingHorizontal: 12,
-    height: 36,
-    borderRadius: 999,
-    borderWidth: 1,
-    borderColor: colors.border,
-    backgroundColor: colors.surface,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  chipActive: {
-    backgroundColor: colors.foreground,
-    borderColor: colors.foreground,
-  },
-  chipDisabled: {
-    opacity: 0.4,
-  },
-  chipText: {
+  validation: {
     fontSize: 12,
     fontWeight: "600",
-    color: colors.foreground,
-  },
-  chipTextActive: {
-    color: colors.surface,
-  },
-  chipTextDisabled: {
-    color: colors.muted,
-  },
-  stock: {
-    fontSize: 12,
-    color: colors.muted,
-  },
-  oos: {
     color: colors.error,
-    fontWeight: "600",
+  },
+  footerHint: {
+    fontSize: 11,
+    color: colors.muted,
+    textAlign: "center",
+  },
+  notice: {
+    padding: 12,
+    borderRadius: 12,
+    backgroundColor: colors.surface,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  noticeText: {
+    fontSize: 13,
+    color: colors.muted,
   },
   footer: {
     padding: spacing.xl,
