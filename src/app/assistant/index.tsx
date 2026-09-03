@@ -1,16 +1,37 @@
-import { useState, useRef, useMemo } from "react";
-import { View, Text, ScrollView, Pressable, TextInput, StyleSheet, KeyboardAvoidingView, Platform } from "react-native";
-import { router } from "expo-router";
-import { colors } from "@/design/colors";
-import { spacing, radius } from "@/design/spacing";
-import { useProductsQuery } from "@/features/products/hooks/useProducts";
-import { ProductCard } from "@/features/products/components/ProductCard";
 import { Button } from "@/components/ui/Button";
+import { colors } from "@/design/colors";
+import { radius, spacing } from "@/design/spacing";
+import { ProductCard } from "@/features/products/components/ProductCard";
+import { useProductsQuery } from "@/features/products/hooks/useProducts";
 import * as Haptics from "expo-haptics";
+import { router } from "expo-router";
+import { useMemo, useRef, useState } from "react";
+import {
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
+} from "react-native";
+import { KeyboardAvoidingView } from "react-native-keyboard-controller";
 
-type Msg = { id: string; role: "assistant" | "user"; text: string; chips?: string[]; products?: boolean };
+type Msg = {
+  id: string;
+  role: "assistant" | "user";
+  text: string;
+  chips?: string[];
+  products?: boolean;
+};
 
-const OCCASIONS = ["everyday", "office", "vacation", "casual", "party", "wedding"];
+const OCCASIONS = [
+  "everyday",
+  "office",
+  "vacation",
+  "casual",
+  "party",
+  "wedding",
+];
 const STYLES = ["minimal", "elegant", "casual", "bold", "romantic"];
 const COLORS = ["Black", "White", "Navy", "Beige", "Olive", "Gray"];
 
@@ -29,17 +50,33 @@ export default function AssistantScreen() {
   const [input, setInput] = useState("");
   const [step, setStep] = useState<0 | 1 | 2 | 3>(0);
   const [messages, setMessages] = useState<Msg[]>([
-    { id: "m0", role: "assistant", text: "Hi! I'm your fashion assistant. What occasion are you shopping for?", chips: OCCASIONS },
+    {
+      id: "m0",
+      role: "assistant",
+      text: "Hi! I'm your fashion assistant. What occasion are you shopping for?",
+      chips: OCCASIONS,
+    },
   ]);
   const scrollRef = useRef<ScrollView>(null);
 
   const queryEnabled = step === 3 && !!occasion && !!style;
-  const { data: result, isLoading } = useProductsQuery(queryEnabled ? { occasion: occasion!, style: style!, pageSize: 8 } : { pageSize: 1 });
+  const { data: result, isLoading } = useProductsQuery(
+    queryEnabled
+      ? { occasion: occasion!, style: style!, pageSize: 8 }
+      : { pageSize: 1 },
+  );
   const products = useMemo(() => {
     if (!queryEnabled) return [];
     let list = result?.data ?? [];
     if (colorPref) {
-      const filtered = list.filter((p) => p.variants.some((v) => v.color?.toLowerCase() === colorPref.toLowerCase() && v.is_active && (v.stock_quantity ?? 0) > 0));
+      const filtered = list.filter((p) =>
+        p.variants.some(
+          (v) =>
+            v.color?.toLowerCase() === colorPref.toLowerCase() &&
+            v.is_active &&
+            (v.stock_quantity ?? 0) > 0,
+        ),
+      );
       if (filtered.length) list = filtered;
     }
     return list;
@@ -54,7 +91,16 @@ export default function AssistantScreen() {
     setOccasion(o);
     push({ id: `u-${Date.now()}`, role: "user", text: o });
     setStep(1);
-    setTimeout(() => push({ id: `a-${Date.now()}`, role: "assistant", text: `Lovely — ${o} vibes. What style do you prefer?`, chips: STYLES }), 300);
+    setTimeout(
+      () =>
+        push({
+          id: `a-${Date.now()}`,
+          role: "assistant",
+          text: `Lovely — ${o} vibes. What style do you prefer?`,
+          chips: STYLES,
+        }),
+      300,
+    );
   };
 
   const handleStyle = async (s: string) => {
@@ -64,7 +110,16 @@ export default function AssistantScreen() {
     setStyle(s);
     push({ id: `u-${Date.now()}`, role: "user", text: s });
     setStep(2);
-    setTimeout(() => push({ id: `a-${Date.now()}`, role: "assistant", text: "Any color preference? Or skip.", chips: [...COLORS, "Skip"] }), 300);
+    setTimeout(
+      () =>
+        push({
+          id: `a-${Date.now()}`,
+          role: "assistant",
+          text: "Any color preference? Or skip.",
+          chips: [...COLORS, "Skip"],
+        }),
+      300,
+    );
   };
 
   const handleColor = async (c: string) => {
@@ -74,7 +129,11 @@ export default function AssistantScreen() {
     const isSkip = c.toLowerCase() === "skip";
     const col = isSkip ? null : c;
     setColorPref(col);
-    push({ id: `u-${Date.now()}`, role: "user", text: isSkip ? "No preference" : c });
+    push({
+      id: `u-${Date.now()}`,
+      role: "user",
+      text: isSkip ? "No preference" : c,
+    });
     setStep(3);
     setTimeout(
       () =>
@@ -84,7 +143,7 @@ export default function AssistantScreen() {
           text: `Perfect — curated for ${occasion} • ${style}${col ? ` • ${col}` : ""}. Here are my picks.`,
           products: true,
         }),
-      400
+      400,
     );
   };
 
@@ -99,11 +158,26 @@ export default function AssistantScreen() {
     if (col) setColorPref(col);
     if (occ && sty) {
       setStep(3);
-      setTimeout(() => push({ id: `a-${Date.now()}`, role: "assistant", text: `Got it — ${occ} • ${sty}${col ? ` • ${col}` : ""}. Here are my picks.`, products: true }), 300);
+      setTimeout(
+        () =>
+          push({
+            id: `a-${Date.now()}`,
+            role: "assistant",
+            text: `Got it — ${occ} • ${sty}${col ? ` • ${col}` : ""}. Here are my picks.`,
+            products: true,
+          }),
+        300,
+      );
     } else {
       setTimeout(
-        () => push({ id: `a-${Date.now()}`, role: "assistant", text: "Tell me occasion (everyday/office/vacation/party) and style (minimal/elegant/casual/bold). Try chips below.", chips: OCCASIONS }),
-        300
+        () =>
+          push({
+            id: `a-${Date.now()}`,
+            role: "assistant",
+            text: "Tell me occasion (everyday/office/vacation/party) and style (minimal/elegant/casual/bold). Try chips below.",
+            chips: OCCASIONS,
+          }),
+        300,
       );
     }
     try {
@@ -119,31 +193,83 @@ export default function AssistantScreen() {
     setStyle(null);
     setColorPref(null);
     setStep(0);
-    setMessages([{ id: "m0", role: "assistant", text: "Hi! I'm your fashion assistant. What occasion are you shopping for?", chips: OCCASIONS }]);
+    setMessages([
+      {
+        id: "m0",
+        role: "assistant",
+        text: "Hi! I'm your fashion assistant. What occasion are you shopping for?",
+        chips: OCCASIONS,
+      },
+    ]);
   };
 
   return (
     <View style={styles.root}>
       <View style={styles.header}>
-        <Pressable onPress={() => router.back()} style={styles.back} hitSlop={8}>
+        <Pressable
+          onPress={() => router.back()}
+          style={styles.back}
+          hitSlop={8}
+        >
           <Text style={styles.backText}>← Back</Text>
         </Pressable>
         <Text style={styles.heading}>AI Fashion Assistant</Text>
-        <Text style={styles.sub}>Deterministic • No AI required for core commerce</Text>
+        <Text style={styles.sub}>
+          Deterministic • No AI required for core commerce
+        </Text>
       </View>
 
-      <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === "ios" ? "padding" : undefined} keyboardVerticalOffset={8}>
+      {/*
+        react-native-keyboard-controller's KeyboardAvoidingView instead of the
+        RN-core one. The core component only received `behavior="padding"` on
+        iOS (Android got `undefined` → no avoidance at all, which is why the
+        input bar was being covered outright). This one drives the offset off
+        native keyboard animation events on both platforms, matching the
+        keyboard's own timing/curve instead of guessing with a fixed-duration
+        JS animation — that's what gets you the Telegram/Messenger feel.
+        Requires <KeyboardProvider> mounted once near the app root (see setup
+        note) and a dev client build — it will not run under Expo Go.
+      */}
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior="padding"
+        keyboardVerticalOffset={0}
+      >
         <ScrollView
           ref={scrollRef}
           style={{ flex: 1 }}
           contentContainerStyle={styles.messages}
           showsVerticalScrollIndicator={false}
-          onContentSizeChange={() => scrollRef.current?.scrollToEnd({ animated: true })}
+          onContentSizeChange={() =>
+            scrollRef.current?.scrollToEnd({ animated: true })
+          }
         >
           {messages.map((m) => (
-            <View key={m.id} style={[styles.bubbleRow, m.role === "user" ? styles.rowUser : styles.rowAssistant]}>
-              <View style={[styles.bubble, m.role === "user" ? styles.bubbleUser : styles.bubbleAssistant]}>
-                <Text style={[styles.bubbleText, m.role === "user" ? styles.bubbleTextUser : styles.bubbleTextAssistant]}>{m.text}</Text>
+            <View
+              key={m.id}
+              style={[
+                styles.bubbleRow,
+                m.role === "user" ? styles.rowUser : styles.rowAssistant,
+              ]}
+            >
+              <View
+                style={[
+                  styles.bubble,
+                  m.role === "user"
+                    ? styles.bubbleUser
+                    : styles.bubbleAssistant,
+                ]}
+              >
+                <Text
+                  style={[
+                    styles.bubbleText,
+                    m.role === "user"
+                      ? styles.bubbleTextUser
+                      : styles.bubbleTextAssistant,
+                  ]}
+                >
+                  {m.text}
+                </Text>
               </View>
               {m.chips && (
                 <View style={styles.chips}>
@@ -170,10 +296,19 @@ export default function AssistantScreen() {
                   ) : products.length === 0 ? (
                     <View style={styles.empty}>
                       <Text style={styles.emptyTitle}>No exact match</Text>
-                      <Text style={styles.hint}>Try different occasion/style.</Text>
+                      <Text style={styles.hint}>
+                        Try different occasion/style.
+                      </Text>
                     </View>
                   ) : (
-                    <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 12, paddingRight: spacing.xl }}>
+                    <ScrollView
+                      horizontal
+                      showsHorizontalScrollIndicator={false}
+                      contentContainerStyle={{
+                        gap: 12,
+                        paddingRight: spacing.xl,
+                      }}
+                    >
                       {products.map((p) => (
                         <View key={p.id} style={{ width: 160 }}>
                           <ProductCard product={p} />
@@ -182,8 +317,17 @@ export default function AssistantScreen() {
                     </ScrollView>
                   )}
                   <View style={{ flexDirection: "row", gap: 8, marginTop: 8 }}>
-                    <Button title="Refine" variant="secondary" onPress={handleReset} style={{ flex: 1 }} />
-                    <Button title="Shop all" onPress={() => router.push("/(tabs)/shop" as any)} style={{ flex: 1 }} />
+                    <Button
+                      title="Refine"
+                      variant="secondary"
+                      onPress={handleReset}
+                      style={{ flex: 1 }}
+                    />
+                    <Button
+                      title="Shop all"
+                      onPress={() => router.push("/(tabs)/shop" as any)}
+                      style={{ flex: 1 }}
+                    />
                   </View>
                 </View>
               )}
@@ -202,10 +346,19 @@ export default function AssistantScreen() {
             returnKeyType="send"
             accessibilityLabel="Ask assistant"
           />
-          <Pressable onPress={handleSend} style={styles.send} accessibilityRole="button" accessibilityLabel="Send">
+          <Pressable
+            onPress={handleSend}
+            style={styles.send}
+            accessibilityRole="button"
+            accessibilityLabel="Send"
+          >
             <Text style={styles.sendText}>Send</Text>
           </Pressable>
-          <Pressable onPress={handleReset} style={styles.reset} accessibilityLabel="Reset">
+          <Pressable
+            onPress={handleReset}
+            style={styles.reset}
+            accessibilityLabel="Reset"
+          >
             <Text style={styles.resetText}>Reset</Text>
           </Pressable>
         </View>
