@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { View, Text, ScrollView, Pressable, StyleSheet, ActivityIndicator, Alert, Keyboard } from "react-native";
+import { View, Text, Pressable, StyleSheet, ActivityIndicator, Alert, Keyboard } from "react-native";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import { router } from "expo-router";
 import { useAuthStore } from "@/stores/authStore";
@@ -25,7 +25,6 @@ export default function CheckoutScreen() {
 
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
-  const [paymentMethod] = useState<"cod">("cod");
 
   const totals = useMemo(() => calculateCartTotals(cartItems ?? []), [cartItems]);
 

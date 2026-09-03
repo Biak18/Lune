@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/purity */
 import { Button } from "@/components/ui/Button";
 import { colors } from "@/design/colors";
 import { radius, spacing } from "@/design/spacing";

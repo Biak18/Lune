@@ -19,6 +19,10 @@ Database responsibilities include:
 - Orders
 - Order items
 - Reviews
+- Notifications
+- Notification preferences
+- Loyalty accounts
+- Loyalty transactions
 
 ---
 
@@ -436,6 +440,112 @@ Reviews should preferably be linked to verified purchases.
 
 ---
 
+# 13.1 Notifications
+
+Table:
+
+```text
+notifications
+```
+
+Suggested columns:
+
+```text
+id              uuid primary key
+user_id         uuid not null
+type            text not null
+title           text not null
+body            text
+data            jsonb
+is_read         boolean not null
+created_at      timestamptz
+```
+
+Type check:
+
+```text
+type in ('order_confirmed','order_shipped','out_for_delivery','delivered','back_in_stock','price_drop','general')
+```
+
+---
+
+# 13.2 Notification Preferences
+
+Table:
+
+```text
+notification_preferences
+```
+
+Suggested columns:
+
+```text
+user_id         uuid primary key
+order_updates   boolean not null
+back_in_stock   boolean not null
+price_drop      boolean not null
+updated_at      timestamptz
+```
+
+---
+
+# 13.3 Loyalty Accounts
+
+Table:
+
+```text
+loyalty_accounts
+```
+
+Suggested columns:
+
+```text
+user_id         uuid primary key
+points          integer not null
+tier            text not null
+referral_code   text unique
+created_at      timestamptz
+updated_at      timestamptz
+```
+
+Tier check:
+
+```text
+tier in ('bronze','silver','gold','platinum')
+```
+
+Auto-created via trigger on `profiles` insert.
+
+---
+
+# 13.4 Loyalty Transactions
+
+Table:
+
+```text
+loyalty_transactions
+```
+
+Suggested columns:
+
+```text
+id              uuid primary key
+user_id         uuid not null
+points          integer not null
+type            text not null
+description     text
+order_id        uuid
+created_at      timestamptz
+```
+
+Type check:
+
+```text
+type in ('earn','redeem','referral','tier_bonus')
+```
+
+---
+
 # 14. Product Metadata
 
 Products may use controlled metadata for discovery.
@@ -575,6 +685,15 @@ order_items.product_id
 
 reviews.product_id
 reviews.user_id
+
+notifications.user_id
+notifications.is_read
+notifications.created_at
+notification_preferences.user_id
+loyalty_accounts.user_id
+loyalty_accounts.tier
+loyalty_transactions.user_id
+loyalty_transactions.created_at
 ```
 
 Only add indexes that support actual query patterns.
