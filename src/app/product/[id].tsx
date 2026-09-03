@@ -11,6 +11,7 @@ import { ColorSelector } from "@/features/products/components/ColorSelector";
 import { SizeSelector } from "@/features/products/components/SizeSelector";
 import { StockBadge } from "@/features/products/components/StockBadge";
 import { WishlistButton } from "@/features/wishlist/components/WishlistButton";
+import { useAddToCart } from "@/features/cart/hooks/useCart";
 import {
   getActiveVariants,
   getUniqueColors,
@@ -79,18 +80,26 @@ export default function ProductScreen() {
   }, [product, activeVariants.length, validation, selectedColor, selectedSize]);
 
   const ctaDisabled = !isValid || (selectedVariant ? !isVariantInStock(selectedVariant) : true);
+  const addToCart = useAddToCart();
 
   const handleAddToBag = async () => {
-    if (!validation || !validation.ok) {
+    if (!validation || !validation.ok || !selectedVariant) {
       try {
         await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
       } catch {}
       return;
     }
     try {
+      await addToCart.mutateAsync({ variantId: selectedVariant.id, quantity: 1 });
       await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-    } catch {}
-    // Phase 6 (cart) will handle actual mutation. Haptics confirms valid selection for now.
+      router.push("/(tabs)/cart" as any);
+    } catch (e: any) {
+      try {
+        await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+      } catch {}
+      // error will surface via mutation error; for now no toast UI
+      if (__DEV__) console.warn("[cart] add failed", e?.message);
+    }
   };
 
   if (isLoading) {
@@ -191,7 +200,16 @@ export default function ProductScreen() {
 
       <View style={styles.footer}>
         <View style={{ gap: 6 }}>
-          <Button title={ctaTitle} disabled={ctaDisabled} onPress={handleAddToBag} accessibilityLabel={ctaTitle} />
+          <Button
+            title={addToCart.isPending ? "Adding…" : ctaTitle}
+            disabled={ctaDisabled || addToCart.isPending}
+            loading={addToCart.isPending}
+            onPress={handleAddToBag}
+            accessibilityLabel={ctaTitle}
+          />
+          {addToCart.isError && (
+            <Text style={styles.validation}>{String((addToCart.error as Error)?.message ?? "Could not add to bag")}</Text>
+          )}
           {!isValid && hasVariants && selectedColor && selectedSize && validation && !validation.ok ? (
             <Text style={styles.footerHint}>{validationMessage(validation.reason)}</Text>
           ) : null}

@@ -7,9 +7,8 @@ import { spacing, radius } from "@/design/spacing";
 import { Button } from "@/components/ui/Button";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { ProductCard } from "@/features/products/components/ProductCard";
-import { Image } from "expo-image";
 import * as Haptics from "expo-haptics";
-import { WishlistButton } from "@/features/wishlist/components/WishlistButton";
+import { useAddToCart } from "@/features/cart/hooks/useCart";
 
 function WishlistSkeleton() {
   return (
@@ -28,6 +27,7 @@ function WishlistSkeleton() {
 export default function WishlistScreen() {
   const user = useAuthStore((s) => s.user);
   const { data: products, isLoading, isError, error, refetch, isRefetching } = useWishlistQuery();
+  const addToCart = useAddToCart();
 
   if (!user) {
     return (
@@ -97,24 +97,40 @@ export default function WishlistScreen() {
         numColumns={2}
         columnWrapperStyle={{ gap: 12 }}
         contentContainerStyle={{ padding: spacing.xl, gap: 12, paddingBottom: 32 }}
-        renderItem={({ item }) => (
-          <View style={{ flex: 1 }}>
-            <ProductCard product={item} />
-            {/* Small add to bag placeholder — Phase 6 will become real cart mutation */}
-            <Pressable
-              onPress={async () => {
-                try {
-                  await Haptics.selectionAsync();
-                } catch {}
-              }}
-              style={styles.addBag}
-              accessibilityRole="button"
-              accessibilityLabel={`Add ${item.name} to bag`}
-            >
-              <Text style={styles.addBagText}>Move to bag</Text>
-            </Pressable>
-          </View>
-        )}
+        renderItem={({ item }) => {
+          const firstInStock = item.variants.find((v) => v.is_active && (v.stock_quantity ?? 0) > 0) ?? null;
+          const canAdd = !!firstInStock;
+          return (
+            <View style={{ flex: 1 }}>
+              <ProductCard product={item} />
+              <Pressable
+                onPress={async () => {
+                  if (!canAdd || !firstInStock) {
+                    try {
+                      await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
+                    } catch {}
+                    return;
+                  }
+                  try {
+                    await addToCart.mutateAsync({ variantId: firstInStock.id, quantity: 1 });
+                    await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+                    router.push("/(tabs)/cart" as any);
+                  } catch (e) {
+                    try {
+                      await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+                    } catch {}
+                  }
+                }}
+                disabled={!canAdd || addToCart.isPending}
+                style={[styles.addBag, (!canAdd || addToCart.isPending) && { opacity: 0.5 }]}
+                accessibilityRole="button"
+                accessibilityLabel={`Add ${item.name} to bag`}
+              >
+                <Text style={styles.addBagText}>{canAdd ? "Move to bag" : "Out of stock"}</Text>
+              </Pressable>
+            </View>
+          );
+        }}
       />
     </View>
   );
