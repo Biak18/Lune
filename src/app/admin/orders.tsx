@@ -1,13 +1,32 @@
-import { View, Text, FlatList, Pressable, StyleSheet, ActivityIndicator, ScrollView } from "react-native";
-import { router } from "expo-router";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { colors } from "@/design/colors";
+import { radius, spacing } from "@/design/spacing";
 import { AdminGuard } from "@/features/admin/components/AdminGuard";
 import { adminService } from "@/features/admin/services/adminService";
-import { colors } from "@/design/colors";
-import { spacing, radius } from "@/design/spacing";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import * as Haptics from "expo-haptics";
+import { router } from "expo-router";
+import {
+  ActivityIndicator,
+  FlatList,
+  Pressable,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
 
-const STATUSES = ["pending", "confirmed", "processing", "shipped", "out_for_delivery", "delivered", "cancelled"] as const;
+const FLOW = ["pending", "confirmed", "processing", "shipped", "out_for_delivery", "delivered"] as const;
+type FlowStatus = (typeof FLOW)[number];
+const ALL_STATUSES = [...FLOW, "cancelled"] as const;
+
+function getPrevNext(current: string) {
+  if (current === "cancelled") return { prev: null, next: null };
+  const idx = FLOW.indexOf(current as FlowStatus);
+  if (idx === -1) return { prev: null, next: FLOW[0] as string };
+  return {
+    prev: idx > 0 ? FLOW[idx - 1] : null,
+    next: idx < FLOW.length - 1 ? FLOW[idx + 1] : null,
+  };
+}
 
 export default function AdminOrdersScreen() {
   const qc = useQueryClient();
@@ -17,8 +36,10 @@ export default function AdminOrdersScreen() {
   });
 
   const update = useMutation({
-    mutationFn: ({ id, status }: { id: string; status: string }) => adminService.updateOrderStatus(id, status),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["admin", "orders-list"] }),
+    mutationFn: ({ id, status }: { id: string; status: string }) =>
+      adminService.updateOrderStatus(id, status),
+    onSuccess: () =>
+      qc.invalidateQueries({ queryKey: ["admin", "orders-list"] }),
   });
 
   return (
@@ -29,7 +50,9 @@ export default function AdminOrdersScreen() {
             <Text style={styles.backText}>← Admin</Text>
           </Pressable>
           <Text style={styles.heading}>Orders</Text>
-          <Text style={styles.sub}>Admin can update status via RLS is_admin()</Text>
+          <Text style={styles.sub}>
+            Admin can update status via RLS is_admin()
+          </Text>
         </View>
 
         {isLoading ? (
@@ -38,7 +61,9 @@ export default function AdminOrdersScreen() {
           </View>
         ) : isError ? (
           <View style={styles.center}>
-            <Text style={styles.desc}>{String((error as Error)?.message ?? "Failed")}</Text>
+            <Text style={styles.desc}>
+              {String((error as Error)?.message ?? "Failed")}
+            </Text>
             <Pressable onPress={() => refetch()} style={styles.retry}>
               <Text style={styles.retryText}>Retry</Text>
             </Pressable>
@@ -47,38 +72,67 @@ export default function AdminOrdersScreen() {
           <FlatList
             data={data ?? []}
             keyExtractor={(o: any) => o.id}
-            contentContainerStyle={{ padding: spacing.xl, gap: 10, paddingBottom: 32 }}
+            contentContainerStyle={{
+              padding: spacing.xl,
+              gap: 10,
+              paddingBottom: 32,
+            }}
             renderItem={({ item }: any) => (
               <View style={styles.card}>
                 <View style={{ flex: 1, gap: 4 }}>
-                  <Text style={styles.id}>#{item.id.slice(0, 8).toUpperCase()} • ${Number(item.total).toFixed(2)}</Text>
-                  <Text style={styles.meta}>{new Date(item.created_at).toLocaleString()} • {item.user_id.slice(0, 8)}…</Text>
-                  <Pressable onPress={() => router.push(`/orders/${item.id}` as any)}>
+                  <Text style={styles.id}>
+                    #{item.id.slice(0, 8).toUpperCase()} • $
+                    {Number(item.total).toFixed(2)}
+                  </Text>
+                  <Text style={styles.meta}>
+                    {new Date(item.created_at).toLocaleString()} •{" "}
+                    {item.user_id.slice(0, 8)}…
+                  </Text>
+                  <Pressable
+                    onPress={() => router.push(`/orders/${item.id}` as any)}
+                  >
                     <Text style={styles.link}>View order</Text>
                   </Pressable>
                 </View>
-                <View style={{ minWidth: 140, gap: 6 }}>
-                  <Text style={styles.label}>Status: {item.status}</Text>
-                  <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 6 }}>
-                    {STATUSES.map((s) => {
-                      const active = s === item.status;
-                      return (
+                <View style={{ minWidth: 160, gap: 6, flex: 1 }}>
+                  <Text style={styles.label}>Status: {item.status.replace(/_/g, " ")}</Text>
+                  {(() => {
+                    const { prev, next } = getPrevNext(item.status);
+                    return (
+                      <View style={styles.navRow}>
                         <Pressable
-                          key={s}
                           onPress={async () => {
-                            if (active) return;
+                            if (!prev) return;
                             try {
                               await Haptics.selectionAsync();
                             } catch {}
-                            update.mutate({ id: item.id, status: s });
+                            update.mutate({ id: item.id, status: prev });
                           }}
-                          style={[styles.statusChip, active && styles.statusChipActive]}
+                          disabled={!prev || update.isPending}
+                          style={[styles.navBtn, !prev && styles.navBtnDisabled]}
+                          accessibilityRole="button"
+                          accessibilityLabel={prev ? `Previous status ${prev}` : "No previous status"}
                         >
-                          <Text style={[styles.statusText, active && styles.statusTextActive]}>{s}</Text>
+                          <Text style={[styles.navText, !prev && styles.navTextDisabled]}>{prev ? `← ${prev}` : "—"}</Text>
                         </Pressable>
-                      );
-                    })}
-                  </ScrollView>
+                        <Pressable
+                          onPress={async () => {
+                            if (!next) return;
+                            try {
+                              await Haptics.selectionAsync();
+                            } catch {}
+                            update.mutate({ id: item.id, status: next });
+                          }}
+                          disabled={!next || update.isPending}
+                          style={[styles.navBtn, styles.navBtnNext, !next && styles.navBtnDisabled]}
+                          accessibilityRole="button"
+                          accessibilityLabel={next ? `Next status ${next}` : "No next status"}
+                        >
+                          <Text style={[styles.navText, styles.navTextNext, !next && styles.navTextDisabled]}>{next ? `${next} →` : "—"}</Text>
+                        </Pressable>
+                      </View>
+                    );
+                  })()}
                 </View>
               </View>
             )}
@@ -149,7 +203,7 @@ const styles = StyleSheet.create({
     textTransform: "uppercase",
   },
   card: {
-    flexDirection: "row",
+    flexDirection: "column",
     gap: 12,
     padding: 14,
     borderRadius: radius.lg,
@@ -202,5 +256,42 @@ const styles = StyleSheet.create({
   },
   statusTextActive: {
     color: colors.surface,
+  },
+  navRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    gap: 8,
+  },
+  navBtn: {
+    flex: 1,
+    height: 36,
+    borderRadius: 999,
+    borderWidth: 1,
+    borderColor: colors.border,
+    backgroundColor: colors.surfaceMuted,
+    alignItems: "center",
+    justifyContent: "center",
+    paddingHorizontal: 10,
+  },
+  navBtnNext: {
+    backgroundColor: colors.foreground,
+    borderColor: colors.foreground,
+  },
+  navBtnDisabled: {
+    opacity: 0.4,
+    backgroundColor: colors.surface,
+    borderColor: colors.border,
+  },
+  navText: {
+    fontSize: 11,
+    fontWeight: "700",
+    color: colors.foreground,
+    textTransform: "capitalize",
+  },
+  navTextNext: {
+    color: colors.surface,
+  },
+  navTextDisabled: {
+    color: colors.mutedLight,
   },
 });
