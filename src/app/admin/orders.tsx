@@ -13,6 +13,7 @@ import {
   Text,
   View,
 } from "react-native";
+import Animated, { FadeIn, FadeOut, SlideInRight, SlideOutLeft } from "react-native-reanimated";
 
 const FLOW = ["pending", "confirmed", "processing", "shipped", "out_for_delivery", "delivered"] as const;
 type FlowStatus = (typeof FLOW)[number];
@@ -98,8 +99,48 @@ export default function AdminOrdersScreen() {
                   <Text style={styles.label}>Status: {item.status.replace(/_/g, " ")}</Text>
                   {(() => {
                     const { prev, next } = getPrevNext(item.status);
+                    const isEdge = !prev || !next;
+                    // Edge: single button centered with pretty slide animation
+                    if (isEdge) {
+                      const singleStatus = next ?? prev;
+                      const isNext = !!next;
+                      const label = !prev && next ? `${next} →` : next ? `${next} →` : prev ? `← ${prev}` : item.status;
+                      const disabled = (!isNext && !prev) || item.status === "cancelled" || item.status === "delivered" || update.isPending;
+                      // For pending, single is next (confirmed); for delivered/cancelled, show completed disabled
+                      const isCompleted = item.status === "delivered" || item.status === "cancelled";
+                      return (
+                        <Animated.View
+                          key={`${item.id}-${item.status}`}
+                          entering={SlideInRight.duration(380).springify().damping(16)}
+                          exiting={SlideOutLeft.duration(220)}
+                          style={styles.singleWrap}
+                        >
+                          <Pressable
+                            onPress={async () => {
+                              if (disabled || isCompleted) return;
+                              const target = isNext ? next! : prev!;
+                              try {
+                                await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+                              } catch {}
+                              update.mutate({ id: item.id, status: target });
+                            }}
+                            disabled={disabled || isCompleted}
+                            style={[styles.singleBtn, isCompleted && styles.singleBtnCompleted, disabled && styles.navBtnDisabled]}
+                            accessibilityRole="button"
+                            accessibilityLabel={isCompleted ? `Status ${item.status}` : `Move to ${singleStatus}`}
+                          >
+                            <Text style={[styles.singleText, isCompleted && styles.singleTextCompleted]}>{isCompleted ? `${item.status} ✓` : label}</Text>
+                          </Pressable>
+                        </Animated.View>
+                      );
+                    }
                     return (
-                      <View style={styles.navRow}>
+                      <Animated.View
+                        key={`${item.id}-${item.status}`}
+                        entering={FadeIn.duration(260)}
+                        exiting={FadeOut.duration(180)}
+                        style={styles.navRow}
+                      >
                         <Pressable
                           onPress={async () => {
                             if (!prev) return;
@@ -119,7 +160,7 @@ export default function AdminOrdersScreen() {
                           onPress={async () => {
                             if (!next) return;
                             try {
-                              await Haptics.selectionAsync();
+                              await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
                             } catch {}
                             update.mutate({ id: item.id, status: next });
                           }}
@@ -130,7 +171,7 @@ export default function AdminOrdersScreen() {
                         >
                           <Text style={[styles.navText, styles.navTextNext, !next && styles.navTextDisabled]}>{next ? `${next} →` : "—"}</Text>
                         </Pressable>
-                      </View>
+                      </Animated.View>
                     );
                   })()}
                 </View>
@@ -293,5 +334,35 @@ const styles = StyleSheet.create({
   },
   navTextDisabled: {
     color: colors.mutedLight,
+  },
+  singleWrap: {
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  singleBtn: {
+    minWidth: 140,
+    height: 38,
+    borderRadius: 999,
+    backgroundColor: colors.foreground,
+    borderWidth: 1,
+    borderColor: colors.foreground,
+    alignItems: "center",
+    justifyContent: "center",
+    paddingHorizontal: 18,
+    alignSelf: "center",
+  },
+  singleBtnCompleted: {
+    backgroundColor: colors.successBackground,
+    borderColor: colors.success,
+  },
+  singleText: {
+    fontSize: 12,
+    fontWeight: "800",
+    color: colors.surface,
+    textTransform: "capitalize",
+    letterSpacing: 0.3,
+  },
+  singleTextCompleted: {
+    color: colors.success,
   },
 });
