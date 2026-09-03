@@ -1,6 +1,7 @@
 import { View, Text, ScrollView, StyleSheet, Pressable } from "react-native";
 import { Link, router } from "expo-router";
 import { Image } from "expo-image";
+import { Ionicons } from "@expo/vector-icons";
 import { colors } from "@/design/colors";
 import { spacing, radius } from "@/design/spacing";
 import { useCategoriesQuery, useProductsQuery } from "@/features/products/hooks/useProducts";
@@ -17,49 +18,64 @@ export default function HomeScreen() {
 
   return (
     <ScrollView style={styles.root} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-      {/* Header */}
+      {/* Header — minimal wordmark + actions */}
       <View style={styles.header}>
-        <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
+        <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
           <Text style={styles.wordmark}>MUSE <Text style={{ color: colors.clay }}>/ 09</Text></Text>
-          <NotificationBell size={18} />
+          <View style={styles.dot} />
+          <Text style={styles.season}>FW 2026</Text>
         </View>
-        <Pressable onPress={() => router.push("/shop" as any)}>
-          <Text style={styles.headerLink}>Shop all</Text>
-        </Pressable>
+        <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
+          <NotificationBell size={18} />
+          <Pressable onPress={() => router.push("/shop" as any)} hitSlop={8} style={styles.shopLink}>
+            <Text style={styles.headerLink}>Shop</Text>
+            <Ionicons name="arrow-forward" size={12} color={colors.foreground} />
+          </Pressable>
+        </View>
       </View>
 
-      {/* Hero */}
+      {/* Hero — immersive editorial */}
       <View style={styles.hero}>
-        <Image
-          source={{ uri: "https://picsum.photos/seed/hero-dress/800/900" }}
-          style={StyleSheet.absoluteFill}
-          contentFit="cover"
-        />
+        <Image source={{ uri: "https://picsum.photos/seed/hero-dress/800/900" }} style={StyleSheet.absoluteFill} contentFit="cover" priority="high" cachePolicy="memory-disk" />
         <View style={styles.heroOverlay} />
         <View style={styles.heroText}>
-          <Text style={styles.heroEyebrow}>New collection</Text>
+          <Text style={styles.heroEyebrow}>New collection — Nobero curation</Text>
           <Text style={styles.heroTitle}>Effortless{"\n"}elegance</Text>
+          <Text style={styles.heroSub}>Soft cottons, airy linens, quiet tailoring</Text>
           <Pressable style={styles.heroBtn} onPress={() => router.push("/shop" as any)}>
             <Text style={styles.heroBtnText}>Shop now</Text>
           </Pressable>
         </View>
       </View>
 
-      {/* Categories */}
-      <View style={{ gap: 12 }}>
-        <Text style={styles.sectionTitle}>Categories</Text>
+      {/* Categories — image tiles, not chips */}
+      <View style={styles.section}>
+        <View style={styles.sectionHeader}>
+          <Text style={styles.sectionTitle}>Shop by category</Text>
+          <Link href="/shop" asChild>
+            <Pressable hitSlop={8}>
+              <Text style={styles.seeAll}>See all</Text>
+            </Pressable>
+          </Link>
+        </View>
         {catsLoading ? (
-          <View style={{ flexDirection: "row", gap: 8 }}>
-            {[1, 2, 3].map((i) => (
-              <Skeleton key={i} style={{ width: 90, height: 34, borderRadius: 999 }} />
+          <View style={{ flexDirection: "row", gap: 14 }}>
+            {[1, 2, 3, 4].map((i) => (
+              <View key={i} style={{ alignItems: "center", gap: 8 }}>
+                <Skeleton style={{ width: 72, height: 72, borderRadius: 36 }} />
+                <Skeleton style={{ width: 48, height: 10, borderRadius: 6 }} />
+              </View>
             ))}
           </View>
         ) : (
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8 }}>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 16, paddingRight: spacing.xl }}>
             {categories?.map((c) => (
               <Link key={c.id} href={`/category/${c.id}` as any} asChild>
-                <Pressable style={styles.catChip}>
-                  <Text style={styles.catText}>{c.name}</Text>
+                <Pressable style={styles.catTile} accessibilityLabel={c.name}>
+                  <View style={styles.catImageWrap}>
+                    <Image source={{ uri: c.image_url ?? "https://picsum.photos/seed/cat/200/200" }} style={styles.catImage} contentFit="cover" transition={200} cachePolicy="memory-disk" />
+                  </View>
+                  <Text style={styles.catName} numberOfLines={1}>{c.name}</Text>
                 </Pressable>
               </Link>
             ))}
@@ -67,9 +83,12 @@ export default function HomeScreen() {
         )}
       </View>
 
-      {/* Featured */}
-      <View style={{ gap: 12 }}>
-        <Text style={styles.sectionTitle}>Featured Collection</Text>
+      {/* Featured — 2-up editorial grid */}
+      <View style={styles.section}>
+        <View style={styles.sectionHeader}>
+          <Text style={styles.sectionTitle}>Featured</Text>
+          <Text style={styles.sectionHint}>Elegant edit</Text>
+        </View>
         {loadingFeat ? (
           <View style={{ flexDirection: "row", gap: spacing.lg }}>
             {[1, 2].map((i) => (
@@ -90,54 +109,44 @@ export default function HomeScreen() {
         )}
       </View>
 
-      {/* Style Finder */}
-      <View style={styles.finderCard}>
-        <View style={{ flex: 1, gap: 6 }}>
-          <Text style={styles.finderEyebrow}>Style Finder</Text>
-          <Text style={styles.finderTitle}>Find your match</Text>
-          <Text style={styles.finderDesc}>Occasion → Style → Curated picks (no AI, just metadata)</Text>
+      {/* Discover — single editorial card combining Style Finder + AI */}
+      <View style={styles.discoverCard}>
+        <View style={styles.discoverHeader}>
+          <Text style={styles.discoverEyebrow}>Discover</Text>
+          <Text style={styles.discoverTitle}>Find your perfect piece</Text>
+          <Text style={styles.discoverDesc}>Answer 2 questions or chat with our stylist — same curated catalog, no AI required.</Text>
         </View>
-        <Pressable style={styles.finderBtn} onPress={() => router.push("/style-finder" as any)}>
-          <Text style={styles.finderBtnText}>Try it</Text>
-        </Pressable>
+        <View style={styles.discoverActions}>
+          <Pressable style={[styles.discoverBtn, styles.discoverPrimary]} onPress={() => router.push("/style-finder" as any)}>
+            <Ionicons name="color-palette-outline" size={14} color={colors.surface} />
+            <Text style={styles.discoverPrimaryText}>Style Finder</Text>
+          </Pressable>
+          <Pressable style={[styles.discoverBtn, styles.discoverSecondary]} onPress={() => router.push("/assistant" as any)}>
+            <Ionicons name="chatbubble-ellipses-outline" size={14} color={colors.foreground} />
+            <Text style={styles.discoverSecondaryText}>AI Stylist</Text>
+          </Pressable>
+        </View>
       </View>
 
-      {/* AI Assistant */}
-      <View style={[styles.finderCard, { backgroundColor: colors.foreground, borderColor: colors.foreground }]}>
-        <View style={{ flex: 1, gap: 6 }}>
-          <Text style={[styles.finderEyebrow, { color: colors.gold }]}>AI Assistant</Text>
-          <Text style={[styles.finderTitle, { color: colors.surface }]}>Chat with stylist</Text>
-          <Text style={[styles.finderDesc, { color: colors.surface, opacity: 0.8 }]}>“I need a dress for a wedding” → curated picks</Text>
-        </View>
-        <Pressable style={[styles.finderBtn, { backgroundColor: colors.surface }]} onPress={() => router.push("/assistant" as any)}>
-          <Text style={[styles.finderBtnText, { color: colors.foreground }]}>Chat</Text>
-        </Pressable>
-      </View>
-
-      {/* Shop by Occasion */}
-      <View style={{ gap: 12 }}>
-        <Text style={styles.sectionTitle}>Shop by Occasion</Text>
+      {/* Occasion — quiet pills */}
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Shop by occasion</Text>
         <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
-          {["Party", "Office", "Vacation", "Wedding"].map((o) => (
-            <Pressable
-              key={o}
-              onPress={() => router.push({ pathname: "/shop", params: { occasion: o.toLowerCase() } } as any)}
-              style={styles.occChip}
-            >
-              <Text style={styles.occText}>{o}</Text>
+          {[
+            { label: "Office", value: "office" },
+            { label: "Vacation", value: "vacation" },
+            { label: "Everyday", value: "everyday" },
+            { label: "Casual", value: "casual" },
+          ].map((o) => (
+            <Pressable key={o.value} onPress={() => router.push({ pathname: "/shop", params: { occasion: o.value } } as any)} style={styles.occChip} hitSlop={4}>
+              <Text style={styles.occText}>{o.label}</Text>
             </Pressable>
           ))}
         </View>
       </View>
 
       {recentProds && recentProds.length > 0 && (
-        <RecommendationCarousel
-          title="Recently viewed"
-          subtitle="Pick up where you left off"
-          products={recentProds}
-          isLoading={loadingRecent}
-          onSeeAll={() => router.push("/(tabs)/shop" as any)}
-        />
+        <RecommendationCarousel title="Recently viewed" subtitle="Pick up where you left off" products={recentProds} isLoading={loadingRecent} onSeeAll={() => router.push("/(tabs)/shop" as any)} />
       )}
     </ScrollView>
   );
@@ -150,14 +159,14 @@ const styles = StyleSheet.create({
   },
   content: {
     padding: spacing.xl,
-    gap: 24,
+    gap: 28,
     paddingBottom: 32,
   },
   header: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    paddingTop: 8,
+    paddingTop: 4,
   },
   wordmark: {
     fontSize: 13,
@@ -165,42 +174,72 @@ const styles = StyleSheet.create({
     fontWeight: "800",
     color: colors.foreground,
   },
-  headerLink: {
-    fontSize: 12,
-    fontWeight: "800",
+  dot: {
+    width: 4,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: colors.clay,
+  },
+  season: {
+    fontSize: 11,
+    fontWeight: "600",
     letterSpacing: 0.8,
+    color: colors.muted,
+  },
+  shopLink: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+    paddingHorizontal: 10,
+    height: 30,
+    borderRadius: 999,
+    backgroundColor: colors.surface,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  headerLink: {
+    fontSize: 11,
+    fontWeight: "800",
+    letterSpacing: 0.7,
     textTransform: "uppercase",
-    color: colors.clayDeep,
+    color: colors.foreground,
   },
   hero: {
-    height: 320,
+    height: 360,
     borderRadius: 24,
     overflow: "hidden",
-    backgroundColor: colors.clay,
+    backgroundColor: colors.surfaceMuted,
   },
   heroOverlay: {
     ...StyleSheet.absoluteFill,
-    backgroundColor: "rgba(42,27,22,0.22)",
+    backgroundColor: "rgba(42,27,22,0.18)",
   },
   heroText: {
     flex: 1,
     justifyContent: "flex-end",
     padding: spacing.xl,
-    gap: 12,
+    gap: 10,
   },
   heroEyebrow: {
-    fontSize: 11,
+    fontSize: 10,
     fontWeight: "800",
     letterSpacing: 1.6,
     textTransform: "uppercase",
     color: colors.paper,
+    opacity: 0.9,
   },
   heroTitle: {
-    fontSize: 34,
-    lineHeight: 32,
+    fontSize: 36,
+    lineHeight: 34,
     fontWeight: "600",
     color: colors.paper,
     letterSpacing: -0.8,
+  },
+  heroSub: {
+    fontSize: 12,
+    color: colors.paper,
+    opacity: 0.85,
+    lineHeight: 16,
   },
   heroBtn: {
     alignSelf: "flex-start",
@@ -210,33 +249,65 @@ const styles = StyleSheet.create({
     borderRadius: 999,
     alignItems: "center",
     justifyContent: "center",
-    marginTop: 4,
+    marginTop: 2,
   },
   heroBtnText: {
-    fontSize: 12,
+    fontSize: 11,
     fontWeight: "800",
     letterSpacing: 0.8,
     textTransform: "uppercase",
     color: colors.foreground,
   },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: "700",
-    color: colors.foreground,
-    letterSpacing: -0.3,
+  section: {
+    gap: 14,
   },
-  sectionRow: {
+  sectionHeader: {
     flexDirection: "row",
     justifyContent: "space-between",
-    alignItems: "center",
+    alignItems: "baseline",
+  },
+  sectionTitle: {
+    fontSize: 15,
+    fontWeight: "700",
+    color: colors.foreground,
+    letterSpacing: -0.2,
+  },
+  sectionHint: {
+    fontSize: 11,
+    color: colors.muted,
+    fontWeight: "600",
   },
   seeAll: {
-    fontSize: 12,
+    fontSize: 11,
     fontWeight: "700",
     color: colors.clayDeep,
     textDecorationLine: "underline",
   },
-  catChip: {
+  catTile: {
+    alignItems: "center",
+    gap: 8,
+    width: 72,
+  },
+  catImageWrap: {
+    width: 72,
+    height: 72,
+    borderRadius: 36,
+    overflow: "hidden",
+    backgroundColor: colors.surfaceMuted,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  catImage: {
+    width: "100%",
+    height: "100%",
+  },
+  catName: {
+    fontSize: 11,
+    fontWeight: "600",
+    color: colors.foreground,
+    textAlign: "center",
+  },
+  occChip: {
     paddingHorizontal: 14,
     height: 34,
     borderRadius: 999,
@@ -246,67 +317,73 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  catText: {
-    fontSize: 12,
-    fontWeight: "600",
-    color: colors.foreground,
-  },
-  occChip: {
-    paddingHorizontal: 14,
-    height: 36,
-    borderRadius: 999,
-    backgroundColor: colors.surface,
-    borderWidth: 1,
-    borderColor: colors.border,
-    alignItems: "center",
-    justifyContent: "center",
-  },
   occText: {
-    fontSize: 12,
+    fontSize: 11,
     fontWeight: "700",
     color: colors.foreground,
+    letterSpacing: 0.2,
   },
-  finderCard: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
+  discoverCard: {
     padding: 16,
     borderRadius: radius.lg,
     backgroundColor: colors.surface,
     borderWidth: 1,
     borderColor: colors.border,
+    gap: 14,
   },
-  finderEyebrow: {
+  discoverHeader: {
+    gap: 4,
+  },
+  discoverEyebrow: {
     fontSize: 10,
     fontWeight: "800",
-    letterSpacing: 0.8,
+    letterSpacing: 1,
     textTransform: "uppercase",
     color: colors.clay,
   },
-  finderTitle: {
+  discoverTitle: {
     fontSize: 16,
     fontWeight: "700",
     color: colors.foreground,
     letterSpacing: -0.3,
   },
-  finderDesc: {
-    fontSize: 11,
+  discoverDesc: {
+    fontSize: 12,
     color: colors.muted,
-    lineHeight: 14,
+    lineHeight: 16,
   },
-  finderBtn: {
-    paddingHorizontal: 16,
-    height: 36,
+  discoverActions: {
+    flexDirection: "row",
+    gap: 10,
+  },
+  discoverBtn: {
+    flex: 1,
+    height: 40,
     borderRadius: 999,
-    backgroundColor: colors.foreground,
+    flexDirection: "row",
+    gap: 6,
     alignItems: "center",
     justifyContent: "center",
+    borderWidth: 1,
   },
-  finderBtnText: {
+  discoverPrimary: {
+    backgroundColor: colors.foreground,
+    borderColor: colors.foreground,
+  },
+  discoverPrimaryText: {
     fontSize: 11,
     fontWeight: "800",
-    letterSpacing: 0.7,
-    textTransform: "uppercase",
     color: colors.surface,
+    letterSpacing: 0.5,
+  },
+  discoverSecondary: {
+    backgroundColor: colors.surface,
+    borderColor: colors.border,
+  },
+  discoverSecondaryText: {
+    fontSize: 11,
+    fontWeight: "800",
+    color: colors.foreground,
+    letterSpacing: 0.5,
   },
 });
