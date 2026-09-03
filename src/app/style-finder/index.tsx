@@ -1,5 +1,6 @@
 import { useState, useMemo } from "react";
 import { View, Text, ScrollView, Pressable, StyleSheet } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { router } from "expo-router";
 import { colors } from "@/design/colors";
 import { spacing, radius } from "@/design/spacing";
@@ -55,9 +56,9 @@ export default function StyleFinderScreen() {
   };
 
   return (
-    <View style={styles.root}>
+    <SafeAreaView style={styles.root} edges={["top"]}>
       <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
-        <Pressable onPress={() => (step === 0 ? router.back() : setStep((s) => (s === 2 ? 1 : 0) as any))} style={styles.back} hitSlop={8}>
+        <Pressable onPress={() => (step === 0 ? router.back() : setStep((s) => (s === 2 ? 1 : 0) as any))} style={[styles.back, { marginTop: 4 }]} hitSlop={8}>
           <Text style={styles.backText}>← {step === 0 ? "Back" : "Previous"}</Text>
         </Pressable>
 
@@ -189,7 +190,7 @@ export default function StyleFinderScreen() {
           />
         )}
       </View>
-    </View>
+    </SafeAreaView>
   );
 }
 

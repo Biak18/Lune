@@ -78,7 +78,13 @@ export function CompleteTheLook({ product }: Props) {
         <Text style={styles.count}>{items.length + 1} pieces</Text>
       </View>
 
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 12, paddingRight: spacing.xl }}>
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        nestedScrollEnabled
+        style={{ marginHorizontal: -2 }}
+        contentContainerStyle={{ gap: 12, paddingRight: 4, paddingVertical: 2 }}
+      >
         {/* Current product */}
         <View style={styles.tileActive}>
           <Image source={{ uri: (product.images.find((i) => i.is_primary) ?? product.images[0])?.image_url ?? "https://picsum.photos/300/400" }} style={styles.tileImg} contentFit="cover" />
@@ -126,6 +132,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.surface,
     borderWidth: 1,
     borderColor: colors.border,
+    overflow: "hidden",
   },
   header: {
     flexDirection: "row",

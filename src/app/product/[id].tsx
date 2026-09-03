@@ -1,5 +1,6 @@
 import { useLocalSearchParams, router } from "expo-router";
 import { View, Text, ScrollView, Pressable, StyleSheet, ActivityIndicator } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { useState, useMemo, useEffect } from "react";
 import * as Haptics from "expo-haptics";
 import { colors } from "@/design/colors";
@@ -139,14 +140,14 @@ export default function ProductScreen() {
 
   if (isLoading) {
     return (
-      <View style={styles.center}>
+      <SafeAreaView style={styles.center} edges={["top"]}>
         <ActivityIndicator color={colors.foreground} />
-      </View>
+      </SafeAreaView>
     );
   }
   if (isError) {
     return (
-      <View style={styles.center}>
+      <SafeAreaView style={styles.center} edges={["top"]}>
         <Text style={styles.errorTitle}>We couldn&apos;t load this dress.</Text>
         <Text style={styles.errorSub}>{String((error as Error)?.message ?? "Try again")}</Text>
         <Pressable onPress={() => refetch()} style={styles.retryBtn}>
@@ -155,17 +156,17 @@ export default function ProductScreen() {
         <Pressable onPress={() => router.back()}>
           <Text style={styles.link}>Go back</Text>
         </Pressable>
-      </View>
+      </SafeAreaView>
     );
   }
   if (!product) {
     return (
-      <View style={styles.center}>
+      <SafeAreaView style={styles.center} edges={["top"]}>
         <Text style={styles.errorTitle}>Not found</Text>
         <Pressable onPress={() => router.back()}>
           <Text style={styles.link}>Go back</Text>
         </Pressable>
-      </View>
+      </SafeAreaView>
     );
   }
 
@@ -173,9 +174,9 @@ export default function ProductScreen() {
   const showVariantSection = hasVariants && (colorsList.length > 0 || sizesList.length > 0);
 
   return (
-    <View style={styles.root}>
+    <SafeAreaView style={styles.root} edges={["top"]}>
       <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
-        <Pressable onPress={() => router.back()} style={styles.back} accessibilityRole="button" accessibilityLabel="Go back">
+        <Pressable onPress={() => router.back()} style={[styles.back, { marginTop: 4 }]} hitSlop={8} accessibilityRole="button" accessibilityLabel="Go back">
           <Text style={styles.backText}>← Back</Text>
         </Pressable>
 
@@ -359,7 +360,7 @@ export default function ProductScreen() {
           ) : null}
         </View>
       </View>
-    </View>
+    </SafeAreaView>
   );
 }
 

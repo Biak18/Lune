@@ -1,4 +1,5 @@
 import { View, Text, ScrollView, Pressable, StyleSheet, ActivityIndicator } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { useLocalSearchParams, router } from "expo-router";
 import { useOrderQuery } from "@/features/orders/hooks/useOrders";
 import { OrderTimeline } from "@/features/orders/components/OrderTimeline";
@@ -15,43 +16,43 @@ export default function OrderDetailScreen() {
 
   if (isLoading) {
     return (
-      <View style={styles.center}>
+      <SafeAreaView style={styles.center} edges={["top"]}>
         <ActivityIndicator color={colors.foreground} />
         <Text style={styles.desc}>Loading order…</Text>
-      </View>
+      </SafeAreaView>
     );
   }
 
   if (isError) {
     return (
-      <View style={styles.center}>
+      <SafeAreaView style={styles.center} edges={["top"]}>
         <Text style={styles.title}>We couldn&apos;t load this order.</Text>
         <Text style={styles.desc}>{String((error as Error)?.message ?? "Try again")}</Text>
         <Button title="Retry" onPress={() => refetch()} style={{ marginTop: 12 }} />
         <Pressable onPress={() => router.back()} style={{ marginTop: 8 }}>
           <Text style={styles.link}>Go back</Text>
         </Pressable>
-      </View>
+      </SafeAreaView>
     );
   }
 
   if (!order) {
     return (
-      <View style={styles.center}>
+      <SafeAreaView style={styles.center} edges={["top"]}>
         <Text style={styles.title}>Order not found</Text>
         <Pressable onPress={() => router.back()}>
           <Text style={styles.link}>Go back</Text>
         </Pressable>
-      </View>
+      </SafeAreaView>
     );
   }
 
   const items = (order as any).items ?? [];
 
   return (
-    <View style={styles.root}>
+    <SafeAreaView style={styles.root} edges={["top"]}>
       <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
-        <Pressable onPress={() => router.back()} style={styles.back}>
+        <Pressable onPress={() => router.back()} style={[styles.back, { marginTop: 4 }]} hitSlop={8}>
           <Text style={styles.backText}>← Back to orders</Text>
         </Pressable>
 
@@ -81,7 +82,7 @@ export default function OrderDetailScreen() {
 
         <DeliveryInfo shippingAddress={order.shipping_address as any} createdAt={order.created_at} />
       </ScrollView>
-    </View>
+    </SafeAreaView>
   );
 }
 

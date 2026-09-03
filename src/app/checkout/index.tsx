@@ -1,5 +1,6 @@
 import { useState, useMemo } from "react";
 import { View, Text, Pressable, StyleSheet, ActivityIndicator, Alert, Keyboard } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import { router } from "expo-router";
 import { useAuthStore } from "@/stores/authStore";
@@ -111,48 +112,48 @@ export default function CheckoutScreen() {
 
   if (!user) {
     return (
-      <View style={styles.center}>
+      <SafeAreaView style={styles.center} edges={["top"]}>
         <Text style={styles.title}>Checkout</Text>
         <Text style={styles.desc}>Please sign in to continue to checkout.</Text>
         <Button title="Sign in" onPress={() => router.push("/auth/login" as any)} style={{ marginTop: 16 }} />
         <Pressable onPress={() => router.back()} style={{ marginTop: 12 }}>
           <Text style={styles.link}>Go back</Text>
         </Pressable>
-      </View>
+      </SafeAreaView>
     );
   }
 
   if (cartLoading || addrLoading) {
     return (
-      <View style={styles.center}>
+      <SafeAreaView style={styles.center} edges={["top"]}>
         <ActivityIndicator color={colors.foreground} />
         <Text style={styles.desc}>Preparing checkout…</Text>
-      </View>
+      </SafeAreaView>
     );
   }
 
   if (cartError || addrError) {
     return (
-      <View style={styles.center}>
+      <SafeAreaView style={styles.center} edges={["top"]}>
         <Text style={styles.title}>We couldn&apos;t load checkout.</Text>
         <Text style={styles.desc}>{String((cartErr as Error)?.message ?? (addrErr as Error)?.message ?? "Try again")}</Text>
         <Button title="Retry" onPress={() => { refetchCart(); refetchAddr(); }} style={{ marginTop: 12 }} />
-      </View>
+      </SafeAreaView>
     );
   }
 
   if (!cartItems?.length) {
     return (
-      <View style={styles.center}>
+      <SafeAreaView style={styles.center} edges={["top"]}>
         <Text style={styles.title}>Your bag is empty</Text>
         <Text style={styles.desc}>Add items to continue to checkout.</Text>
         <Button title="Shop now" onPress={() => router.push("/(tabs)/shop" as any)} style={{ marginTop: 16 }} />
-      </View>
+      </SafeAreaView>
     );
   }
 
   return (
-    <View style={styles.root}>
+    <SafeAreaView style={styles.root} edges={["top"]}>
       <KeyboardAwareScrollView
         style={{ flex: 1 }}
         contentContainerStyle={styles.scroll}
@@ -266,7 +267,7 @@ export default function CheckoutScreen() {
           {!selectedAddress && <Text style={styles.footerHint}>Select a shipping address to continue</Text>}
         </View>
       </View>
-    </View>
+    </SafeAreaView>
   );
 }
 

@@ -1,4 +1,5 @@
 import { View, Text, StyleSheet, Pressable, FlatList } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { router } from "expo-router";
 import { useOrdersQuery } from "@/features/orders/hooks/useOrders";
 import { OrderCard } from "@/features/orders/components/OrderCard";
@@ -24,35 +25,35 @@ export default function OrdersScreen() {
 
   if (!user) {
     return (
-      <View style={styles.center}>
+      <SafeAreaView style={styles.center} edges={["top"]}>
         <Text style={styles.title}>Orders</Text>
         <Text style={styles.desc}>Sign in to view your purchase history.</Text>
         <Button title="Sign in" onPress={() => router.push("/auth/login" as any)} style={{ marginTop: 16 }} />
-      </View>
+      </SafeAreaView>
     );
   }
 
   if (isLoading) {
     return (
-      <View style={styles.root}>
+      <SafeAreaView style={styles.root} edges={["top"]}>
         <View style={styles.header}>
-          <Pressable onPress={() => router.back()} style={styles.back}>
+          <Pressable onPress={() => router.back()} style={styles.back} hitSlop={8}>
             <Text style={styles.backText}>← Back</Text>
           </Pressable>
           <Text style={styles.heading}>Orders</Text>
         </View>
         <OrdersSkeleton />
-      </View>
+      </SafeAreaView>
     );
   }
 
   if (isError) {
     return (
-      <View style={styles.center}>
+      <SafeAreaView style={styles.center} edges={["top"]}>
         <Text style={styles.title}>We couldn&apos;t load orders.</Text>
         <Text style={styles.desc}>{String((error as Error)?.message ?? "Try again")}</Text>
         <Button title={isRefetching ? "Retrying…" : "Retry"} onPress={() => refetch()} style={{ marginTop: 12 }} />
-      </View>
+      </SafeAreaView>
     );
   }
 
@@ -60,18 +61,18 @@ export default function OrdersScreen() {
 
   if (list.length === 0) {
     return (
-      <View style={styles.center}>
+      <SafeAreaView style={styles.center} edges={["top"]}>
         <Text style={styles.title}>No orders yet</Text>
         <Text style={styles.desc}>Your purchases will appear here with tracking and delivery info.</Text>
         <Button title="Start shopping" onPress={() => router.replace("/(tabs)/shop" as any)} style={{ marginTop: 16 }} />
-      </View>
+      </SafeAreaView>
     );
   }
 
   return (
-    <View style={styles.root}>
+    <SafeAreaView style={styles.root} edges={["top"]}>
       <View style={styles.header}>
-        <Pressable onPress={() => router.back()} style={styles.back}>
+        <Pressable onPress={() => router.back()} style={styles.back} hitSlop={8}>
           <Text style={styles.backText}>← Back</Text>
         </Pressable>
         <Text style={styles.heading}>Orders</Text>
@@ -84,7 +85,7 @@ export default function OrdersScreen() {
         contentContainerStyle={{ padding: spacing.xl, gap: 12, paddingBottom: 32 }}
         renderItem={({ item }) => <OrderCard order={item} onPress={() => router.push(`/orders/${item.id}` as any)} />}
       />
-    </View>
+    </SafeAreaView>
   );
 }
 

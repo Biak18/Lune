@@ -1,4 +1,5 @@
 import { View, Text, FlatList, Pressable, StyleSheet, Switch, ActivityIndicator } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { router } from "expo-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
@@ -26,9 +27,9 @@ export default function AdminProductsScreen() {
 
   return (
     <AdminGuard>
-      <View style={styles.root}>
+      <SafeAreaView style={styles.root} edges={["top"]}>
         <View style={styles.header}>
-          <Pressable onPress={() => router.back()} style={styles.back}>
+          <Pressable onPress={() => router.back()} style={[styles.back, { marginTop: 4 }]} hitSlop={8}>
             <Text style={styles.backText}>← Admin</Text>
           </Pressable>
           <Text style={styles.heading}>Products</Text>
@@ -73,7 +74,7 @@ export default function AdminProductsScreen() {
             )}
           />
         )}
-      </View>
+      </SafeAreaView>
     </AdminGuard>
   );
 }

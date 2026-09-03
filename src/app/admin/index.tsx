@@ -1,4 +1,5 @@
 import { View, Text, ScrollView, Pressable, StyleSheet, ActivityIndicator } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { router } from "expo-router";
 import { useQuery } from "@tanstack/react-query";
 import { AdminGuard } from "@/features/admin/components/AdminGuard";
@@ -27,9 +28,9 @@ export default function AdminDashboard() {
 
   return (
     <AdminGuard>
-      <View style={styles.root}>
+      <SafeAreaView style={styles.root} edges={["top"]}>
         <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
-          <Pressable onPress={() => router.back()} style={styles.back}>
+          <Pressable onPress={() => router.back()} style={[styles.back, { marginTop: 4 }]} hitSlop={8}>
             <Text style={styles.backText}>← Back</Text>
           </Pressable>
 
@@ -83,7 +84,7 @@ export default function AdminDashboard() {
             </>
           )}
         </ScrollView>
-      </View>
+      </SafeAreaView>
     </AdminGuard>
   );
 }

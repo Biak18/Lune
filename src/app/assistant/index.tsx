@@ -14,6 +14,7 @@ import {
   TextInput,
   View,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { KeyboardAvoidingView } from "react-native-keyboard-controller";
 // ASSUMPTION: adjust this import to wherever your Supabase client actually
 // lives (I couldn't confirm the path — GitHub wasn't reachable from here).
@@ -250,11 +251,11 @@ export default function AssistantScreen() {
   };
 
   return (
-    <View style={styles.root}>
+    <SafeAreaView style={styles.root} edges={["top"]}>
       <View style={styles.header}>
         <Pressable
           onPress={() => router.back()}
-          style={styles.back}
+          style={[styles.back, { marginTop: 4 }]}
           hitSlop={8}
         >
           <Text style={styles.backText}>← Back</Text>
@@ -420,7 +421,7 @@ export default function AssistantScreen() {
           </Pressable>
         </View>
       </KeyboardAvoidingView>
-    </View>
+    </SafeAreaView>
   );
 }
 

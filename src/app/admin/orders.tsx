@@ -13,6 +13,7 @@ import {
   Text,
   View,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function AdminOrdersScreen() {
   const qc = useQueryClient();
@@ -30,9 +31,9 @@ export default function AdminOrdersScreen() {
 
   return (
     <AdminGuard>
-      <View style={styles.root}>
+      <SafeAreaView style={styles.root} edges={["top"]}>
         <View style={styles.header}>
-          <Pressable onPress={() => router.back()} style={styles.back}>
+          <Pressable onPress={() => router.back()} style={[styles.back, { marginTop: 4 }]} hitSlop={8}>
             <Text style={styles.backText}>← Admin</Text>
           </Pressable>
           <Text style={styles.heading}>Orders</Text>
@@ -94,7 +95,7 @@ export default function AdminOrdersScreen() {
             )}
           />
         )}
-      </View>
+      </SafeAreaView>
     </AdminGuard>
   );
 }

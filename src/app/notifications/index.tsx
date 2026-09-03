@@ -1,4 +1,5 @@
 import { View, Text, FlatList, Pressable, StyleSheet, Switch, ActivityIndicator } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { router } from "expo-router";
 import { useAuthStore } from "@/stores/authStore";
 import { useNotificationsQuery, useMarkRead, useMarkAllRead, useNotificationPrefsQuery, useUpdatePrefs } from "@/features/notifications/hooks/useNotifications";
@@ -29,35 +30,35 @@ export default function NotificationsScreen() {
 
   if (!user) {
     return (
-      <View style={styles.center}>
+      <SafeAreaView style={styles.center} edges={["top"]}>
         <Text style={styles.title}>Notifications</Text>
         <Text style={styles.desc}>Sign in to see order updates, back-in-stock and price drops.</Text>
         <Button title="Sign in" onPress={() => router.push("/auth/login" as any)} style={{ marginTop: 16 }} />
-      </View>
+      </SafeAreaView>
     );
   }
 
   if (isLoading) {
     return (
-      <View style={styles.root}>
+      <SafeAreaView style={styles.root} edges={["top"]}>
         <View style={styles.header}>
-          <Pressable onPress={() => router.back()} style={styles.back}>
+          <Pressable onPress={() => router.back()} style={[styles.back, { marginTop: 4 }]} hitSlop={8}>
             <Text style={styles.backText}>← Back</Text>
           </Pressable>
           <Text style={styles.heading}>Notifications</Text>
         </View>
         <NotifSkeleton />
-      </View>
+      </SafeAreaView>
     );
   }
 
   if (isError) {
     return (
-      <View style={styles.center}>
+      <SafeAreaView style={styles.center} edges={["top"]}>
         <Text style={styles.title}>We couldn&apos;t load notifications.</Text>
         <Text style={styles.desc}>{String((error as Error)?.message ?? "Try again")}</Text>
         <Button title="Retry" onPress={() => refetch()} style={{ marginTop: 12 }} />
-      </View>
+      </SafeAreaView>
     );
   }
 
@@ -65,9 +66,9 @@ export default function NotificationsScreen() {
   const unread = list.filter((n) => !n.is_read).length;
 
   return (
-    <View style={styles.root}>
+    <SafeAreaView style={styles.root} edges={["top"]}>
       <View style={styles.header}>
-        <Pressable onPress={() => router.back()} style={styles.back}>
+        <Pressable onPress={() => router.back()} style={[styles.back, { marginTop: 4 }]} hitSlop={8}>
           <Text style={styles.backText}>← Back</Text>
         </Pressable>
         <Text style={styles.heading}>Notifications</Text>
@@ -165,7 +166,7 @@ export default function NotificationsScreen() {
           )}
         />
       )}
-    </View>
+    </SafeAreaView>
   );
 }
 

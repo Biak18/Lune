@@ -1,4 +1,5 @@
 import { View, Text, FlatList, Pressable, StyleSheet, ActivityIndicator } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { router } from "expo-router";
 import { useQuery } from "@tanstack/react-query";
 import { AdminGuard } from "@/features/admin/components/AdminGuard";
@@ -14,9 +15,9 @@ export default function AdminInventoryScreen() {
 
   return (
     <AdminGuard>
-      <View style={styles.root}>
+      <SafeAreaView style={styles.root} edges={["top"]}>
         <View style={styles.header}>
-          <Pressable onPress={() => router.back()} style={styles.back}>
+          <Pressable onPress={() => router.back()} style={[styles.back, { marginTop: 4 }]} hitSlop={8}>
             <Text style={styles.backText}>← Admin</Text>
           </Pressable>
           <Text style={styles.heading}>Inventory</Text>
@@ -57,7 +58,7 @@ export default function AdminInventoryScreen() {
             }
           />
         )}
-      </View>
+      </SafeAreaView>
     </AdminGuard>
   );
 }

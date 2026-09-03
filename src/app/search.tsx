@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { View, Text, StyleSheet } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { router } from "expo-router";
 import { colors } from "@/design/colors";
 import { spacing } from "@/design/spacing";
@@ -14,7 +15,7 @@ export default function SearchScreen() {
   const hasSearched = q.trim().length > 0;
 
   return (
-    <View style={styles.root}>
+    <SafeAreaView style={styles.root} edges={["top"]}>
       <View style={{ padding: spacing.xl, gap: 12 }}>
         <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
           <Text style={styles.title}>Search</Text>
@@ -47,7 +48,7 @@ export default function SearchScreen() {
           />
         )}
       </View>
-    </View>
+    </SafeAreaView>
   );
 }
 

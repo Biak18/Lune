@@ -1,5 +1,6 @@
 import { useLocalSearchParams, router } from "expo-router";
 import { View, Text, Pressable, StyleSheet } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { colors } from "@/design/colors";
 import { spacing } from "@/design/spacing";
 import { useCategoriesQuery, useProductsInfiniteQuery } from "@/features/products/hooks/useProducts";
@@ -13,8 +14,8 @@ export default function CategoryScreen() {
   const products = query.data?.pages.flatMap((p) => p.data) ?? [];
 
   return (
-    <View style={styles.root}>
-      <Pressable onPress={() => router.back()} style={styles.back}>
+    <SafeAreaView style={styles.root} edges={["top"]}>
+      <Pressable onPress={() => router.back()} style={[styles.back, { marginTop: 4 }]} hitSlop={8}>
         <Text style={styles.backText}>← Back</Text>
       </Pressable>
       <Text style={styles.title}>{category?.name ?? "Category"}</Text>
@@ -32,7 +33,7 @@ export default function CategoryScreen() {
           isFetchingNextPage={query.isFetchingNextPage}
         />
       </View>
-    </View>
+    </SafeAreaView>
   );
 }
 

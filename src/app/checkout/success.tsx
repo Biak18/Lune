@@ -1,4 +1,5 @@
 import { View, Text, StyleSheet, Pressable } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { useLocalSearchParams, router } from "expo-router";
 import { useOrderQuery } from "@/features/orders/hooks/useOrders";
 import { colors } from "@/design/colors";
@@ -13,16 +14,16 @@ export default function CheckoutSuccessScreen() {
 
   if (isLoading) {
     return (
-      <View style={styles.center}>
+      <SafeAreaView style={styles.center} edges={["top"]}>
         <Text style={styles.title}>Order confirmed!</Text>
         <Text style={styles.desc}>We are preparing your order…</Text>
-      </View>
+      </SafeAreaView>
     );
   }
 
   if (isError || !order) {
     return (
-      <View style={styles.center}>
+      <SafeAreaView style={styles.center} edges={["top"]}>
         <Text style={styles.title}>Order placed</Text>
         <Text style={styles.desc}>Your order was created successfully.</Text>
         <Text style={styles.orderId}>{orderId}</Text>
@@ -30,12 +31,12 @@ export default function CheckoutSuccessScreen() {
         <Pressable onPress={() => router.replace("/(tabs)/shop" as any)} style={{ marginTop: 12 }}>
           <Text style={styles.link}>Continue shopping</Text>
         </Pressable>
-      </View>
+      </SafeAreaView>
     );
   }
 
   return (
-    <View style={styles.root}>
+    <SafeAreaView style={styles.root} edges={["top"]}>
       <View style={styles.card}>
         <View style={styles.iconWrap}>
           <Ionicons name="checkmark" size={28} color={colors.surface} />
@@ -64,7 +65,7 @@ export default function CheckoutSuccessScreen() {
           <Button title="Continue shopping" variant="secondary" onPress={() => router.replace("/(tabs)/shop" as any)} />
         </View>
       </View>
-    </View>
+    </SafeAreaView>
   );
 }
 
