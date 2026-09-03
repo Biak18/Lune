@@ -20,7 +20,7 @@ import { useReviewsQuery, useReviewAvgQuery, useVerifiedPurchaseQuery, useCreate
 import { useAuthStore } from "@/stores/authStore";
 import { CompleteTheLook } from "@/features/outfit/components/CompleteTheLook";
 import { RecommendationCarousel } from "@/features/recommendations/components/RecommendationCarousel";
-import { useSimilarProducts, useOccasionRecommendations, useRecentlyViewedProducts } from "@/features/recommendations/hooks/useRecommendations";
+import { useSimilarProducts, useOccasionRecommendations } from "@/features/recommendations/hooks/useRecommendations";
 import { useRecentlyViewedStore } from "@/stores/recentlyViewedStore";
 import {
   getActiveVariants,
@@ -108,11 +108,10 @@ export default function ProductScreen() {
   const myReview = reviews?.find((r) => r.user_id === user?.id) ?? null;
   const isVerified = verifiedData?.verified ?? false;
 
-  // Recommendations
+  // Recommendations (recently viewed still tracked for Home, but not shown here per request)
   const addRecent = useRecentlyViewedStore((s) => s.add);
   const { data: similar, isLoading: similarLoading } = useSimilarProducts(product ?? null);
   const { data: occasionRecs, isLoading: occLoading } = useOccasionRecommendations(product?.occasion ?? null, product?.id);
-  const { data: recentProds, isLoading: recentLoading } = useRecentlyViewedProducts(product?.id);
 
   useEffect(() => {
     if (product?.id) addRecent(product.id);
@@ -340,7 +339,6 @@ export default function ProductScreen() {
           products={occasionRecs ?? []}
           isLoading={occLoading}
         />
-        <RecommendationCarousel title="Recently viewed" products={recentProds ?? []} isLoading={recentLoading} emptyText={undefined} />
       </ScrollView>
 
       <View style={styles.footer}>
