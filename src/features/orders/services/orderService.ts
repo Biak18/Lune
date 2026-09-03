@@ -100,6 +100,12 @@ export const orderService = {
     // Clear cart
     await supabase.from("cart_items").delete().eq("user_id", userId);
 
+    // Earn loyalty points (1 per $1)
+    try {
+      const { loyaltyService } = await import("@/features/loyalty/services/loyaltyService");
+      await loyaltyService.earnPointsForOrder(order.id, Number(order.total));
+    } catch {}
+
     // Create notification for order confirmed (respect prefs)
     try {
       const { data: prefs } = await supabase.from("notification_preferences").select("order_updates").eq("user_id", userId).maybeSingle();
