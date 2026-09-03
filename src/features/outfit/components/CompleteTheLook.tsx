@@ -1,21 +1,26 @@
-import { View, Text, ScrollView, Pressable, StyleSheet, ActivityIndicator } from "react-native";
-import { Image } from "expo-image";
-import { Link, router } from "expo-router";
-import { colors } from "@/design/colors";
-import { spacing, radius } from "@/design/spacing";
 import { Button } from "@/components/ui/Button";
-import { useCompleteTheLook } from "../hooks/useCompleteTheLook";
+import { colors } from "@/design/colors";
+import { radius } from "@/design/spacing";
 import { useAddToCart } from "@/features/cart/hooks/useCart";
 import type { ProductWithRelations } from "@/features/products/types";
 import * as Haptics from "expo-haptics";
+import { Image } from "expo-image";
+import { Link, router } from "expo-router";
 import { useState } from "react";
+import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { useCompleteTheLook } from "../hooks/useCompleteTheLook";
 
 type Props = {
   product: ProductWithRelations;
 };
 
 export function CompleteTheLook({ product }: Props) {
-  const { data: items, isLoading, isError, refetch } = useCompleteTheLook(product);
+  const {
+    data: items,
+    isLoading,
+    isError,
+    refetch,
+  } = useCompleteTheLook(product);
   const addToCart = useAddToCart();
   const [addingAll, setAddingAll] = useState(false);
 
@@ -24,17 +29,28 @@ export function CompleteTheLook({ product }: Props) {
     setAddingAll(true);
     let added = 0;
     for (const p of items) {
-      const firstInStock = p.variants.find((v) => v.is_active && (v.stock_quantity ?? 0) > 0);
+      const firstInStock = p.variants.find(
+        (v) => v.is_active && (v.stock_quantity ?? 0) > 0,
+      );
       if (!firstInStock) continue;
       try {
-        await addToCart.mutateAsync({ variantId: firstInStock.id, quantity: 1 });
+        await addToCart.mutateAsync({
+          variantId: firstInStock.id,
+          quantity: 1,
+        });
         added += 1;
       } catch {}
     }
     setAddingAll(false);
     try {
-      if (added > 0) await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-      else await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
+      if (added > 0)
+        await Haptics.notificationAsync(
+          Haptics.NotificationFeedbackType.Success,
+        );
+      else
+        await Haptics.notificationAsync(
+          Haptics.NotificationFeedbackType.Warning,
+        );
     } catch {}
     if (added > 0) router.push("/(tabs)/cart" as any);
   };
@@ -45,7 +61,15 @@ export function CompleteTheLook({ product }: Props) {
         <Text style={styles.title}>Complete the Look</Text>
         <View style={{ flexDirection: "row", gap: 12 }}>
           {[1, 2, 3].map((i) => (
-            <View key={i} style={{ width: 120, height: 150, borderRadius: radius.lg, backgroundColor: colors.surfaceMuted }} />
+            <View
+              key={i}
+              style={{
+                width: 120,
+                height: 150,
+                borderRadius: radius.lg,
+                backgroundColor: colors.surfaceMuted,
+              }}
+            />
           ))}
         </View>
       </View>
@@ -65,17 +89,22 @@ export function CompleteTheLook({ product }: Props) {
 
   if (!items?.length) return null;
 
-  const outfitTotal = items.reduce((sum, p) => sum + Number(p.base_price), 0) + Number(product.base_price);
+  const outfitTotal =
+    items.reduce((sum, p) => sum + Number(p.base_price), 0) +
+    Number(product.base_price);
 
   return (
     <View style={styles.card}>
       <View style={styles.header}>
-        <View>
+        <View style={{ flex: 2 }}>
           <Text style={styles.eyebrow}>Outfit</Text>
           <Text style={styles.title}>Complete the Look</Text>
-          <Text style={styles.desc}>Curated with {product.occasion ?? "everyday"} • {product.style ?? "minimal"} • different category</Text>
+          <Text style={styles.desc}>
+            Curated with {product.occasion ?? "everyday"} •{" "}
+            {product.style ?? "minimal"} • different category
+          </Text>
         </View>
-        <Text style={styles.count}>{items.length + 1} pieces</Text>
+        <Text style={styles.count}>{100} pieces</Text>
       </View>
 
       <ScrollView
@@ -87,18 +116,42 @@ export function CompleteTheLook({ product }: Props) {
       >
         {/* Current product */}
         <View style={styles.tileActive}>
-          <Image source={{ uri: (product.images.find((i) => i.is_primary) ?? product.images[0])?.image_url ?? "https://picsum.photos/300/400" }} style={styles.tileImg} contentFit="cover" />
-          <Text style={styles.tileName} numberOfLines={1}>{product.name}</Text>
-          <Text style={styles.tilePrice}>${Number(product.base_price).toFixed(0)} • yours</Text>
+          <Image
+            source={{
+              uri:
+                (product.images.find((i) => i.is_primary) ?? product.images[0])
+                  ?.image_url ?? "https://picsum.photos/300/400",
+            }}
+            style={styles.tileImg}
+            contentFit="cover"
+          />
+          <Text style={styles.tileName} numberOfLines={1}>
+            {product.name}
+          </Text>
+          <Text style={styles.tilePrice}>
+            ${Number(product.base_price).toFixed(0)} • yours
+          </Text>
         </View>
         {items.map((p) => {
           const img = p.images.find((i) => i.is_primary) ?? p.images[0];
           return (
             <Link key={p.id} href={`/product/${p.id}` as any} asChild>
               <Pressable style={styles.tile}>
-                <Image source={{ uri: img?.image_url ?? "https://picsum.photos/300/400" }} style={styles.tileImg} contentFit="cover" transition={200} cachePolicy="memory-disk" />
-                <Text style={styles.tileName} numberOfLines={1}>{p.name}</Text>
-                <Text style={styles.tilePrice}>${Number(p.base_price).toFixed(0)}</Text>
+                <Image
+                  source={{
+                    uri: img?.image_url ?? "https://picsum.photos/300/400",
+                  }}
+                  style={styles.tileImg}
+                  contentFit="cover"
+                  transition={200}
+                  cachePolicy="memory-disk"
+                />
+                <Text style={styles.tileName} numberOfLines={1}>
+                  {p.name}
+                </Text>
+                <Text style={styles.tilePrice}>
+                  ${Number(p.base_price).toFixed(0)}
+                </Text>
               </Pressable>
             </Link>
           );
@@ -119,7 +172,10 @@ export function CompleteTheLook({ product }: Props) {
         />
       </View>
 
-      <Text style={styles.hint}>Adds first in-stock variant of each related piece • Stock validated at checkout</Text>
+      <Text style={styles.hint}>
+        Adds first in-stock variant of each related piece • Stock validated at
+        checkout
+      </Text>
     </View>
   );
 }
@@ -167,6 +223,7 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
     borderRadius: 999,
     overflow: "hidden",
+    flex: 0,
   },
   tileActive: {
     width: 140,
