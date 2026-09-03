@@ -23,8 +23,11 @@ export function ProductCard({ product, onPress }: Props) {
             source={{ uri: primary?.image_url ?? "https://picsum.photos/400/500" }}
             style={styles.image}
             contentFit="cover"
-            transition={200}
+            transition={220}
             cachePolicy="memory-disk"
+            priority="high"
+            placeholder={{ uri: primary?.image_url ?? undefined }}
+            placeholderContentFit="cover"
           />
           <View style={styles.wish} pointerEvents="box-none">
             <WishlistButton productId={product.id} />

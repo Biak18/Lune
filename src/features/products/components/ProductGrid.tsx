@@ -1,4 +1,5 @@
-import { View, FlatList, ActivityIndicator, Text, StyleSheet } from "react-native";
+import { View, ActivityIndicator, Text, StyleSheet } from "react-native";
+import { FlashList } from "@shopify/flash-list";
 import { colors } from "@/design/colors";
 import { spacing } from "@/design/spacing";
 import { ProductCard } from "./ProductCard";
@@ -63,16 +64,15 @@ export function ProductGrid({
   }
 
   return (
-    <FlatList
+    <FlashList
       data={products}
       keyExtractor={(item) => item.id}
       numColumns={2}
-      columnWrapperStyle={{ gap: spacing.lg }}
-      contentContainerStyle={{ gap: spacing.lg, paddingBottom: spacing["3xl"] }}
+      contentContainerStyle={{ paddingBottom: spacing["3xl"] }}
       onEndReached={onEndReached}
       onEndReachedThreshold={0.4}
       renderItem={({ item }) => (
-        <View style={{ flex: 1 }}>
+        <View style={{ flex: 1, padding: spacing.lg / 2 }}>
           <ProductCard product={item} />
         </View>
       )}

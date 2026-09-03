@@ -1,5 +1,6 @@
-import { View, Text, StyleSheet, FlatList, Pressable, ActivityIndicator } from "react-native";
-import { Link } from "expo-router";
+import { View, Text, StyleSheet, Pressable } from "react-native";
+import { FlashList } from "@shopify/flash-list";
+import { Link, router } from "expo-router";
 import { useAuthStore } from "@/stores/authStore";
 import { useCartQuery, useUpdateCartQuantity, useRemoveFromCart } from "@/features/cart/hooks/useCart";
 import { calculateCartTotals } from "@/features/cart/utils/cartTotals";
@@ -9,7 +10,6 @@ import { colors } from "@/design/colors";
 import { spacing, radius } from "@/design/spacing";
 import { Button } from "@/components/ui/Button";
 import { Skeleton } from "@/components/ui/Skeleton";
-import { router } from "expo-router";
 
 function CartSkeleton() {
   return (
@@ -94,39 +94,42 @@ export default function CartScreen() {
         <Text style={styles.count}>{totals.itemCount} {totals.itemCount === 1 ? "item" : "items"}</Text>
       </View>
 
-      <FlatList
-        data={list}
-        keyExtractor={(it) => it.id}
-        contentContainerStyle={{ padding: spacing.xl, gap: 12, paddingBottom: 16 }}
-        renderItem={({ item }) => (
-          <CartItemRow
-            item={item}
-            updating={updateQty.isPending || remove.isPending}
-            onUpdateQuantity={(id, qty) => updateQty.mutate({ cartItemId: id, quantity: qty })}
-            onRemove={(id) => remove.mutate(id)}
-          />
-        )}
-        ListFooterComponent={
-          <View style={{ gap: 12, marginTop: 8 }}>
-            {(updateQty.isError || remove.isError) && (
-              <Text style={styles.errorText}>
-                {String(((updateQty.error as Error) ?? (remove.error as Error))?.message ?? "Update failed")}
-              </Text>
-            )}
-            <CartSummary
-              subtotal={totals.subtotal}
-              shipping={totals.shipping}
-              total={totals.total}
-              itemCount={totals.itemCount}
-              isFreeShipping={totals.isFreeShipping}
-              freeShippingThreshold={totals.freeShippingThreshold}
-              checkoutDisabled={totals.itemCount === 0}
-              onCheckout={() => router.push("/checkout" as any)}
+      <View style={{ flex: 1 }}>
+        <FlashList
+          data={list}
+          keyExtractor={(it) => it.id}
+          contentContainerStyle={{ padding: spacing.xl, paddingBottom: 16 }}
+          ItemSeparatorComponent={() => <View style={{ height: 12 }} />}
+          renderItem={({ item }) => (
+            <CartItemRow
+              item={item}
+              updating={updateQty.isPending || remove.isPending}
+              onUpdateQuantity={(id, qty) => updateQty.mutate({ cartItemId: id, quantity: qty })}
+              onRemove={(id) => remove.mutate(id)}
             />
-            <Text style={styles.note}>Prices verified at checkout. Stock is validated before order.</Text>
-          </View>
-        }
-      />
+          )}
+          ListFooterComponent={
+            <View style={{ gap: 12, marginTop: 12 }}>
+              {(updateQty.isError || remove.isError) && (
+                <Text style={styles.errorText}>
+                  {String(((updateQty.error as Error) ?? (remove.error as Error))?.message ?? "Update failed")}
+                </Text>
+              )}
+              <CartSummary
+                subtotal={totals.subtotal}
+                shipping={totals.shipping}
+                total={totals.total}
+                itemCount={totals.itemCount}
+                isFreeShipping={totals.isFreeShipping}
+                freeShippingThreshold={totals.freeShippingThreshold}
+                checkoutDisabled={totals.itemCount === 0}
+                onCheckout={() => router.push("/checkout" as any)}
+              />
+              <Text style={styles.note}>Prices verified at checkout. Stock is validated before order.</Text>
+            </View>
+          }
+        />
+      </View>
     </View>
   );
 }

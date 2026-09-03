@@ -1,4 +1,5 @@
-import { View, Text, StyleSheet, Pressable, FlatList, ActivityIndicator } from "react-native";
+import { View, Text, StyleSheet, Pressable } from "react-native";
+import { FlashList } from "@shopify/flash-list";
 import { Link, router } from "expo-router";
 import { useAuthStore } from "@/stores/authStore";
 import { useWishlistQuery } from "@/features/wishlist/hooks/useWishlist";
@@ -91,47 +92,48 @@ export default function WishlistScreen() {
         <Text style={styles.count}>{list.length} {list.length === 1 ? "item" : "items"}</Text>
       </View>
 
-      <FlatList
-        data={list}
-        keyExtractor={(item) => item.id}
-        numColumns={2}
-        columnWrapperStyle={{ gap: 12 }}
-        contentContainerStyle={{ padding: spacing.xl, gap: 12, paddingBottom: 32 }}
-        renderItem={({ item }) => {
-          const firstInStock = item.variants.find((v) => v.is_active && (v.stock_quantity ?? 0) > 0) ?? null;
-          const canAdd = !!firstInStock;
-          return (
-            <View style={{ flex: 1 }}>
-              <ProductCard product={item} />
-              <Pressable
-                onPress={async () => {
-                  if (!canAdd || !firstInStock) {
+      <View style={{ flex: 1 }}>
+        <FlashList
+          data={list}
+          keyExtractor={(item) => item.id}
+          numColumns={2}
+          contentContainerStyle={{ padding: spacing.xl, paddingBottom: 32 }}
+          renderItem={({ item }) => {
+            const firstInStock = item.variants.find((v) => v.is_active && (v.stock_quantity ?? 0) > 0) ?? null;
+            const canAdd = !!firstInStock;
+            return (
+              <View style={{ flex: 1, padding: 6 }}>
+                <ProductCard product={item} />
+                <Pressable
+                  onPress={async () => {
+                    if (!canAdd || !firstInStock) {
+                      try {
+                        await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
+                      } catch {}
+                      return;
+                    }
                     try {
-                      await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
-                    } catch {}
-                    return;
-                  }
-                  try {
-                    await addToCart.mutateAsync({ variantId: firstInStock.id, quantity: 1 });
-                    await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-                    router.push("/(tabs)/cart" as any);
-                  } catch (e) {
-                    try {
-                      await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
-                    } catch {}
-                  }
-                }}
-                disabled={!canAdd || addToCart.isPending}
-                style={[styles.addBag, (!canAdd || addToCart.isPending) && { opacity: 0.5 }]}
-                accessibilityRole="button"
-                accessibilityLabel={`Add ${item.name} to bag`}
-              >
-                <Text style={styles.addBagText}>{canAdd ? "Move to bag" : "Out of stock"}</Text>
-              </Pressable>
-            </View>
-          );
-        }}
-      />
+                      await addToCart.mutateAsync({ variantId: firstInStock.id, quantity: 1 });
+                      await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+                      router.push("/(tabs)/cart" as any);
+                    } catch (e) {
+                      try {
+                        await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+                      } catch {}
+                    }
+                  }}
+                  disabled={!canAdd || addToCart.isPending}
+                  style={[styles.addBag, (!canAdd || addToCart.isPending) && { opacity: 0.5 }]}
+                  accessibilityRole="button"
+                  accessibilityLabel={`Add ${item.name} to bag`}
+                >
+                  <Text style={styles.addBagText}>{canAdd ? "Move to bag" : "Out of stock"}</Text>
+                </Pressable>
+              </View>
+            );
+          }}
+        />
+      </View>
     </View>
   );
 }

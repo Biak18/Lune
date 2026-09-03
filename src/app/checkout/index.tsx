@@ -1,5 +1,6 @@
 import { useState, useMemo } from "react";
 import { View, Text, ScrollView, Pressable, StyleSheet, ActivityIndicator, Alert } from "react-native";
+import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import { router } from "expo-router";
 import { useAuthStore } from "@/stores/authStore";
 import { useCartQuery } from "@/features/cart/hooks/useCart";
@@ -148,8 +149,16 @@ export default function CheckoutScreen() {
 
   return (
     <View style={styles.root}>
-      <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
-        <Pressable onPress={() => router.back()} style={styles.back}>
+      <KeyboardAwareScrollView
+        style={{ flex: 1 }}
+        contentContainerStyle={styles.scroll}
+        showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
+        enableOnAndroid
+        extraScrollHeight={24}
+        enableAutomaticScroll
+      >
+        <Pressable onPress={() => router.back()} style={styles.back} hitSlop={8} accessibilityRole="button" accessibilityLabel="Back to bag">
           <Text style={styles.backText}>← Back to bag</Text>
         </Pressable>
 
@@ -237,7 +246,7 @@ export default function CheckoutScreen() {
           isFreeShipping={totals.isFreeShipping}
           freeShippingThreshold={totals.freeShippingThreshold}
         />
-      </ScrollView>
+      </KeyboardAwareScrollView>
 
       <View style={styles.footer}>
         <View style={{ gap: 6 }}>

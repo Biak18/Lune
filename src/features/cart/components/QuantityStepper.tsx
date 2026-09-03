@@ -64,8 +64,8 @@ const styles = StyleSheet.create({
     overflow: "hidden",
   },
   btn: {
-    width: 30,
-    height: 30,
+    width: 44,
+    height: 44,
     alignItems: "center",
     justifyContent: "center",
   },
@@ -73,7 +73,7 @@ const styles = StyleSheet.create({
     opacity: 0.5,
   },
   qty: {
-    minWidth: 28,
+    minWidth: 32,
     textAlign: "center",
     fontSize: 13,
     fontWeight: "700",
