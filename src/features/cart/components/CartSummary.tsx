@@ -33,7 +33,7 @@ export function CartSummary({ subtotal, shipping, total, itemCount, isFreeShippi
         <Text style={styles.totalLabel}>Total</Text>
         <Text style={styles.totalValue}>${total.toFixed(2)}</Text>
       </View>
-      <Button title="Proceed to checkout" disabled={!!checkoutDisabled} onPress={onCheckout} style={{ marginTop: 8 }} />
+      {onCheckout && <Button title="Proceed to checkout" disabled={!!checkoutDisabled} onPress={onCheckout} style={{ marginTop: 8 }} />}
     </View>
   );
 }
