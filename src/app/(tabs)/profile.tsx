@@ -17,6 +17,11 @@ export default function ProfileScreen() {
   const session = useAuthStore((s) => s.session);
   const logout = useLogoutMutation();
   const { data: isAdmin } = useIsAdmin();
+  const { data: loyalty, isLoading: loyaltyLoading } = useLoyaltyAccount();
+  const { data: tx } = useLoyaltyTx();
+  const { data: exclusive } = useProductsQuery(
+    loyalty?.tier === "gold" || loyalty?.tier === "platinum" ? { style: "elegant", pageSize: 4 } : { style: "minimal", pageSize: 2 }
+  );
 
   if (!session) {
     return (
@@ -27,12 +32,6 @@ export default function ProfileScreen() {
       </View>
     );
   }
-
-  const { data: loyalty, isLoading: loyaltyLoading } = useLoyaltyAccount();
-  const { data: tx } = useLoyaltyTx();
-  const { data: exclusive } = useProductsQuery(
-    loyalty?.tier === "gold" || loyalty?.tier === "platinum" ? { style: "elegant", pageSize: 4 } : { style: "minimal", pageSize: 2 }
-  );
 
   return (
     <ScrollView style={{ flex: 1, backgroundColor: colors.background }} contentContainerStyle={{ padding: spacing.xl, gap: spacing.lg, paddingBottom: 32 }} showsVerticalScrollIndicator={false}>
