@@ -46,3 +46,11 @@ example
 
 # supabase
 /supabase/.temp
+/supabase/.branches
+/supabase/.env
+/supabase/functions/.env
+/supabase/functions/**/.npmrc
+
+# opencode / claude local
+.agents/
+.claude/
