@@ -47,24 +47,45 @@ export function OrderTimeline({ status, createdAt }: Props) {
     );
   }
 
+  const isDelivered = status === "delivered";
+
   return (
     <View style={styles.card}>
       <Text style={styles.title}>Order timeline</Text>
       {ORDER_FLOW.map((s, idx) => {
         const done = idx <= progress;
-        const current = idx === progress;
+        // Delivered is terminal — show it as green done, not black current
+        const current = idx === progress && !isDelivered;
         const future = idx > progress;
+        const isDeliveredStep = isDelivered && s === "delivered";
         return (
           <View key={s} style={styles.row}>
             <View style={styles.left}>
-              <View style={[styles.circle, done && styles.circleDone, current && styles.circleCurrent, future && styles.circleFuture]}>
-                {done ? <Ionicons name={idx === progress ? "ellipse" : "checkmark"} size={10} color={done ? colors.surface : colors.muted} /> : <View style={styles.dotFuture} />}
+              <View
+                style={[
+                  styles.circle,
+                  done && styles.circleDone,
+                  current && styles.circleCurrent,
+                  isDeliveredStep && styles.circleDone,
+                  future && styles.circleFuture,
+                ]}
+              >
+                {done ? (
+                  <Ionicons
+                    name={isDeliveredStep || idx < progress ? "checkmark" : "ellipse"}
+                    size={10}
+                    color={colors.surface}
+                  />
+                ) : (
+                  <View style={styles.dotFuture} />
+                )}
               </View>
               {idx < ORDER_FLOW.length - 1 && <View style={[styles.line, done && styles.lineDone]} />}
             </View>
             <View style={{ flex: 1, paddingBottom: 14 }}>
               <Text style={[styles.label, done && styles.labelDone, future && styles.labelFuture]}>{LABELS[s]}</Text>
               {current && createdAt ? <Text style={styles.date}>Updated {new Date(createdAt).toLocaleDateString()}</Text> : null}
+              {isDeliveredStep && createdAt ? <Text style={styles.date}>Delivered {new Date(createdAt).toLocaleDateString()}</Text> : null}
             </View>
           </View>
         );

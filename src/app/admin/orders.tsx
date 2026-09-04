@@ -25,8 +25,11 @@ export default function AdminOrdersScreen() {
   const update = useMutation({
     mutationFn: ({ id, status }: { id: string; status: string }) =>
       adminService.updateOrderStatus(id, status),
-    onSuccess: () =>
-      qc.invalidateQueries({ queryKey: ["admin", "orders-list"] }),
+    onSuccess: (_data, vars) => {
+      qc.invalidateQueries({ queryKey: ["admin", "orders-list"] });
+      qc.invalidateQueries({ queryKey: ["orders"] });
+      qc.invalidateQueries({ queryKey: ["orders", "detail", vars.id] });
+    },
   });
 
   return (
