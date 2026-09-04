@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/Button";
 import { FormError } from "@/components/ui/FormError";
 import { Divider } from "@/components/ui/Divider";
 import { AuthHeader } from "@/features/auth/components/AuthHeader";
+import { DevAccountSwitcher } from "@/features/auth/components/DevAccountSwitcher";
 import { useLoginMutation, useGoogleAuthMutation } from "@/features/auth/hooks/useAuthMutations";
 import { loginSchema, type LoginFormValues } from "@/utils/validation";
 import { getAuthErrorMessage } from "@/utils/errors";
@@ -180,6 +181,12 @@ export default function LoginScreen() {
             </Pressable>
           </Link>
         </Animated.View>
+
+        {__DEV__ ? (
+          <Animated.View entering={FadeInUp.delay(560).duration(420).springify()}>
+            <DevAccountSwitcher />
+          </Animated.View>
+        ) : null}
         </View>
       </KeyboardAwareScrollView>
     </SafeAreaView>

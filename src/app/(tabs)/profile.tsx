@@ -13,6 +13,7 @@ import { LoyaltyCard } from "@/features/loyalty/components/LoyaltyCard";
 import { RewardsList } from "@/features/loyalty/components/RewardsList";
 import { useProductsQuery } from "@/features/products/hooks/useProducts";
 import { ProductCard } from "@/features/products/components/ProductCard";
+import { DevAccountSwitcher } from "@/features/auth/components/DevAccountSwitcher";
 
 function getInitials(email?: string, fullName?: string) {
   if (fullName?.trim()) {
@@ -220,6 +221,9 @@ export default function ProfileScreen() {
             </View>
           </View>
         ) : null}
+
+        {/* Dev switcher */}
+        {__DEV__ ? <DevAccountSwitcher /> : null}
 
         {/* Footer */}
         <View style={styles.footer}>
