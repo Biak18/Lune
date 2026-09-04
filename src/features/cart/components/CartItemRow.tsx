@@ -46,7 +46,7 @@ export function CartItemRow({ item, onUpdateQuantity, onRemove, updating }: Prop
           <QuantityStepper
             quantity={item.quantity}
             max={max}
-            disabled={!!updating}
+            disabled={false}
             onDecrease={() => onUpdateQuantity(item.id, item.quantity - 1)}
             onIncrease={() => onUpdateQuantity(item.id, item.quantity + 1)}
           />

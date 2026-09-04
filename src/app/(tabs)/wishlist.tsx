@@ -112,18 +112,15 @@ export default function WishlistScreen() {
                       } catch {}
                       return;
                     }
+                    // Instant feedback — optimistic cart already updates via useAddToCart
                     try {
-                      await addToCart.mutateAsync({ variantId: firstInStock.id, quantity: 1 });
-                      await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-                      router.push("/(tabs)/cart" as any);
-                    } catch (e) {
-                      try {
-                        await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
-                      } catch {}
-                    }
+                      await Haptics.selectionAsync();
+                    } catch {}
+                    addToCart.mutate({ variantId: firstInStock.id, quantity: 1 });
+                    router.push("/(tabs)/cart" as any);
                   }}
-                  disabled={!canAdd || addToCart.isPending}
-                  style={[styles.addBag, (!canAdd || addToCart.isPending) && { opacity: 0.5 }]}
+                  disabled={!canAdd}
+                  style={[styles.addBag, !canAdd && { opacity: 0.5 }]}
                   accessibilityRole="button"
                   accessibilityLabel={`Add ${item.name} to bag`}
                 >

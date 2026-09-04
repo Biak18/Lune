@@ -25,13 +25,29 @@ export function useAddToCart() {
     onMutate: async ({ variantId, quantity }) => {
       await qc.cancelQueries({ queryKey: cartKeys.list() });
       const prev = qc.getQueryData<CartItem[]>(cartKeys.list());
-      // Optimistic: if item exists, bump qty, else add placeholder
       if (prev) {
         const idx = prev.findIndex((it) => it.variant_id === variantId);
         if (idx !== -1) {
           const next = [...prev];
           next[idx] = { ...next[idx], quantity: next[idx].quantity + (quantity ?? 1) };
           qc.setQueryData(cartKeys.list(), next);
+        } else {
+          // New item: create optimistic placeholder so wishlist->bag feels instant
+          const optimistic: CartItem = {
+            id: `optimistic-${variantId}-${Date.now()}`,
+            quantity: quantity ?? 1,
+            variant_id: variantId,
+            variant: {
+              id: variantId,
+              sku: "optimistic",
+              stock_quantity: 999,
+              is_active: true,
+              product: null,
+            } as any,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+          };
+          qc.setQueryData(cartKeys.list(), [...prev, optimistic]);
         }
       }
       return { prev };
