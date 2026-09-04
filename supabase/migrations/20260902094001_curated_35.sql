@@ -1,8 +1,8 @@
 -- Curated 35 products — replaces Livostyle bulk (keeps boutique feel)
 -- Categories: women/men/kids (+ new-arrivals)
 
-insert into public.categories (id, name, slug, description, sort_order, is_active) values (gen_random_uuid(), 'Women', 'women', 'Women's collection', 1, true) on conflict (slug) do update set name=excluded.name;
-insert into public.categories (id, name, slug, description, sort_order, is_active) values (gen_random_uuid(), 'Men', 'men', 'Men's collection', 2, true) on conflict (slug) do update set name=excluded.name;
+insert into public.categories (id, name, slug, description, sort_order, is_active) values (gen_random_uuid(), 'Women', 'women', 'Women''s collection', 1, true) on conflict (slug) do update set name=excluded.name;
+insert into public.categories (id, name, slug, description, sort_order, is_active) values (gen_random_uuid(), 'Men', 'men', 'Men''s collection', 2, true) on conflict (slug) do update set name=excluded.name;
 insert into public.categories (id, name, slug, description, sort_order, is_active) values (gen_random_uuid(), 'Kids', 'kids', 'Kids collection', 3, true) on conflict (slug) do update set name=excluded.name;
 insert into public.categories (id, name, slug, description, sort_order, is_active) values (gen_random_uuid(), 'New Arrivals', 'new-arrivals', 'Latest arrivals', 4, true) on conflict (slug) do update set name=excluded.name;
 

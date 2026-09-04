@@ -1,26 +1,17 @@
+/* eslint-disable react-hooks/purity */
 import { Button } from "@/components/ui/Button";
 import { colors } from "@/design/colors";
 import { radius, spacing } from "@/design/spacing";
 import { ProductCard } from "@/features/products/components/ProductCard";
 import { useProductsQuery } from "@/features/products/hooks/useProducts";
+import { assistantService } from "@/features/assistant/services/assistantService";
+import type { ChatMessage } from "@/features/assistant/services/assistantService";
 import * as Haptics from "expo-haptics";
 import { router } from "expo-router";
 import { useMemo, useRef, useState } from "react";
-import {
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  View,
-} from "react-native";
+import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { KeyboardAvoidingView } from "react-native-keyboard-controller";
-// ASSUMPTION: adjust this import to wherever your Supabase client actually
-// lives (I couldn't confirm the path — GitHub wasn't reachable from here).
-// It just needs to be a configured `createClient(...)` instance so
-// `.functions.invoke()` carries your project's auth headers automatically.
-import { supabase } from "@/lib/supabase";
 
 type Msg = {
   id: string;
@@ -30,14 +21,7 @@ type Msg = {
   products?: boolean;
 };
 
-const OCCASIONS = [
-  "everyday",
-  "office",
-  "vacation",
-  "casual",
-  "party",
-  "wedding",
-];
+const OCCASIONS = ["everyday", "office", "vacation", "casual", "party", "wedding"];
 const STYLES = ["minimal", "elegant", "casual", "bold", "romantic"];
 const COLORS = ["Black", "White", "Navy", "Beige", "Olive", "Gray"];
 
@@ -49,41 +33,16 @@ function parseFreeTextLocal(input: string) {
   return { occ, sty, col };
 }
 
-type ParsedIntent = {
-  occasion: string | null;
-  style: string | null;
-  color: string | null;
-};
-
-/**
- * Calls the `parse-shopping-intent` Supabase Edge Function (Gemini Flash,
- * server-side key) to extract occasion/style/color from free text.
- * Falls back to the local keyword matcher on any failure — timeout, network
- * error, free-tier rate limit (Gemini 429 surfaces as a 502 from the
- * function), or a malformed response. The chat should never hang or dead-end
- * just because the AI call didn't come back.
- */
-async function parseFreeTextViaAI(
-  input: string,
-): Promise<{ occ?: string; sty?: string; col?: string }> {
+async function parseFreeTextViaAI(input: string): Promise<{ occ?: string; sty?: string; col?: string }> {
   try {
-    const { data, error } = await supabase.functions.invoke<ParsedIntent>(
-      "parse-shopping-intent",
-      {
-        body: { text: input },
-      },
-    );
-    if (error || !data) throw error ?? new Error("Empty response");
+    const data = await assistantService.parseIntent(input);
     return {
       occ: data.occasion ?? undefined,
       sty: data.style ?? undefined,
       col: data.color ?? undefined,
     };
   } catch (err) {
-    console.warn(
-      "parse-shopping-intent failed, falling back to local parsing",
-      err,
-    );
+    console.warn("parse-shopping-intent failed, falling back to local parsing", err);
     const local = parseFreeTextLocal(input);
     return { occ: local.occ, sty: local.sty, col: local.col };
   }
@@ -99,29 +58,23 @@ export default function AssistantScreen() {
     {
       id: "m0",
       role: "assistant",
-      text: "Hi! I'm your fashion assistant. What occasion are you shopping for?",
+      text: "Hi! I'm your Dress Shop stylist — powered by Gemini 3.8 Flash. What occasion are you dressing for?",
       chips: OCCASIONS,
     },
   ]);
   const scrollRef = useRef<ScrollView>(null);
+  const historyRef = useRef<ChatMessage[]>([]);
 
   const queryEnabled = step === 3 && !!occasion && !!style;
   const { data: result, isLoading } = useProductsQuery(
-    queryEnabled
-      ? { occasion: occasion!, style: style!, pageSize: 8 }
-      : { pageSize: 1 },
+    queryEnabled ? { occasion: occasion!, style: style!, pageSize: 8 } : { pageSize: 1 },
   );
   const products = useMemo(() => {
     if (!queryEnabled) return [];
     let list = result?.data ?? [];
     if (colorPref) {
       const filtered = list.filter((p) =>
-        p.variants.some(
-          (v) =>
-            v.color?.toLowerCase() === colorPref.toLowerCase() &&
-            v.is_active &&
-            (v.stock_quantity ?? 0) > 0,
-        ),
+        p.variants.some((v) => v.color?.toLowerCase() === colorPref.toLowerCase() && v.is_active && (v.stock_quantity ?? 0) > 0),
       );
       if (filtered.length) list = filtered;
     }
@@ -136,17 +89,11 @@ export default function AssistantScreen() {
     } catch {}
     setOccasion(o);
     push({ id: `u-${Date.now()}`, role: "user", text: o });
+    historyRef.current.push({ role: "user", content: o });
     setStep(1);
-    setTimeout(
-      () =>
-        push({
-          id: `a-${Date.now()}`,
-          role: "assistant",
-          text: `Lovely — ${o} vibes. What style do you prefer?`,
-          chips: STYLES,
-        }),
-      300,
-    );
+    const reply = `Lovely — ${o} vibes. What style do you prefer?`;
+    historyRef.current.push({ role: "assistant", content: reply });
+    setTimeout(() => push({ id: `a-${Date.now()}`, role: "assistant", text: reply, chips: STYLES }), 300);
   };
 
   const handleStyle = async (s: string) => {
@@ -155,17 +102,11 @@ export default function AssistantScreen() {
     } catch {}
     setStyle(s);
     push({ id: `u-${Date.now()}`, role: "user", text: s });
+    historyRef.current.push({ role: "user", content: s });
     setStep(2);
-    setTimeout(
-      () =>
-        push({
-          id: `a-${Date.now()}`,
-          role: "assistant",
-          text: "Any color preference? Or skip.",
-          chips: [...COLORS, "Skip"],
-        }),
-      300,
-    );
+    const reply = "Any color preference? Or skip.";
+    historyRef.current.push({ role: "assistant", content: reply });
+    setTimeout(() => push({ id: `a-${Date.now()}`, role: "assistant", text: reply, chips: [...COLORS, "Skip"] }), 300);
   };
 
   const handleColor = async (c: string) => {
@@ -175,60 +116,82 @@ export default function AssistantScreen() {
     const isSkip = c.toLowerCase() === "skip";
     const col = isSkip ? null : c;
     setColorPref(col);
-    push({
-      id: `u-${Date.now()}`,
-      role: "user",
-      text: isSkip ? "No preference" : c,
-    });
+    push({ id: `u-${Date.now()}`, role: "user", text: isSkip ? "No preference" : c });
+    historyRef.current.push({ role: "user", content: isSkip ? "No preference" : c });
     setStep(3);
-    setTimeout(
-      () =>
-        push({
-          id: `a-${Date.now()}`,
-          role: "assistant",
-          text: `Perfect — curated for ${occasion} • ${style}${col ? ` • ${col}` : ""}. Here are my picks.`,
-          products: true,
-        }),
-      400,
-    );
+    const reply = `Perfect — curated for ${occasion} • ${style}${col ? ` • ${col}` : ""}. Here are my picks.`;
+    historyRef.current.push({ role: "assistant", content: reply });
+    setTimeout(() => push({ id: `a-${Date.now()}`, role: "assistant", text: reply, products: true }), 400);
   };
 
   const [isParsing, setIsParsing] = useState(false);
+  const [isAiThinking, setIsAiThinking] = useState(false);
+  const [streamingText, setStreamingText] = useState<string | null>(null);
 
   const handleSend = async () => {
     const trimmed = input.trim();
-    if (!trimmed) return;
+    if (!trimmed || isParsing || isAiThinking) return;
     push({ id: `u-${Date.now()}`, role: "user", text: trimmed });
+    historyRef.current.push({ role: "user", content: trimmed });
     setInput("");
     try {
       await Haptics.selectionAsync();
     } catch {}
 
-    // Unlike the old synchronous local parse, this now hits the network —
-    // show a typing indicator so the UI doesn't look stalled while waiting
-    // on the edge function / Gemini round trip.
     setIsParsing(true);
-    const { occ, sty, col } = await parseFreeTextViaAI(trimmed);
-    setIsParsing(false);
+    setIsAiThinking(true);
 
-    if (occ) setOccasion(occ);
-    if (sty) setStyle(sty);
-    if (col) setColorPref(col);
-    if (occ && sty) {
-      setStep(3);
-      push({
-        id: `a-${Date.now()}`,
-        role: "assistant",
-        text: `Got it — ${occ} • ${sty}${col ? ` • ${col}` : ""}. Here are my picks.`,
-        products: true,
-      });
-    } else {
-      push({
-        id: `a-${Date.now()}`,
-        role: "assistant",
-        text: "Tell me occasion (everyday/office/vacation/party) and style (minimal/elegant/casual/bold). Try chips below.",
-        chips: OCCASIONS,
-      });
+    // Single Edge Function call — gemini returns both stylist reply + intent (saves free-tier quota)
+    const historyForAi = historyRef.current.slice(0, -1).slice(-10);
+    try {
+      const { text: chatText, intent } = await assistantService.chatWithIntent(trimmed, historyForAi);
+      setIsParsing(false);
+      setIsAiThinking(false);
+
+      if (chatText && chatText.trim()) {
+        const aiMsg = chatText.trim();
+        historyRef.current.push({ role: "assistant", content: aiMsg });
+        push({ id: `a-ai-${Date.now()}`, role: "assistant", text: aiMsg });
+      }
+
+      const occ = intent.occasion ?? undefined;
+      const sty = intent.style ?? undefined;
+      const col = intent.color ?? undefined;
+      if (occ) setOccasion(occ);
+      if (sty) setStyle(sty);
+      if (col) setColorPref(col);
+
+      if (occ && sty) {
+        setStep(3);
+        setTimeout(() => {
+          const curatedText = `Curated for ${occ} • ${sty}${col ? ` • ${col}` : ""}. Here are my picks — tap any dress for details.`;
+          push({ id: `a-products-${Date.now()}`, role: "assistant", text: curatedText, products: true });
+        }, 400);
+      } else if (!chatText || !chatText.trim()) {
+        push({
+          id: `a-${Date.now()}`,
+          role: "assistant",
+          text: "Tell me occasion (everyday/office/vacation/party) and style (minimal/elegant/casual/bold). Try chips below.",
+          chips: OCCASIONS,
+        });
+      }
+    } catch (err) {
+      console.warn("[assistant] chatWithIntent failed, fallback to local", err);
+      setIsParsing(false);
+      setIsAiThinking(false);
+      const local = parseFreeTextLocal(trimmed);
+      const occ = local.occ;
+      const sty = local.sty;
+      const col = local.col;
+      if (occ) setOccasion(occ);
+      if (sty) setStyle(sty);
+      if (col) setColorPref(col);
+      if (occ && sty) {
+        setStep(3);
+        push({ id: `a-fb-${Date.now()}`, role: "assistant", text: `Got it — ${occ} • ${sty}${col ? ` • ${col}` : ""}. Here are my picks.`, products: true });
+      } else {
+        push({ id: `a-${Date.now()}`, role: "assistant", text: "Tell me occasion (everyday/office/vacation/party) and style (minimal/elegant/casual/bold). Try chips below.", chips: OCCASIONS });
+      }
     }
   };
 
@@ -240,83 +203,44 @@ export default function AssistantScreen() {
     setStyle(null);
     setColorPref(null);
     setStep(0);
+    historyRef.current = [];
+    setStreamingText(null);
+    setIsParsing(false);
+    setIsAiThinking(false);
     setMessages([
       {
         id: "m0",
         role: "assistant",
-        text: "Hi! I'm your fashion assistant. What occasion are you shopping for?",
+        text: "Hi! I'm your Dress Shop stylist — powered by Gemini 3.8 Flash. What occasion are you dressing for?",
         chips: OCCASIONS,
       },
     ]);
   };
 
+  const busy = isParsing || isAiThinking;
+
   return (
     <SafeAreaView style={styles.root} edges={["top"]}>
       <View style={styles.header}>
-        <Pressable
-          onPress={() => router.back()}
-          style={[styles.back, { marginTop: 4 }]}
-          hitSlop={8}
-        >
+        <Pressable onPress={() => router.back()} style={[styles.back, { marginTop: 4 }]} hitSlop={8}>
           <Text style={styles.backText}>← Back</Text>
         </Pressable>
         <Text style={styles.heading}>AI Fashion Assistant</Text>
-        <Text style={styles.sub}>
-          Deterministic • No AI required for core commerce
-        </Text>
+        <Text style={styles.sub}>Powered by Gemini 3.8 Flash • Editorial stylist • Real AI</Text>
       </View>
 
-      {/*
-        react-native-keyboard-controller's KeyboardAvoidingView instead of the
-        RN-core one. The core component only received `behavior="padding"` on
-        iOS (Android got `undefined` → no avoidance at all, which is why the
-        input bar was being covered outright). This one drives the offset off
-        native keyboard animation events on both platforms, matching the
-        keyboard's own timing/curve instead of guessing with a fixed-duration
-        JS animation — that's what gets you the Telegram/Messenger feel.
-        Requires <KeyboardProvider> mounted once near the app root (see setup
-        note) and a dev client build — it will not run under Expo Go.
-      */}
-      <KeyboardAvoidingView
-        style={{ flex: 1 }}
-        behavior="padding"
-        keyboardVerticalOffset={0}
-      >
+      <KeyboardAvoidingView style={{ flex: 1 }} behavior="padding" keyboardVerticalOffset={0}>
         <ScrollView
           ref={scrollRef}
           style={{ flex: 1 }}
           contentContainerStyle={styles.messages}
           showsVerticalScrollIndicator={false}
-          onContentSizeChange={() =>
-            scrollRef.current?.scrollToEnd({ animated: true })
-          }
+          onContentSizeChange={() => scrollRef.current?.scrollToEnd({ animated: true })}
         >
           {messages.map((m) => (
-            <View
-              key={m.id}
-              style={[
-                styles.bubbleRow,
-                m.role === "user" ? styles.rowUser : styles.rowAssistant,
-              ]}
-            >
-              <View
-                style={[
-                  styles.bubble,
-                  m.role === "user"
-                    ? styles.bubbleUser
-                    : styles.bubbleAssistant,
-                ]}
-              >
-                <Text
-                  style={[
-                    styles.bubbleText,
-                    m.role === "user"
-                      ? styles.bubbleTextUser
-                      : styles.bubbleTextAssistant,
-                  ]}
-                >
-                  {m.text}
-                </Text>
+            <View key={m.id} style={[styles.bubbleRow, m.role === "user" ? styles.rowUser : styles.rowAssistant]}>
+              <View style={[styles.bubble, m.role === "user" ? styles.bubbleUser : styles.bubbleAssistant]}>
+                <Text style={[styles.bubbleText, m.role === "user" ? styles.bubbleTextUser : styles.bubbleTextAssistant]}>{m.text}</Text>
               </View>
               {m.chips && (
                 <View style={styles.chips}>
@@ -343,19 +267,10 @@ export default function AssistantScreen() {
                   ) : products.length === 0 ? (
                     <View style={styles.empty}>
                       <Text style={styles.emptyTitle}>No exact match</Text>
-                      <Text style={styles.hint}>
-                        Try different occasion/style.
-                      </Text>
+                      <Text style={styles.hint}>Try different occasion/style.</Text>
                     </View>
                   ) : (
-                    <ScrollView
-                      horizontal
-                      showsHorizontalScrollIndicator={false}
-                      contentContainerStyle={{
-                        gap: 12,
-                        paddingRight: spacing.xl,
-                      }}
-                    >
+                    <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 12, paddingRight: spacing.xl }}>
                       {products.map((p) => (
                         <View key={p.id} style={{ width: 160 }}>
                           <ProductCard product={p} />
@@ -364,28 +279,21 @@ export default function AssistantScreen() {
                     </ScrollView>
                   )}
                   <View style={{ flexDirection: "row", gap: 8, marginTop: 8 }}>
-                    <Button
-                      title="Refine"
-                      variant="secondary"
-                      onPress={handleReset}
-                      style={{ flex: 1 }}
-                    />
-                    <Button
-                      title="Shop all"
-                      onPress={() => router.push("/(tabs)/shop" as any)}
-                      style={{ flex: 1 }}
-                    />
+                    <Button title="Refine" variant="secondary" onPress={handleReset} style={{ flex: 1 }} />
+                    <Button title="Shop all" onPress={() => router.push("/(tabs)/shop" as any)} style={{ flex: 1 }} />
                   </View>
                 </View>
               )}
             </View>
           ))}
-          {isParsing && (
+
+          {isAiThinking && (
             <View style={[styles.bubbleRow, styles.rowAssistant]}>
               <View style={[styles.bubble, styles.bubbleAssistant]}>
-                <Text style={[styles.bubbleText, styles.bubbleTextAssistant]}>
-                  Thinking…
-                </Text>
+                <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+                  <ActivityIndicator size="small" color={colors.muted} />
+                  <Text style={[styles.bubbleText, styles.bubbleTextAssistant]}>Stylist is thinking…</Text>
+                </View>
               </View>
             </View>
           )}
@@ -395,28 +303,24 @@ export default function AssistantScreen() {
           <TextInput
             value={input}
             onChangeText={setInput}
-            placeholder="Ask: I need a dress for a wedding"
+            placeholder="Ask: elegant office dress in navy or wedding guest look"
             placeholderTextColor={colors.mutedLight}
             style={styles.input}
             onSubmitEditing={handleSend}
             returnKeyType="send"
-            editable={!isParsing}
+            editable={!busy}
             accessibilityLabel="Ask assistant"
           />
           <Pressable
             onPress={handleSend}
-            disabled={isParsing}
-            style={[styles.send, isParsing && styles.sendDisabled]}
+            disabled={busy}
+            style={[styles.send, busy && styles.sendDisabled]}
             accessibilityRole="button"
             accessibilityLabel="Send"
           >
-            <Text style={styles.sendText}>Send</Text>
+            <Text style={styles.sendText}>{busy ? "…" : "Send"}</Text>
           </Pressable>
-          <Pressable
-            onPress={handleReset}
-            style={styles.reset}
-            accessibilityLabel="Reset"
-          >
+          <Pressable onPress={handleReset} style={styles.reset} accessibilityLabel="Reset">
             <Text style={styles.resetText}>Reset</Text>
           </Pressable>
         </View>
@@ -426,10 +330,7 @@ export default function AssistantScreen() {
 }
 
 const styles = StyleSheet.create({
-  root: {
-    flex: 1,
-    backgroundColor: colors.background,
-  },
+  root: { flex: 1, backgroundColor: colors.background },
   header: {
     paddingHorizontal: spacing.xl,
     paddingTop: spacing.xl,
@@ -439,75 +340,21 @@ const styles = StyleSheet.create({
     paddingBottom: 12,
     backgroundColor: colors.background,
   },
-  back: {
-    alignSelf: "flex-start",
-    paddingVertical: 4,
-  },
-  backText: {
-    fontSize: 11,
-    fontWeight: "800",
-    letterSpacing: 0.6,
-    textTransform: "uppercase",
-    color: colors.foreground,
-  },
-  heading: {
-    fontSize: 20,
-    fontWeight: "700",
-    color: colors.foreground,
-    marginTop: 4,
-  },
-  sub: {
-    fontSize: 11,
-    color: colors.muted,
-  },
-  messages: {
-    padding: spacing.xl,
-    gap: 14,
-    paddingBottom: 24,
-  },
-  bubbleRow: {
-    gap: 8,
-  },
-  rowUser: {
-    alignItems: "flex-end",
-  },
-  rowAssistant: {
-    alignItems: "flex-start",
-  },
-  bubble: {
-    maxWidth: "82%",
-    paddingHorizontal: 14,
-    paddingVertical: 10,
-    borderRadius: 16,
-    borderWidth: 1,
-  },
-  bubbleAssistant: {
-    backgroundColor: colors.surface,
-    borderColor: colors.border,
-    borderBottomLeftRadius: 4,
-  },
-  bubbleUser: {
-    backgroundColor: colors.foreground,
-    borderColor: colors.foreground,
-    borderBottomRightRadius: 4,
-  },
-  bubbleText: {
-    fontSize: 13,
-    lineHeight: 18,
-  },
-  bubbleTextAssistant: {
-    color: colors.foreground,
-  },
-  bubbleTextUser: {
-    color: colors.surface,
-    fontWeight: "600",
-  },
-  chips: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: 8,
-    marginTop: 4,
-  },
+  back: { alignSelf: "flex-start", paddingVertical: 4 },
+  backText: { fontSize: 11, fontWeight: "800", letterSpacing: 0.6, textTransform: "uppercase", color: colors.foreground },
+  heading: { fontSize: 20, fontWeight: "700", color: colors.foreground, marginTop: 4 },
+  sub: { fontSize: 11, color: colors.muted },
+  messages: { padding: spacing.xl, gap: 14, paddingBottom: 24 },
+  bubbleRow: { gap: 8 },
+  rowUser: { alignItems: "flex-end" },
+  rowAssistant: { alignItems: "flex-start" },
+  bubble: { maxWidth: "82%", paddingHorizontal: 14, paddingVertical: 10, borderRadius: 16, borderWidth: 1 },
+  bubbleAssistant: { backgroundColor: colors.surface, borderColor: colors.border, borderBottomLeftRadius: 4 },
+  bubbleUser: { backgroundColor: colors.foreground, borderColor: colors.foreground, borderBottomRightRadius: 4 },
+  bubbleText: { fontSize: 13, lineHeight: 18 },
+  bubbleTextAssistant: { color: colors.foreground },
+  bubbleTextUser: { color: colors.surface, fontWeight: "600" },
+  chips: { flexDirection: "row", flexWrap: "wrap", gap: 8, marginTop: 4 },
   chip: {
     paddingHorizontal: 12,
     height: 32,
@@ -518,21 +365,9 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  chipText: {
-    fontSize: 12,
-    fontWeight: "600",
-    color: colors.foreground,
-    textTransform: "capitalize",
-  },
-  productsWrap: {
-    marginTop: 8,
-    gap: 8,
-    width: "100%",
-  },
-  hint: {
-    fontSize: 11,
-    color: colors.muted,
-  },
+  chipText: { fontSize: 12, fontWeight: "600", color: colors.foreground, textTransform: "capitalize" },
+  productsWrap: { marginTop: 8, gap: 8, width: "100%" },
+  hint: { fontSize: 11, color: colors.muted },
   empty: {
     padding: 12,
     borderRadius: radius.lg,
@@ -542,11 +377,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: 4,
   },
-  emptyTitle: {
-    fontSize: 13,
-    fontWeight: "700",
-    color: colors.foreground,
-  },
+  emptyTitle: { fontSize: 13, fontWeight: "700", color: colors.foreground },
   inputRow: {
     flexDirection: "row",
     gap: 8,
@@ -575,16 +406,8 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  sendDisabled: {
-    opacity: 0.5,
-  },
-  sendText: {
-    fontSize: 11,
-    fontWeight: "800",
-    letterSpacing: 0.6,
-    textTransform: "uppercase",
-    color: colors.surface,
-  },
+  sendDisabled: { opacity: 0.5 },
+  sendText: { fontSize: 11, fontWeight: "800", letterSpacing: 0.6, textTransform: "uppercase", color: colors.surface },
   reset: {
     height: 44,
     paddingHorizontal: 12,
@@ -595,9 +418,5 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  resetText: {
-    fontSize: 11,
-    fontWeight: "700",
-    color: colors.foreground,
-  },
+  resetText: { fontSize: 11, fontWeight: "700", color: colors.foreground },
 });
