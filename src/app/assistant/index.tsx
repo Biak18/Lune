@@ -235,6 +235,7 @@ export default function AssistantScreen() {
           style={{ flex: 1 }}
           contentContainerStyle={styles.messages}
           showsVerticalScrollIndicator={false}
+          showsHorizontalScrollIndicator={false}
           onContentSizeChange={() => scrollRef.current?.scrollToEnd({ animated: true })}
         >
           {messages.map((m) => (
@@ -270,7 +271,7 @@ export default function AssistantScreen() {
                       <Text style={styles.hint}>Try different occasion/style.</Text>
                     </View>
                   ) : (
-                    <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 12, paddingRight: spacing.xl }}>
+                    <ScrollView horizontal showsHorizontalScrollIndicator={false} showsVerticalScrollIndicator={false} contentContainerStyle={{ gap: 12, paddingRight: spacing.xl }}>
                       {products.map((p) => (
                         <View key={p.id} style={{ width: 160 }}>
                           <ProductCard product={p} />

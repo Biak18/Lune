@@ -74,7 +74,7 @@ export default function ProfileScreen() {
   if (!session) {
     return (
       <SafeAreaView style={styles.safe} edges={["top", "bottom"]}>
-        <ScrollView contentContainerStyle={styles.unauthContent} showsVerticalScrollIndicator={false}>
+        <ScrollView contentContainerStyle={styles.unauthContent} showsVerticalScrollIndicator={false} showsHorizontalScrollIndicator={false}>
           <View style={styles.unauthHeader}>
             <Text style={styles.wordmark}>LUNE</Text>
             <View style={styles.dot} />
@@ -110,7 +110,7 @@ export default function ProfileScreen() {
         style={{ flex: 1 }}
         contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={false}
-      >
+       showsHorizontalScrollIndicator={false}>
         {/* Header */}
         <View style={styles.header}>
           <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>

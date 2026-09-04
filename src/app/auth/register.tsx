@@ -76,7 +76,7 @@ export default function RegisterScreen() {
         enableOnAndroid
         extraScrollHeight={24}
         enableAutomaticScroll
-      >
+       showsHorizontalScrollIndicator={false}>
         <Animated.View entering={FadeInUp.duration(480).springify().damping(16)}>
           <AuthHeader
             title="Create account"

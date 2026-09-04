@@ -128,7 +128,7 @@ export default function CartScreen() {
               <Text style={styles.note}>Prices verified at checkout. Stock is validated before order.</Text>
             </View>
           }
-        />
+         showsVerticalScrollIndicator={false} showsHorizontalScrollIndicator={false} />
       </View>
     </View>
   );

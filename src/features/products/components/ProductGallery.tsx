@@ -140,7 +140,7 @@ export function ProductGallery({ images, selectedColor, colorsList }: Props) {
             setActiveIndex(idx);
           }}
           renderItem={renderItem}
-        />
+         showsVerticalScrollIndicator={false} />
         {/* Dots overlay */}
         {sorted.length > 1 && (
           <View style={styles.dots} pointerEvents="box-none">

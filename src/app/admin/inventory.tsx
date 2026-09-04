@@ -56,7 +56,7 @@ export default function AdminInventoryScreen() {
                 <Text style={styles.desc}>No low stock — all variants well stocked.</Text>
               </View>
             }
-          />
+           showsVerticalScrollIndicator={false} showsHorizontalScrollIndicator={false} />
         )}
       </SafeAreaView>
     </AdminGuard>

@@ -83,7 +83,7 @@ export function ProductGrid({
           </View>
         ) : null
       }
-    />
+     showsVerticalScrollIndicator={false} showsHorizontalScrollIndicator={false} />
   );
 }
 

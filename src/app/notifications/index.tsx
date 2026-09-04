@@ -164,7 +164,7 @@ export default function NotificationsScreen() {
               )}
             </Pressable>
           )}
-        />
+         showsVerticalScrollIndicator={false} showsHorizontalScrollIndicator={false} />
       )}
     </SafeAreaView>
   );

@@ -84,7 +84,7 @@ export default function OrdersScreen() {
         style={{ flex: 1 }}
         contentContainerStyle={{ padding: spacing.xl, gap: 12, paddingBottom: 32 }}
         renderItem={({ item }) => <OrderCard order={item} onPress={() => router.push(`/orders/${item.id}` as any)} />}
-      />
+       showsVerticalScrollIndicator={false} showsHorizontalScrollIndicator={false} />
     </SafeAreaView>
   );
 }

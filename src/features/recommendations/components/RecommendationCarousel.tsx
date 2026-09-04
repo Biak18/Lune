@@ -21,7 +21,7 @@ export function RecommendationCarousel({ title, subtitle, products, isLoading, o
       <View style={styles.wrap}>
         <Text style={styles.title}>{title}</Text>
         {subtitle ? <Text style={styles.sub}>{subtitle}</Text> : null}
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 12 }}>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 12 }} showsVerticalScrollIndicator={false}>
           {[1, 2, 3].map((i) => (
             <View key={i} style={{ width: 160, gap: 8 }}>
               <Skeleton style={{ aspectRatio: 0.78, borderRadius: radius.lg }} />
@@ -58,7 +58,7 @@ export function RecommendationCarousel({ title, subtitle, products, isLoading, o
           </Pressable>
         )}
       </View>
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 12, paddingRight: spacing.xl }}>
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 12, paddingRight: spacing.xl }} showsVerticalScrollIndicator={false}>
         {products.map((p) => (
           <View key={p.id} style={{ width: 160 }}>
             <ProductCard product={p} />

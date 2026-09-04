@@ -57,7 +57,7 @@ export default function StyleFinderScreen() {
 
   return (
     <SafeAreaView style={styles.root} edges={["top"]}>
-      <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
+      <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false} showsHorizontalScrollIndicator={false}>
         <Pressable onPress={() => (step === 0 ? router.back() : setStep((s) => (s === 2 ? 1 : 0) as any))} style={[styles.back, { marginTop: 4 }]} hitSlop={8}>
           <Text style={styles.backText}>← {step === 0 ? "Back" : "Previous"}</Text>
         </Pressable>
@@ -183,7 +183,7 @@ export default function StyleFinderScreen() {
                       <ProductCard product={item} />
                     </View>
                   )}
-                />
+                 showsVerticalScrollIndicator={false} showsHorizontalScrollIndicator={false} />
                 <Button title="Refine choices" variant="secondary" onPress={() => setStep(0)} />
               </>
             )}

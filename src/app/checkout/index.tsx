@@ -164,7 +164,7 @@ export default function CheckoutScreen() {
         extraScrollHeight={0}
         keyboardOpeningTime={0}
         enableResetScrollToCoords={false}
-      >
+       showsHorizontalScrollIndicator={false}>
         <Pressable onPress={() => router.back()} style={styles.back} hitSlop={8} accessibilityRole="button" accessibilityLabel="Back to bag">
           <Text style={styles.backText}>← Back to bag</Text>
         </Pressable>

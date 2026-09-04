@@ -132,7 +132,7 @@ export default function WishlistScreen() {
               </View>
             );
           }}
-        />
+         showsVerticalScrollIndicator={false} showsHorizontalScrollIndicator={false} />
       </View>
     </View>
   );

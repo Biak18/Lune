@@ -26,7 +26,7 @@ const iconForSlug: Record<string, keyof typeof Ionicons.glyphMap> = {
 export function CategoryChips({ categories, selectedId, onSelect, isLoading }: Props) {
   if (isLoading) {
     return (
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.row} style={{ marginHorizontal: -24 }}>
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.row} style={{ marginHorizontal: -24 }} showsVerticalScrollIndicator={false}>
         {[1, 2, 3, 4].map((i) => (
           <View key={i} style={[styles.chip, { width: 90, opacity: 0.6 }]} />
         ))}
@@ -34,7 +34,7 @@ export function CategoryChips({ categories, selectedId, onSelect, isLoading }: P
     );
   }
   return (
-    <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.row} style={{ marginHorizontal: -24 }}>
+    <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.row} style={{ marginHorizontal: -24 }} showsVerticalScrollIndicator={false}>
       <Pressable
         onPress={() => onSelect(null)}
         style={[styles.chip, !selectedId && styles.chipActive]}

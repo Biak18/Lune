@@ -93,7 +93,7 @@ export default function AdminOrdersScreen() {
                 </View>
               </View>
             )}
-          />
+           showsVerticalScrollIndicator={false} showsHorizontalScrollIndicator={false} />
         )}
       </SafeAreaView>
     </AdminGuard>

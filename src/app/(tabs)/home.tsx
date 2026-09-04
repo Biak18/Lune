@@ -17,7 +17,7 @@ export default function HomeScreen() {
   const { data: recentProds, isLoading: loadingRecent } = useRecentlyViewedProducts();
 
   return (
-    <ScrollView style={styles.root} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+    <ScrollView style={styles.root} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false} showsHorizontalScrollIndicator={false}>
       {/* Header — minimal wordmark + actions */}
       <View style={styles.header}>
         <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
@@ -68,7 +68,7 @@ export default function HomeScreen() {
             ))}
           </View>
         ) : (
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 16, paddingRight: spacing.xl }}>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 16, paddingRight: spacing.xl }} showsVerticalScrollIndicator={false}>
             {categories?.map((c) => (
               <Link key={c.id} href={`/category/${c.id}` as any} asChild>
                 <Pressable style={styles.catTile} accessibilityLabel={c.name}>

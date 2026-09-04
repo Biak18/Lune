@@ -56,7 +56,7 @@ export default function ForgotPasswordScreen() {
         enableOnAndroid
         extraScrollHeight={24}
         enableAutomaticScroll
-      >
+       showsHorizontalScrollIndicator={false}>
         <Animated.View entering={FadeInUp.duration(480).springify().damping(16)}>
           <AuthHeader
             title="Reset password"

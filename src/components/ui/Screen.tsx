@@ -40,7 +40,7 @@ export function Screen({
             contentContainerStyle={[styles.scrollContent, centered && styles.scrollContentCentered]}
             keyboardShouldPersistTaps="handled"
             showsVerticalScrollIndicator={false}
-          >
+           showsHorizontalScrollIndicator={false}>
             {content}
           </ScrollView>
         ) : (

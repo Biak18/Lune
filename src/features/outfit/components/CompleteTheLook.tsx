@@ -113,7 +113,7 @@ export function CompleteTheLook({ product }: Props) {
         nestedScrollEnabled
         style={{ marginHorizontal: -2 }}
         contentContainerStyle={{ gap: 12, paddingRight: 4, paddingVertical: 2 }}
-      >
+       showsVerticalScrollIndicator={false}>
         {/* Current product */}
         <View style={styles.tileActive}>
           <Image

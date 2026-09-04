@@ -56,7 +56,7 @@ export function FilterSheet({
         <View style={styles.sheet}>
           <View style={styles.handle} />
           <Text style={styles.title}>Filters</Text>
-          <ScrollView contentContainerStyle={{ gap: spacing.lg }} showsVerticalScrollIndicator={false}>
+          <ScrollView contentContainerStyle={{ gap: spacing.lg }} showsVerticalScrollIndicator={false} showsHorizontalScrollIndicator={false}>
             <View style={{ gap: 8 }}>
               <Text style={styles.section}>Sort</Text>
               <View style={styles.chips}>

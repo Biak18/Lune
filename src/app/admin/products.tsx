@@ -72,7 +72,7 @@ export default function AdminProductsScreen() {
                 </View>
               </View>
             )}
-          />
+           showsVerticalScrollIndicator={false} showsHorizontalScrollIndicator={false} />
         )}
       </SafeAreaView>
     </AdminGuard>
