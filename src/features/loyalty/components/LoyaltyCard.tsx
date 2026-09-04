@@ -28,12 +28,12 @@ export function LoyaltyCard({ account, isLoading }: Props) {
   const progress = nextTh ? Math.min(1, Math.max(0, (points - currentTh) / (nextTh - currentTh))) : 1;
 
   const handleShare = async () => {
-    const code = account?.referral_code ?? "MUSE09";
+    const code = account?.referral_code ?? "LUNE";
     try {
       await Haptics.selectionAsync();
     } catch {}
     try {
-      await Share.share({ message: `Join MUSE / 09 with my code ${code} — earn 100 points!` });
+      await Share.share({ message: `Join LUNE with my code ${code} — earn 100 points!` });
     } catch {}
   };
 

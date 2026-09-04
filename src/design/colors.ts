@@ -1,6 +1,6 @@
 /**
  * Design tokens - Colors
- * Muse / 09 palette — warm editorial. Values derived from /docs/design/sample-design.html (oklch).
+ * Warm editorial palette. Values derived from /docs/design/sample-design.html (oklch).
  * oklch approximated to hex for React Native.
  */
 

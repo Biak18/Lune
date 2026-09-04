@@ -16,9 +16,7 @@ export function AuthTopBar({ onBrowse }: Props) {
   return (
     <View style={styles.topbar}>
       <Pressable onPress={handleWordmark} accessibilityRole="button" accessibilityLabel="Browse without signing in">
-        <Text style={styles.wordmark}>
-          MUSE <Text style={styles.slash}>/ 09</Text>
-        </Text>
+        <Text style={styles.wordmark}>LUNE</Text>
       </Pressable>
       <Pressable onPress={handleBrowse} accessibilityRole="button" accessibilityLabel="Browse shop">
         <Text style={styles.browse}>Browse shop</Text>

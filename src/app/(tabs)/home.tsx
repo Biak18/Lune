@@ -21,7 +21,7 @@ export default function HomeScreen() {
       {/* Header — minimal wordmark + actions */}
       <View style={styles.header}>
         <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
-          <Text style={styles.wordmark}>MUSE <Text style={{ color: colors.clay }}>/ 09</Text></Text>
+          <Text style={styles.wordmark}>LUNE</Text>
           <View style={styles.dot} />
           <Text style={styles.season}>FW 2026</Text>
         </View>
