@@ -10,6 +10,7 @@ import { Skeleton } from "@/components/ui/Skeleton";
 import { NotificationBell } from "@/features/notifications/components/NotificationBell";
 import { RecommendationCarousel } from "@/features/recommendations/components/RecommendationCarousel";
 import { useRecentlyViewedProducts } from "@/features/recommendations/hooks/useRecommendations";
+import { Featured3DCarousel } from "@/features/products/components/Featured3DCarousel";
 
 export default function HomeScreen() {
   const { data: categories, isLoading: catsLoading } = useCategoriesQuery();
@@ -83,11 +84,11 @@ export default function HomeScreen() {
         )}
       </View>
 
-      {/* Featured — 2-up editorial grid */}
+      {/* Featured — 3D carousel (from youtube k2ax0t4dYAY) */}
       <View style={styles.section}>
         <View style={styles.sectionHeader}>
           <Text style={styles.sectionTitle}>Featured</Text>
-          <Text style={styles.sectionHint}>Elegant edit</Text>
+          <Text style={styles.sectionHint}>Elegant edit • 3D</Text>
         </View>
         {loadingFeat ? (
           <View style={{ flexDirection: "row", gap: spacing.lg }}>
@@ -99,13 +100,7 @@ export default function HomeScreen() {
             ))}
           </View>
         ) : (
-          <View style={{ flexDirection: "row", gap: spacing.lg }}>
-            {featured?.data.slice(0, 2).map((p) => (
-              <View key={p.id} style={{ flex: 1 }}>
-                <ProductCard product={p} />
-              </View>
-            ))}
-          </View>
+          <Featured3DCarousel products={featured?.data.slice(0, 6) ?? []} />
         )}
       </View>
 
