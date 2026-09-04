@@ -1,7 +1,7 @@
-import { supabase } from "@/lib/supabase";
+import { Platform } from "react-native";
 import * as Linking from "expo-linking";
 import * as WebBrowser from "expo-web-browser";
-import { Platform } from "react-native";
+import { supabase } from "@/lib/supabase";
 import type {
   LoginPayload,
   RegisterPayload,
@@ -98,7 +98,6 @@ export const authService = {
       // (http://localhost:8081) instead of default Site URL http://localhost:3000.
       const redirectTo =
         typeof window !== "undefined" ? window.location.origin : undefined;
-      console.log("[authService] signInWithGoogle web redirectTo:", redirectTo);
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {
@@ -106,13 +105,11 @@ export const authService = {
         },
       });
       if (error) throw error;
-      console.log("[authService] web OAuth url:", data.url);
       return data;
     }
 
     // Native: PKCE flow via WebBrowser
     const redirectTo = Linking.createURL("/"); // → dressshop:/// or exp:// with proxy
-    console.log("[authService] signInWithGoogle redirectTo:", redirectTo);
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
