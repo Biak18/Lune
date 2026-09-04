@@ -1,7 +1,7 @@
 import { View, Text, Pressable, StyleSheet } from "react-native";
 import { colors } from "@/design/colors";
 import { radius } from "@/design/spacing";
-import { useRedeem } from "../hooks/useLoyalty";
+import { useRedeem, useLoyaltyPending } from "../hooks/useLoyalty";
 import * as Haptics from "expo-haptics";
 
 type Reward = { points: number; title: string; desc: string };
@@ -14,9 +14,19 @@ const REWARDS: Reward[] = [
 
 export function RewardsList({ currentPoints }: { currentPoints: number }) {
   const redeem = useRedeem();
+  const { data: pending } = useLoyaltyPending();
+  const hasPending = (pending?.amount ?? 0) > 0 || !!pending?.freeShipping;
   return (
     <View style={styles.wrap}>
       <Text style={styles.title}>Rewards</Text>
+      {hasPending ? (
+        <View style={styles.pendingBanner}>
+          <Text style={styles.pendingText}>
+            ✓ Pending: {pending?.freeShipping ? "Free shipping" : `$${pending?.amount} off`} will apply to your next order
+          </Text>
+        </View>
+      ) : null}
+      {redeem.isSuccess ? <Text style={styles.success}>Redeemed — discount will apply at checkout</Text> : null}
       {REWARDS.map((r) => {
         const can = currentPoints >= r.points;
         return (
@@ -99,6 +109,26 @@ const styles = StyleSheet.create({
   error: {
     fontSize: 11,
     color: colors.error,
+    textAlign: "center",
+  },
+  pendingBanner: {
+    padding: 10,
+    borderRadius: radius.lg,
+    backgroundColor: colors.successBackground,
+    borderWidth: 1,
+    borderColor: "#A3D9B1",
+    alignItems: "center",
+  },
+  pendingText: {
+    fontSize: 11,
+    fontWeight: "700",
+    color: colors.success,
+    textAlign: "center",
+  },
+  success: {
+    fontSize: 11,
+    fontWeight: "600",
+    color: colors.success,
     textAlign: "center",
   },
 });

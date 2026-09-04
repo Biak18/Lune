@@ -50,7 +50,15 @@ export const orderService = {
       if ((v.stock_quantity ?? 0) < it.quantity) throw new Error(`Only ${v.stock_quantity} left for ${it.variant?.product?.name ?? "item"}`);
     }
 
-    const totals = calculateCartTotals(args.cartItems);
+    // Apply pending loyalty discount (e.g. 200-> $10, 400-> $25, 800 -> free shipping)
+    let pending: { amount: number; freeShipping: boolean } = { amount: 0, freeShipping: false };
+    try {
+      const { loyaltyService } = await import("@/features/loyalty/services/loyaltyService");
+      const p = await loyaltyService.getPendingDiscount();
+      pending = { amount: p.amount, freeShipping: p.freeShipping };
+    } catch {}
+
+    const totals = calculateCartTotals(args.cartItems, { discount: pending.amount, freeShipping: pending.freeShipping });
 
     // Create order
     const { data: order, error: oErr } = await supabase
@@ -60,7 +68,7 @@ export const orderService = {
         status: "pending",
         subtotal: totals.subtotal,
         shipping_amount: totals.shipping,
-        discount_amount: 0,
+        discount_amount: totals.discount,
         total: totals.total,
         shipping_address: args.shippingAddress as any,
       })
@@ -99,6 +107,14 @@ export const orderService = {
 
     // Clear cart
     await supabase.from("cart_items").delete().eq("user_id", userId);
+
+    // Mark redeem as used (link to order) so it can't be reused
+    try {
+      const { loyaltyService } = await import("@/features/loyalty/services/loyaltyService");
+      if (pending.amount > 0 || pending.freeShipping) {
+        await loyaltyService.consumePendingDiscount(order.id);
+      }
+    } catch {}
 
     // Earn loyalty points (1 per $1)
     try {

@@ -6,6 +6,7 @@ export const loyaltyKeys = {
   all: ["loyalty"] as const,
   account: () => [...loyaltyKeys.all, "account"] as const,
   tx: () => [...loyaltyKeys.all, "tx"] as const,
+  pending: () => [...loyaltyKeys.all, "pending"] as const,
 };
 
 export function useLoyaltyAccount() {
@@ -35,6 +36,17 @@ export function useRedeem() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: loyaltyKeys.account() });
       qc.invalidateQueries({ queryKey: loyaltyKeys.tx() });
+      qc.invalidateQueries({ queryKey: loyaltyKeys.pending() });
     },
+  });
+}
+
+export function useLoyaltyPending() {
+  const userId = useAuthStore((s) => s.user?.id);
+  return useQuery({
+    queryKey: loyaltyKeys.pending(),
+    queryFn: () => loyaltyService.getPendingDiscount(),
+    enabled: !!userId,
+    staleTime: 1000 * 10,
   });
 }

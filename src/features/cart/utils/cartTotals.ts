@@ -10,11 +10,14 @@ export function resolveUnitPrice(item: CartItem): number {
   return 0;
 }
 
-export function calculateCartTotals(items: CartItem[]) {
+export function calculateCartTotals(items: CartItem[], opts?: { discount?: number; freeShipping?: boolean }) {
+  const discount = Math.max(0, opts?.discount ?? 0);
+  const freeShipOverride = !!opts?.freeShipping;
   const subtotal = items.reduce((sum, it) => sum + resolveUnitPrice(it) * it.quantity, 0);
-  const shipping = subtotal === 0 ? 0 : subtotal >= FREE_SHIPPING_THRESHOLD ? 0 : FLAT_SHIPPING;
-  const total = subtotal + shipping;
+  const shippingBase = subtotal === 0 ? 0 : subtotal >= FREE_SHIPPING_THRESHOLD ? 0 : FLAT_SHIPPING;
+  const shipping = freeShipOverride ? 0 : shippingBase;
+  const total = Math.max(0, subtotal + shipping - Math.min(discount, subtotal + shipping));
   const itemCount = items.reduce((sum, it) => sum + it.quantity, 0);
-  const isFreeShipping = subtotal >= FREE_SHIPPING_THRESHOLD && subtotal > 0;
-  return { subtotal, shipping, total, itemCount, isFreeShipping, freeShippingThreshold: FREE_SHIPPING_THRESHOLD };
+  const isFreeShipping = (subtotal >= FREE_SHIPPING_THRESHOLD && subtotal > 0) || freeShipOverride;
+  return { subtotal, shipping, total, itemCount, isFreeShipping, freeShippingThreshold: FREE_SHIPPING_THRESHOLD, discount };
 }

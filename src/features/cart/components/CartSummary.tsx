@@ -9,11 +9,12 @@ type Props = {
   itemCount: number;
   isFreeShipping: boolean;
   freeShippingThreshold: number;
+  discount?: number;
   onCheckout?: () => void;
   checkoutDisabled?: boolean;
 };
 
-export function CartSummary({ subtotal, shipping, total, itemCount, isFreeShipping, freeShippingThreshold, onCheckout, checkoutDisabled }: Props) {
+export function CartSummary({ subtotal, shipping, total, itemCount, isFreeShipping, freeShippingThreshold, discount = 0, onCheckout, checkoutDisabled }: Props) {
   const remaining = Math.max(0, freeShippingThreshold - subtotal);
   return (
     <View style={styles.wrap}>
@@ -29,6 +30,12 @@ export function CartSummary({ subtotal, shipping, total, itemCount, isFreeShippi
         <Text style={styles.label}>Shipping</Text>
         <Text style={[styles.value, isFreeShipping && styles.freeValue]}>{shipping === 0 ? "Free" : `$${shipping.toFixed(2)}`}</Text>
       </View>
+      {discount > 0 ? (
+        <View style={styles.row}>
+          <Text style={[styles.label, { color: colors.success }]}>Rewards discount</Text>
+          <Text style={[styles.value, { color: colors.success }]}>- ${discount.toFixed(2)}</Text>
+        </View>
+      ) : null}
       <View style={[styles.row, styles.totalRow]}>
         <Text style={styles.totalLabel}>Total</Text>
         <Text style={styles.totalValue}>${total.toFixed(2)}</Text>

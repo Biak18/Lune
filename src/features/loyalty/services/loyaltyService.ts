@@ -77,4 +77,38 @@ export const loyaltyService = {
     await supabase.from("loyalty_accounts").update({ points: next, tier: tierForPoints(next) } as any).eq("user_id", userId);
     await supabase.from("loyalty_transactions").insert({ user_id: userId, points: -points, type: "redeem", description } as any);
   },
+
+  /** Pending redeem discount for next order: sums unused redeem transactions (order_id is null) */
+  async getPendingDiscount(): Promise<{ amount: number; freeShipping: boolean; txIds: string[] }> {
+    const { data: userData } = await supabase.auth.getUser();
+    const userId = userData.user?.id;
+    if (!userId) return { amount: 0, freeShipping: false, txIds: [] };
+    const { data, error } = await supabase
+      .from("loyalty_transactions")
+      .select("id, points")
+      .eq("user_id", userId)
+      .eq("type", "redeem")
+      .is("order_id", null);
+    if (error || !data) return { amount: 0, freeShipping: false, txIds: [] };
+    let amount = 0;
+    let freeShipping = false;
+    const txIds: string[] = [];
+    for (const r of data as any[]) {
+      const pts = Math.abs(Number(r.points));
+      txIds.push(r.id);
+      if (pts === 200) amount += 10;
+      else if (pts === 400) amount += 25;
+      else if (pts === 800) freeShipping = true;
+      else amount += 0;
+    }
+    return { amount, freeShipping, txIds };
+  },
+
+  async consumePendingDiscount(orderId: string): Promise<void> {
+    const { data: userData } = await supabase.auth.getUser();
+    const userId = userData.user?.id;
+    if (!userId) return;
+    // Mark all pending redeems as used by linking to order
+    await supabase.from("loyalty_transactions").update({ order_id: orderId } as any).eq("user_id", userId).eq("type", "redeem").is("order_id", null);
+  },
 };

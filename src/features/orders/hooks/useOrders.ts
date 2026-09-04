@@ -34,6 +34,7 @@ export function useCreateOrder() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: orderKeys.list() });
       qc.invalidateQueries({ queryKey: cartKeys.list() });
+      qc.invalidateQueries({ queryKey: ["loyalty"] });
     },
   });
 }

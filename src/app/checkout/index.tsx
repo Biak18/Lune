@@ -8,6 +8,8 @@ import { useCartQuery } from "@/features/cart/hooks/useCart";
 import { useAddressesQuery, useCreateAddress } from "@/features/addresses/hooks/useAddresses";
 import { useCreateOrder } from "@/features/orders/hooks/useOrders";
 import { calculateCartTotals } from "@/features/cart/utils/cartTotals";
+import { loyaltyService } from "@/features/loyalty/services/loyaltyService";
+import { useQuery } from "@tanstack/react-query";
 import { AddressCard } from "@/features/addresses/components/AddressCard";
 import { AddressForm, type AddressFormValues } from "@/features/addresses/components/AddressForm";
 import { CartSummary } from "@/features/cart/components/CartSummary";
@@ -27,7 +29,18 @@ export default function CheckoutScreen() {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
 
-  const totals = useMemo(() => calculateCartTotals(cartItems ?? []), [cartItems]);
+  const { data: pending } = useQuery({
+    queryKey: ["loyalty", "pending"],
+    queryFn: () => loyaltyService.getPendingDiscount(),
+    enabled: !!user,
+    staleTime: 1000 * 10,
+  });
+  const pendingAmount = pending?.amount ?? 0;
+  const pendingFreeShip = !!pending?.freeShipping;
+  const totals = useMemo(
+    () => calculateCartTotals(cartItems ?? [], { discount: pendingAmount, freeShipping: pendingFreeShip }),
+    [cartItems, pendingAmount, pendingFreeShip]
+  );
 
   // Auto-select default or first address
   const effectiveSelected = useMemo(() => {
@@ -244,6 +257,15 @@ export default function CheckoutScreen() {
           <Text style={styles.paymentHint}>Payment provider will be integrated later. Order total is verified server-side.</Text>
         </View>
 
+        {/* Rewards discount preview */}
+        {(pendingAmount > 0 || pendingFreeShip) && (
+          <View style={styles.rewardsBanner}>
+            <Text style={styles.rewardsText}>
+              ✓ Rewards applied: {pendingFreeShip ? "Free shipping" : `$${pendingAmount} off`} — will be deducted on this order
+            </Text>
+          </View>
+        )}
+
         {/* Totals */}
         <CartSummary
           subtotal={totals.subtotal}
@@ -252,6 +274,7 @@ export default function CheckoutScreen() {
           itemCount={totals.itemCount}
           isFreeShipping={totals.isFreeShipping}
           freeShippingThreshold={totals.freeShippingThreshold}
+          discount={totals.discount}
         />
       </KeyboardAwareScrollView>
 
@@ -467,6 +490,20 @@ const styles = StyleSheet.create({
   footerHint: {
     fontSize: 11,
     color: colors.muted,
+    textAlign: "center",
+  },
+  rewardsBanner: {
+    padding: 10,
+    borderRadius: radius.lg,
+    backgroundColor: colors.successBackground,
+    borderWidth: 1,
+    borderColor: "#A3D9B1",
+    alignItems: "center",
+  },
+  rewardsText: {
+    fontSize: 11,
+    fontWeight: "700",
+    color: colors.success,
     textAlign: "center",
   },
 });
