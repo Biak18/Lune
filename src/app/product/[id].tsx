@@ -176,10 +176,9 @@ export default function ProductScreen() {
   return (
     <SafeAreaView style={styles.root} edges={["top"]}>
       <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false} showsHorizontalScrollIndicator={false}>
-        {/* HERO — full-bleed gallery with editorial overlay */}
+        {/* HERO — full-bleed gallery */}
         <View style={[styles.hero, { width: windowWidth, marginHorizontal: -spacing.xl, marginTop: -spacing.xl }]}>
           <ProductGallery hero images={product.images} selectedColor={selectedColor} colorsList={colorsList} />
-          {/* Top bar */}
           <View style={styles.heroTop} pointerEvents="box-none">
             <Pressable
               onPress={() => router.back()}
@@ -190,35 +189,32 @@ export default function ProductScreen() {
             >
               <Text style={styles.heroPillText}>← Back</Text>
             </Pressable>
-            <View style={styles.heroPillIcon}>
-              <WishlistButton productId={product.id} size={36} />
-            </View>
-          </View>
-          {/* Bottom gradient info */}
-          <View style={styles.heroBottom} pointerEvents="none">
-            <View style={styles.heroScrim} />
-            <View style={styles.heroInfo}>
-              {product.category ? <Text style={styles.heroCategory}>{product.category.name}</Text> : null}
-              <Text style={styles.heroName} numberOfLines={2}>
-                {product.name}
-              </Text>
-              <View style={{ flexDirection: "row", alignItems: "baseline", gap: 8 }}>
-                <Text style={styles.heroPrice}>${Number(price ?? product.base_price).toFixed(0)}</Text>
-                {selectedVariant?.price != null && Number(selectedVariant.price) !== Number(product.base_price) ? (
-                  <Text style={styles.heroBasePrice}>${Number(product.base_price).toFixed(0)}</Text>
-                ) : null}
-              </View>
-              <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
-                <RatingStars value={avg} size={12} />
-                <Text style={styles.heroRating}>{count ? `${avg.toFixed(1)} • ${count}` : "No reviews"}</Text>
-              </View>
-            </View>
+            <WishlistButton productId={product.id} size={40} style={styles.heroWishlist} />
           </View>
         </View>
 
         <View style={{ gap: 8 }}>
+          <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start", gap: 12 }}>
+            <View style={{ flex: 1, gap: 4 }}>
+              <Text style={styles.name}>{product.name}</Text>
+              <View style={{ flexDirection: "row", alignItems: "baseline", gap: 8 }}>
+                <Text style={styles.price}>${Number(price ?? product.base_price).toFixed(0)}</Text>
+                {selectedVariant?.price != null && Number(selectedVariant.price) !== Number(product.base_price) ? (
+                  <Text style={styles.basePrice}>${Number(product.base_price).toFixed(0)}</Text>
+                ) : null}
+              </View>
+              {product.category ? <Text style={styles.category}>{product.category.name}</Text> : null}
+              <View style={{ flexDirection: "row", alignItems: "center", gap: 6, marginTop: 2 }}>
+                <RatingStars value={avg} size={14} />
+                <Text style={styles.ratingText}>
+                  {count ? `${avg.toFixed(1)} • ${count} ${count === 1 ? "review" : "reviews"}` : "No reviews yet"}
+                </Text>
+                {isVerified && <Text style={styles.verifiedHint}>• Verified</Text>}
+              </View>
+            </View>
+            <WishlistButton productId={product.id} size={42} style={{ marginTop: 2 }} />
+          </View>
           {product.description ? <Text style={styles.desc}>{product.description}</Text> : null}
-          {isVerified ? <Text style={styles.verifiedHint}>• Verified buyer eligible — your review will be marked verified</Text> : null}
         </View>
 
         {!hasVariants ? (
@@ -577,6 +573,10 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     overflow: "hidden",
+  },
+  heroWishlist: {
+    backgroundColor: "rgba(255,255,255,0.92)",
+    borderColor: "rgba(42,27,22,0.08)",
   },
   heroBottom: {
     position: "absolute",
