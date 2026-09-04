@@ -190,14 +190,14 @@ const styles = StyleSheet.create({
     color: colors.foreground,
   },
   hero: {
-    height: 360,
+    height: 420,
     borderRadius: 24,
     overflow: "hidden",
     backgroundColor: colors.surfaceMuted,
   },
   heroOverlay: {
     ...StyleSheet.absoluteFill,
-    backgroundColor: "rgba(42,27,22,0.18)",
+    backgroundColor: "rgba(42,27,22,0.14)",
   },
   heroText: {
     flex: 1,

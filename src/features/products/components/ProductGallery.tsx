@@ -22,12 +22,14 @@ type Props = {
   images: ProductImage[];
   selectedColor?: string | null;
   colorsList?: string[];
+  hero?: boolean;
 };
 
-export function ProductGallery({ images, selectedColor, colorsList }: Props) {
+export function ProductGallery({ images, selectedColor, colorsList, hero = false }: Props) {
   const { width: windowWidth } = useWindowDimensions();
-  const horizontalPadding = spacing.xl * 2;
+  const horizontalPadding = hero ? 0 : spacing.xl * 2;
   const pagerWidth = windowWidth - horizontalPadding;
+  const heroHeight = hero ? Math.min(560, windowWidth * 1.25) : pagerWidth / 0.78;
   const [activeIndex, setActiveIndex] = useState(0);
   const listRef = useRef<FlatList<ProductImage>>(null);
   const opacity = useSharedValue(1);
@@ -75,8 +77,8 @@ export function ProductGallery({ images, selectedColor, colorsList }: Props) {
 
   if (sorted.length === 0) {
     return (
-      <View style={[styles.pagerWrap, { width: pagerWidth }]}>
-        <View style={[styles.main, { width: pagerWidth }]} />
+      <View style={[styles.pagerWrap, hero && styles.pagerWrapHero, { width: pagerWidth, height: heroHeight }]}>
+        <View style={[styles.main, hero ? { width: pagerWidth, height: heroHeight } : { width: pagerWidth }]} />
       </View>
     );
   }
@@ -85,7 +87,7 @@ export function ProductGallery({ images, selectedColor, colorsList }: Props) {
     <Animated.View style={[{ width: pagerWidth }, animatedStyle]}>
       <Image
         source={{ uri: item.image_url }}
-        style={[styles.main, { width: pagerWidth }]}
+        style={[styles.main, hero ? { width: pagerWidth, height: heroHeight } : { width: pagerWidth }]}
         contentFit="cover"
         transition={220}
         cachePolicy="memory-disk"
@@ -95,11 +97,12 @@ export function ProductGallery({ images, selectedColor, colorsList }: Props) {
   );
 
   return (
-    <View style={styles.wrap}>
+    <View style={[styles.wrap, hero && styles.wrapHero]}>
       <View
         style={[
           styles.pagerWrap,
-          { width: pagerWidth, height: pagerWidth / 0.78 },
+          hero && styles.pagerWrapHero,
+          { width: pagerWidth, height: heroHeight },
         ]}
       >
         <FlatList
@@ -175,11 +178,15 @@ export function ProductGallery({ images, selectedColor, colorsList }: Props) {
 
 const styles = StyleSheet.create({
   wrap: { gap: 10 },
+  wrapHero: { gap: 0 },
   pagerWrap: {
     borderRadius: radius.lg,
     overflow: "hidden",
     backgroundColor: colors.surfaceMuted,
     position: "relative",
+  },
+  pagerWrapHero: {
+    borderRadius: 0,
   },
   main: {
     height: "100%",

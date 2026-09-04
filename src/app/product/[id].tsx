@@ -1,5 +1,5 @@
 import { useLocalSearchParams, router } from "expo-router";
-import { View, Text, ScrollView, Pressable, StyleSheet, ActivityIndicator } from "react-native";
+import { View, Text, ScrollView, Pressable, StyleSheet, ActivityIndicator, useWindowDimensions } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useState, useMemo, useEffect } from "react";
 import * as Haptics from "expo-haptics";
@@ -36,6 +36,7 @@ import {
 export default function ProductScreen() {
   const params = useLocalSearchParams<{ id: string }>();
   const id = Array.isArray(params.id) ? params.id[0] : params.id;
+  const { width: windowWidth } = useWindowDimensions();
   const { data: product, isLoading, isError, error, refetch } = useProductQuery(id ?? "");
 
   const [selectedColor, setSelectedColor] = useState<string | null>(null);
@@ -175,34 +176,49 @@ export default function ProductScreen() {
   return (
     <SafeAreaView style={styles.root} edges={["top"]}>
       <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false} showsHorizontalScrollIndicator={false}>
-        <Pressable onPress={() => router.back()} style={[styles.back, { marginTop: 4 }]} hitSlop={8} accessibilityRole="button" accessibilityLabel="Go back">
-          <Text style={styles.backText}>← Back</Text>
-        </Pressable>
-
-        <ProductGallery images={product.images} selectedColor={selectedColor} colorsList={colorsList} />
-
-        <View style={{ gap: 8 }}>
-          <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start", gap: 12 }}>
-            <View style={{ flex: 1, gap: 4 }}>
-              <Text style={styles.name}>{product.name}</Text>
+        {/* HERO — full-bleed gallery with editorial overlay */}
+        <View style={[styles.hero, { width: windowWidth, marginHorizontal: -spacing.xl, marginTop: -spacing.xl }]}>
+          <ProductGallery hero images={product.images} selectedColor={selectedColor} colorsList={colorsList} />
+          {/* Top bar */}
+          <View style={styles.heroTop} pointerEvents="box-none">
+            <Pressable
+              onPress={() => router.back()}
+              hitSlop={8}
+              accessibilityRole="button"
+              accessibilityLabel="Go back"
+              style={({ pressed }) => [styles.heroPill, pressed && { opacity: 0.7 }]}
+            >
+              <Text style={styles.heroPillText}>← Back</Text>
+            </Pressable>
+            <View style={styles.heroPillIcon}>
+              <WishlistButton productId={product.id} size={36} />
+            </View>
+          </View>
+          {/* Bottom gradient info */}
+          <View style={styles.heroBottom} pointerEvents="none">
+            <View style={styles.heroScrim} />
+            <View style={styles.heroInfo}>
+              {product.category ? <Text style={styles.heroCategory}>{product.category.name}</Text> : null}
+              <Text style={styles.heroName} numberOfLines={2}>
+                {product.name}
+              </Text>
               <View style={{ flexDirection: "row", alignItems: "baseline", gap: 8 }}>
-                <Text style={styles.price}>${Number(price ?? product.base_price).toFixed(0)}</Text>
+                <Text style={styles.heroPrice}>${Number(price ?? product.base_price).toFixed(0)}</Text>
                 {selectedVariant?.price != null && Number(selectedVariant.price) !== Number(product.base_price) ? (
-                  <Text style={styles.basePrice}>${Number(product.base_price).toFixed(0)}</Text>
+                  <Text style={styles.heroBasePrice}>${Number(product.base_price).toFixed(0)}</Text>
                 ) : null}
               </View>
-              {product.category ? <Text style={styles.category}>{product.category.name}</Text> : null}
-              <View style={{ flexDirection: "row", alignItems: "center", gap: 6, marginTop: 2 }}>
-                <RatingStars value={avg} size={14} />
-                <Text style={styles.ratingText}>
-                  {count ? `${avg.toFixed(1)} • ${count} ${count === 1 ? "review" : "reviews"}` : "No reviews yet"}
-                </Text>
-                {isVerified && <Text style={styles.verifiedHint}>• Verified buyer eligible</Text>}
+              <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
+                <RatingStars value={avg} size={12} />
+                <Text style={styles.heroRating}>{count ? `${avg.toFixed(1)} • ${count}` : "No reviews"}</Text>
               </View>
             </View>
-            <WishlistButton productId={product.id} size={42} style={{ marginTop: 2 }} />
           </View>
+        </View>
+
+        <View style={{ gap: 8 }}>
           {product.description ? <Text style={styles.desc}>{product.description}</Text> : null}
+          {isVerified ? <Text style={styles.verifiedHint}>• Verified buyer eligible — your review will be marked verified</Text> : null}
         </View>
 
         {!hasVariants ? (
@@ -518,5 +534,95 @@ const styles = StyleSheet.create({
   centerSmall: {
     padding: 16,
     alignItems: "center",
+  },
+  hero: {
+    position: "relative",
+    backgroundColor: colors.surfaceMuted,
+    overflow: "hidden",
+  },
+  heroTop: {
+    position: "absolute",
+    top: 12,
+    left: 12,
+    right: 12,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    zIndex: 2,
+  },
+  heroPill: {
+    paddingHorizontal: 14,
+    height: 36,
+    borderRadius: 999,
+    backgroundColor: "rgba(255,255,255,0.92)",
+    borderWidth: 1,
+    borderColor: "rgba(42,27,22,0.08)",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  heroPillText: {
+    fontSize: 11,
+    fontWeight: "800",
+    letterSpacing: 0.6,
+    textTransform: "uppercase",
+    color: colors.foreground,
+  },
+  heroPillIcon: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: "rgba(255,255,255,0.92)",
+    borderWidth: 1,
+    borderColor: "rgba(42,27,22,0.08)",
+    alignItems: "center",
+    justifyContent: "center",
+    overflow: "hidden",
+  },
+  heroBottom: {
+    position: "absolute",
+    bottom: 0,
+    left: 0,
+    right: 0,
+    padding: spacing.xl,
+    paddingTop: 32,
+    zIndex: 2,
+  },
+  heroScrim: {
+    ...StyleSheet.absoluteFill,
+    backgroundColor: "rgba(42,27,22,0.32)",
+  },
+  heroInfo: {
+    gap: 4,
+  },
+  heroCategory: {
+    fontSize: 10,
+    fontWeight: "800",
+    letterSpacing: 1,
+    textTransform: "uppercase",
+    color: colors.paper,
+    opacity: 0.9,
+  },
+  heroName: {
+    fontSize: 22,
+    fontWeight: "700",
+    letterSpacing: -0.4,
+    color: colors.paper,
+    lineHeight: 24,
+  },
+  heroPrice: {
+    fontSize: 18,
+    fontWeight: "800",
+    color: colors.paper,
+  },
+  heroBasePrice: {
+    fontSize: 13,
+    fontWeight: "500",
+    color: "rgba(255,255,255,0.75)",
+    textDecorationLine: "line-through",
+  },
+  heroRating: {
+    fontSize: 11,
+    fontWeight: "600",
+    color: "rgba(255,255,255,0.85)",
   },
 });
