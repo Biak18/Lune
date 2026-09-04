@@ -2,7 +2,7 @@ import { colors } from "@/design/colors";
 import { radius, spacing } from "@/design/spacing";
 import * as Haptics from "expo-haptics";
 import { Image } from "expo-image";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import {
   FlatList,
   Pressable,
@@ -67,24 +67,7 @@ export function ProductGallery({ images, selectedColor, colorsList }: Props) {
     [sorted.length, pagerWidth, fade],
   );
 
-  // Color change -> scroll + fade (activeIndex sync is intentional for dot indicator)
-  useEffect(() => {
-    if (!selectedColor || !colorsList?.length || sorted.length <= 1) return;
-    const colorIdx = colorsList.indexOf(selectedColor);
-    if (colorIdx === -1) return;
-    const target = colorIdx % sorted.length;
-    if (target === activeIndex) {
-      fade();
-      return;
-    }
-    fade();
-    listRef.current?.scrollToOffset({
-      offset: target * pagerWidth,
-      animated: true,
-    });
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setActiveIndex(target);
-  }, [selectedColor, colorsList, sorted.length, pagerWidth, activeIndex, fade]);
+  // Auto-switch on color tap removed per UX — gallery stays manual (swipe/dots/thumbs only)
 
   const animatedStyle = useAnimatedStyle(() => ({
     opacity: opacity.value,
