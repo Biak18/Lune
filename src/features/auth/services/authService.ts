@@ -1,7 +1,7 @@
-import { Platform } from "react-native";
+import { supabase } from "@/lib/supabase";
 import * as Linking from "expo-linking";
 import * as WebBrowser from "expo-web-browser";
-import { supabase } from "@/lib/supabase";
+import { Platform } from "react-native";
 import type {
   LoginPayload,
   RegisterPayload,
@@ -94,19 +94,25 @@ export const authService = {
   async signInWithGoogle() {
     // Web: let Supabase handle redirect directly
     if (Platform.OS === "web") {
+      // Use current origin so Supabase redirects back to where Expo Web is running
+      // (http://localhost:8081) instead of default Site URL http://localhost:3000.
+      const redirectTo =
+        typeof window !== "undefined" ? window.location.origin : undefined;
+      console.log("[authService] signInWithGoogle web redirectTo:", redirectTo);
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {
-          // On web Supabase will navigate; no need for skipBrowserRedirect
+          redirectTo,
         },
       });
       if (error) throw error;
+      console.log("[authService] web OAuth url:", data.url);
       return data;
     }
 
     // Native: PKCE flow via WebBrowser
     const redirectTo = Linking.createURL("/"); // → dressshop:/// or exp:// with proxy
-
+    console.log("[authService] signInWithGoogle redirectTo:", redirectTo);
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
@@ -159,7 +165,8 @@ export const authService = {
     const {
       data: { session },
     } = await supabase.auth.getSession();
-    if (!session) throw new Error("Google sign-in completed but no session found");
+    if (!session)
+      throw new Error("Google sign-in completed but no session found");
     return { session } as unknown as typeof data;
   },
 };
