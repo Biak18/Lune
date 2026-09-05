@@ -1,4 +1,4 @@
-import { View, ActivityIndicator, Text, StyleSheet } from "react-native";
+import { View, ActivityIndicator, Text, StyleSheet, Pressable } from "react-native";
 import { FlashList } from "@shopify/flash-list";
 import { colors } from "@/design/colors";
 import { spacing } from "@/design/spacing";
@@ -46,9 +46,9 @@ export function ProductGrid({
         <Text style={styles.errorTitle}>We couldn&apos;t load the dresses.</Text>
         <Text style={styles.errorSub}>Check your connection and try again.</Text>
         {onRetry ? (
-          <Text onPress={onRetry} style={styles.retry}>
-            Retry
-          </Text>
+          <Pressable onPress={onRetry} hitSlop={8} accessibilityRole="button" style={({ pressed }) => [pressed && { opacity: 0.6 }]}>
+            <Text style={styles.retry}>Retry</Text>
+          </Pressable>
         ) : null}
         {errorMessage ? <Text style={styles.errorMsg}>{errorMessage}</Text> : null}
       </View>
@@ -60,9 +60,15 @@ export function ProductGrid({
       <View style={styles.center}>
         <Text style={styles.emptyTitle}>No dresses found.</Text>
         <Text style={styles.emptySub}>Try another search or explore our collections.</Text>
-        <Text onPress={() => router.push("/(tabs)/shop" as any)} style={styles.retry}>
-          Browse Collections
-        </Text>
+        <Pressable
+          onPress={() => router.push("/(tabs)/shop" as any)}
+          hitSlop={8}
+          accessibilityRole="button"
+          accessibilityLabel="Browse collections"
+          style={({ pressed }) => [styles.browseBtn, pressed && { opacity: 0.7 }]}
+        >
+          <Text style={styles.browseText}>Browse Collections</Text>
+        </Pressable>
       </View>
     );
   }
@@ -122,6 +128,22 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     color: colors.clay,
     textDecorationLine: "underline",
+  },
+  browseBtn: {
+    marginTop: 12,
+    height: 36,
+    paddingHorizontal: 16,
+    borderRadius: 999,
+    backgroundColor: colors.foreground,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  browseText: {
+    fontSize: 11,
+    fontWeight: "800",
+    letterSpacing: 0.7,
+    textTransform: "uppercase",
+    color: colors.surface,
   },
   errorMsg: {
     fontSize: 12,
