@@ -1,8 +1,9 @@
-import { View, Text, Pressable, StyleSheet } from "react-native";
+import { View, Text, Pressable, StyleSheet, ActivityIndicator } from "react-native";
 import { colors } from "@/design/colors";
 import { radius } from "@/design/spacing";
 import { useRedeem, useLoyaltyPending } from "../hooks/useLoyalty";
 import * as Haptics from "expo-haptics";
+import { useState } from "react";
 
 type Reward = { points: number; title: string; desc: string };
 
@@ -15,6 +16,7 @@ const REWARDS: Reward[] = [
 export function RewardsList({ currentPoints }: { currentPoints: number }) {
   const redeem = useRedeem();
   const { data: pending } = useLoyaltyPending();
+  const [activePoints, setActivePoints] = useState<number | null>(null);
   const hasPending = (pending?.amount ?? 0) > 0 || !!pending?.freeShipping;
   return (
     <View style={styles.wrap}>
@@ -35,14 +37,22 @@ export function RewardsList({ currentPoints }: { currentPoints: number }) {
               <Text style={styles.rewardDesc}>{r.desc}</Text>
               <Pressable
                 onPress={async () => {
-                  if (!can) return;
+                  if (!can || redeem.isPending) return;
                   try { await Haptics.selectionAsync(); } catch {}
-                  redeem.mutate({ points: r.points, description: `Redeemed ${r.title}` });
+                  setActivePoints(r.points);
+                  redeem.mutate(
+                    { points: r.points, description: `Redeemed ${r.title}` },
+                    { onSettled: () => setActivePoints(null) }
+                  );
                 }}
                 disabled={!can || redeem.isPending}
-                style={[styles.btn, !can && styles.btnDisabled]}
+                style={[styles.btn, !can && styles.btnDisabled, redeem.isPending && activePoints === r.points && styles.btnLoading]}
               >
-                <Text style={[styles.btnText, !can && { color: colors.muted }]}>{can ? "Redeem" : `${r.points}`}</Text>
+                {redeem.isPending && activePoints === r.points ? (
+                  <ActivityIndicator size="small" color={can ? colors.surface : colors.muted} />
+                ) : (
+                  <Text style={[styles.btnText, !can && { color: colors.muted }]}>{can ? "Redeem" : `${r.points}`}</Text>
+                )}
               </Pressable>
             </View>
           );
@@ -72,6 +82,7 @@ const styles = StyleSheet.create({
   rewardDesc: { fontSize: 10, color: colors.mutedLight, textAlign: "center" },
   btn: { marginTop: 4, paddingHorizontal: 12, height: 28, borderRadius: 999, backgroundColor: colors.foreground, alignItems: "center", justifyContent: "center", minWidth: 64 },
   btnDisabled: { backgroundColor: colors.surfaceMuted, borderWidth: 1, borderColor: colors.border },
+  btnLoading: { opacity: 0.85 },
   btnText: { fontSize: 10, fontWeight: "800", color: colors.surface, letterSpacing: 0.5 },
   error: { fontSize: 11, color: colors.error, textAlign: "center" },
   pendingBanner: { padding: 8, borderRadius: radius.lg, backgroundColor: colors.successBackground, borderWidth: 1, borderColor: "#A3D9B1", alignItems: "center" },
