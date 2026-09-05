@@ -114,7 +114,7 @@ export default function AdminProductsScreen() {
               <View key={c.id} style={[styles.catChip, !c.is_active && { opacity: 0.6 }]}>
                 {editingCat?.id === c.id ? (
                   <View style={{ flexDirection: "row", gap: 6, alignItems: "center" }}>
-                    <TextInput value={editingCat.name} onChangeText={(v) => setEditingCat({ ...editingCat, name: v, slug: slugify(v) })} style={[styles.input, { minWidth: 90, height: 30, paddingVertical: 0 }]} />
+                    <TextInput value={editingCat.name} onChangeText={(v) => setEditingCat({ ...editingCat, name: v, slug: slugify(v) })} style={[styles.editInput]} />
                     <Pressable onPress={() => saveEditCat.mutate()} style={styles.miniBtn}><Text style={styles.miniText}>Save</Text></Pressable>
                     <Pressable onPress={() => setEditingCat(null)} style={styles.miniBtn}><Text style={styles.miniText}>Cancel</Text></Pressable>
                   </View>
@@ -258,7 +258,7 @@ const styles = StyleSheet.create({
   input: { flex: 1, height: 36, borderRadius: 10, borderWidth: 1, borderColor: colors.border, backgroundColor: colors.surface, paddingHorizontal: 10, fontSize: 12, color: colors.foreground },
   addBtn: { height: 36, paddingHorizontal: 14, borderRadius: 999, backgroundColor: colors.foreground, alignItems: "center", justifyContent: "center" },
   addBtnText: { fontSize: 11, fontWeight: "800", color: colors.surface },
-  catChip: { flexDirection: "row", alignItems: "center", gap: 8, paddingHorizontal: 10, height: 44, borderRadius: 999, backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border },
+  catChip: { flexDirection: "row", alignItems: "center", gap: 8, paddingHorizontal: 10, height: 44, borderRadius: 999, backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border, maxWidth: 260 },
   catName: { fontSize: 12, fontWeight: "700", color: colors.foreground },
   catSlug: { fontSize: 10, color: colors.muted },
   miniBtn: { paddingHorizontal: 8, height: 28, borderRadius: 999, backgroundColor: colors.surfaceMuted, borderWidth: 1, borderColor: colors.border, alignItems: "center", justifyContent: "center" },
@@ -267,4 +267,5 @@ const styles = StyleSheet.create({
   deleteText: { fontSize: 14, fontWeight: "700", color: colors.error, lineHeight: 14 },
   divider: { height: 1, backgroundColor: colors.border, marginHorizontal: spacing.xl, marginVertical: 12 },
   error: { fontSize: 11, color: colors.error, paddingHorizontal: spacing.xl },
+  editInput: { width: 110, height: 30, borderRadius: 8, borderWidth: 1, borderColor: colors.border, backgroundColor: colors.surface, paddingHorizontal: 8, fontSize: 12, color: colors.foreground, paddingVertical: 0 },
 });
