@@ -1,24 +1,35 @@
-import { View, Text, ScrollView, StyleSheet, Pressable } from "react-native";
-import { Link, router } from "expo-router";
-import { Image } from "expo-image";
-import { Ionicons } from "@expo/vector-icons";
-import { colors } from "@/design/colors";
-import { spacing, radius } from "@/design/spacing";
-import { useCategoriesQuery, useProductsQuery } from "@/features/products/hooks/useProducts";
-import { ProductCard } from "@/features/products/components/ProductCard";
 import { Skeleton } from "@/components/ui/Skeleton";
+import { colors } from "@/design/colors";
+import { radius, spacing } from "@/design/spacing";
 import { NotificationBell } from "@/features/notifications/components/NotificationBell";
+import { ProductCard } from "@/features/products/components/ProductCard";
+import {
+  useCategoriesQuery,
+  useProductsQuery,
+} from "@/features/products/hooks/useProducts";
 import { RecommendationCarousel } from "@/features/recommendations/components/RecommendationCarousel";
 import { useRecentlyViewedProducts } from "@/features/recommendations/hooks/useRecommendations";
-import { Featured3DCarousel } from "@/features/products/components/Featured3DCarousel";
+import { Ionicons } from "@expo/vector-icons";
+import { Image } from "expo-image";
+import { Link, router } from "expo-router";
+import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 
 export default function HomeScreen() {
   const { data: categories, isLoading: catsLoading } = useCategoriesQuery();
-  const { data: featured, isLoading: loadingFeat } = useProductsQuery({ style: "elegant", pageSize: 4 });
-  const { data: recentProds, isLoading: loadingRecent } = useRecentlyViewedProducts();
+  const { data: featured, isLoading: loadingFeat } = useProductsQuery({
+    style: "elegant",
+    pageSize: 4,
+  });
+  const { data: recentProds, isLoading: loadingRecent } =
+    useRecentlyViewedProducts();
 
   return (
-    <ScrollView style={styles.root} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false} showsHorizontalScrollIndicator={false}>
+    <ScrollView
+      style={styles.root}
+      contentContainerStyle={styles.content}
+      showsVerticalScrollIndicator={false}
+      showsHorizontalScrollIndicator={false}
+    >
       {/* Header — minimal wordmark + actions */}
       <View style={styles.header}>
         <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
@@ -28,22 +39,43 @@ export default function HomeScreen() {
         </View>
         <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
           <NotificationBell size={18} />
-          <Pressable onPress={() => router.push("/shop" as any)} hitSlop={8} style={styles.shopLink}>
+          <Pressable
+            onPress={() => router.push("/shop" as any)}
+            hitSlop={8}
+            style={styles.shopLink}
+          >
             <Text style={styles.headerLink}>Shop</Text>
-            <Ionicons name="arrow-forward" size={12} color={colors.foreground} />
+            <Ionicons
+              name="arrow-forward"
+              size={12}
+              color={colors.foreground}
+            />
           </Pressable>
         </View>
       </View>
 
       {/* Hero — immersive editorial */}
       <View style={styles.hero}>
-        <Image source={{ uri: "https://picsum.photos/seed/hero-dress/800/900" }} style={StyleSheet.absoluteFill} contentFit="cover" priority="high" cachePolicy="memory-disk" />
+        <Image
+          source={{ uri: "https://picsum.photos/seed/hero-dress/800/900" }}
+          style={StyleSheet.absoluteFill}
+          contentFit="cover"
+          priority="high"
+          cachePolicy="memory-disk"
+        />
         <View style={styles.heroOverlay} />
         <View style={styles.heroText}>
-          <Text style={styles.heroEyebrow}>New collection — Nobero curation</Text>
+          <Text style={styles.heroEyebrow}>
+            New collection — Nobero curation
+          </Text>
           <Text style={styles.heroTitle}>Effortless{"\n"}elegance</Text>
-          <Text style={styles.heroSub}>Soft cottons, airy linens, quiet tailoring</Text>
-          <Pressable style={styles.heroBtn} onPress={() => router.push("/shop" as any)}>
+          <Text style={styles.heroSub}>
+            Soft cottons, airy linens, quiet tailoring
+          </Text>
+          <Pressable
+            style={styles.heroBtn}
+            onPress={() => router.push("/shop" as any)}
+          >
             <Text style={styles.heroBtnText}>Shop now</Text>
           </Pressable>
         </View>
@@ -69,14 +101,31 @@ export default function HomeScreen() {
             ))}
           </View>
         ) : (
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 16, paddingRight: spacing.xl }} showsVerticalScrollIndicator={false}>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={{ gap: 16, paddingRight: spacing.xl }}
+            showsVerticalScrollIndicator={false}
+          >
             {categories?.map((c) => (
               <Link key={c.id} href={`/category/${c.id}` as any} asChild>
                 <Pressable style={styles.catTile} accessibilityLabel={c.name}>
                   <View style={styles.catImageWrap}>
-                    <Image source={{ uri: c.image_url ?? "https://picsum.photos/seed/cat/200/200" }} style={styles.catImage} contentFit="cover" transition={200} cachePolicy="memory-disk" />
+                    <Image
+                      source={{
+                        uri:
+                          c.image_url ??
+                          "https://picsum.photos/seed/cat/200/200",
+                      }}
+                      style={styles.catImage}
+                      contentFit="cover"
+                      transition={200}
+                      cachePolicy="memory-disk"
+                    />
                   </View>
-                  <Text style={styles.catName} numberOfLines={1}>{c.name}</Text>
+                  <Text style={styles.catName} numberOfLines={1}>
+                    {c.name}
+                  </Text>
                 </Pressable>
               </Link>
             ))}
@@ -94,13 +143,22 @@ export default function HomeScreen() {
           <View style={{ flexDirection: "row", gap: spacing.lg }}>
             {[1, 2].map((i) => (
               <View key={i} style={{ flex: 1, gap: 8 }}>
-                <Skeleton style={{ aspectRatio: 0.78, borderRadius: radius.lg }} />
+                <Skeleton
+                  style={{ aspectRatio: 0.78, borderRadius: radius.lg }}
+                />
                 <Skeleton style={{ height: 12, width: "60%" }} />
               </View>
             ))}
           </View>
         ) : (
-          <Featured3DCarousel products={featured?.data.slice(0, 6) ?? []} />
+          // <Featured3DCarousel products={featured?.data.slice(0, 6) ?? []} />
+          <View style={{ flexDirection: "row", gap: spacing.lg }}>
+            {featured?.data.slice(0, 2).map((p) => (
+              <View key={p.id} style={{ flex: 1 }}>
+                <ProductCard product={p} />
+              </View>
+            ))}
+          </View>
         )}
       </View>
 
@@ -109,15 +167,32 @@ export default function HomeScreen() {
         <View style={styles.discoverHeader}>
           <Text style={styles.discoverEyebrow}>Discover</Text>
           <Text style={styles.discoverTitle}>Find your perfect piece</Text>
-          <Text style={styles.discoverDesc}>Answer 2 questions or chat with our stylist — same curated catalog, no AI required.</Text>
+          <Text style={styles.discoverDesc}>
+            Answer 2 questions or chat with our stylist — same curated catalog,
+            no AI required.
+          </Text>
         </View>
         <View style={styles.discoverActions}>
-          <Pressable style={[styles.discoverBtn, styles.discoverPrimary]} onPress={() => router.push("/style-finder" as any)}>
-            <Ionicons name="color-palette-outline" size={14} color={colors.surface} />
+          <Pressable
+            style={[styles.discoverBtn, styles.discoverPrimary]}
+            onPress={() => router.push("/style-finder" as any)}
+          >
+            <Ionicons
+              name="color-palette-outline"
+              size={14}
+              color={colors.surface}
+            />
             <Text style={styles.discoverPrimaryText}>Style Finder</Text>
           </Pressable>
-          <Pressable style={[styles.discoverBtn, styles.discoverSecondary]} onPress={() => router.push("/assistant" as any)}>
-            <Ionicons name="chatbubble-ellipses-outline" size={14} color={colors.foreground} />
+          <Pressable
+            style={[styles.discoverBtn, styles.discoverSecondary]}
+            onPress={() => router.push("/assistant" as any)}
+          >
+            <Ionicons
+              name="chatbubble-ellipses-outline"
+              size={14}
+              color={colors.foreground}
+            />
             <Text style={styles.discoverSecondaryText}>AI Stylist</Text>
           </Pressable>
         </View>
@@ -126,7 +201,13 @@ export default function HomeScreen() {
       {/* Occasion — quiet pills */}
 
       {recentProds && recentProds.length > 0 && (
-        <RecommendationCarousel title="Recently viewed" subtitle="Pick up where you left off" products={recentProds} isLoading={loadingRecent} onSeeAll={() => router.push("/(tabs)/shop" as any)} />
+        <RecommendationCarousel
+          title="Recently viewed"
+          subtitle="Pick up where you left off"
+          products={recentProds}
+          isLoading={loadingRecent}
+          onSeeAll={() => router.push("/(tabs)/shop" as any)}
+        />
       )}
     </ScrollView>
   );
