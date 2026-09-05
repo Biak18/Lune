@@ -278,7 +278,7 @@ export default function ProductScreen() {
                           try {
                             await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
                           } catch {}
-                        } catch (e) {
+                        } catch {
                           try {
                             await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
                           } catch {}

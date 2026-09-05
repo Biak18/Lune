@@ -1,6 +1,6 @@
 import { View, Text, Pressable, StyleSheet, Share } from "react-native";
 import { colors } from "@/design/colors";
-import { radius, spacing } from "@/design/spacing";
+import { radius } from "@/design/spacing";
 import { loyaltyService } from "../services/loyaltyService";
 import type { LoyaltyAccount } from "../services/loyaltyService";
 import { Ionicons } from "@expo/vector-icons";

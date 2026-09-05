@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { View, Text, StyleSheet, TextInput } from "react-native";
 import { colors } from "@/design/colors";
 import { radius } from "@/design/spacing";
@@ -17,13 +17,6 @@ type Props = {
 export function ReviewForm({ initialRating = 0, initialBody = "", submitting, onSubmit, onCancel, submitLabel = "Submit review" }: Props) {
   const [rating, setRating] = useState(initialRating);
   const [body, setBody] = useState(initialBody);
-
-  useEffect(() => {
-    setRating(initialRating);
-  }, [initialRating]);
-  useEffect(() => {
-    setBody(initialBody);
-  }, [initialBody]);
 
   const canSubmit = rating >= 1 && rating <= 5;
 

@@ -1,5 +1,4 @@
 import { View, Text, ScrollView, StyleSheet, Pressable } from "react-native";
-import { router } from "expo-router";
 import { colors } from "@/design/colors";
 import { spacing, radius } from "@/design/spacing";
 import { ProductCard } from "@/features/products/components/ProductCard";

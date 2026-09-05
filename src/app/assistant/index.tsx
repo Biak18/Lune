@@ -33,21 +33,6 @@ function parseFreeTextLocal(input: string) {
   return { occ, sty, col };
 }
 
-async function parseFreeTextViaAI(input: string): Promise<{ occ?: string; sty?: string; col?: string }> {
-  try {
-    const data = await assistantService.parseIntent(input);
-    return {
-      occ: data.occasion ?? undefined,
-      sty: data.style ?? undefined,
-      col: data.color ?? undefined,
-    };
-  } catch (err) {
-    console.warn("parse-shopping-intent failed, falling back to local parsing", err);
-    const local = parseFreeTextLocal(input);
-    return { occ: local.occ, sty: local.sty, col: local.col };
-  }
-}
-
 export default function AssistantScreen() {
   const [occasion, setOccasion] = useState<string | null>(null);
   const [style, setStyle] = useState<string | null>(null);
@@ -126,7 +111,6 @@ export default function AssistantScreen() {
 
   const [isParsing, setIsParsing] = useState(false);
   const [isAiThinking, setIsAiThinking] = useState(false);
-  const [streamingText, setStreamingText] = useState<string | null>(null);
 
   const handleSend = async () => {
     const trimmed = input.trim();
@@ -204,7 +188,6 @@ export default function AssistantScreen() {
     setColorPref(null);
     setStep(0);
     historyRef.current = [];
-    setStreamingText(null);
     setIsParsing(false);
     setIsAiThinking(false);
     setMessages([

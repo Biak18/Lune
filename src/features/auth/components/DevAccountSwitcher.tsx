@@ -2,7 +2,7 @@ import { View, Text, StyleSheet, Pressable, ActivityIndicator } from "react-nati
 import { useState } from "react";
 import { router } from "expo-router";
 import { colors } from "@/design/colors";
-import { spacing, radius } from "@/design/spacing";
+import { radius } from "@/design/spacing";
 import { useLoginMutation } from "../hooks/useAuthMutations";
 import { getAuthErrorMessage } from "@/utils/errors";
 
@@ -15,8 +15,6 @@ import { getAuthErrorMessage } from "@/utils/errors";
  * If not configured, shows setup hint.
  */
 export function DevAccountSwitcher() {
-  if (!__DEV__) return null;
-
   const customerEmail = process.env.EXPO_PUBLIC_DEV_CUSTOMER_EMAIL;
   const customerPassword = process.env.EXPO_PUBLIC_DEV_CUSTOMER_PASSWORD;
   const adminEmail = process.env.EXPO_PUBLIC_DEV_ADMIN_EMAIL;
@@ -29,6 +27,8 @@ export function DevAccountSwitcher() {
   const login = useLoginMutation();
   const [active, setActive] = useState<"customer" | "admin" | null>(null);
   const [error, setError] = useState<string | null>(null);
+
+  if (!__DEV__) return null;
 
   const handleSwitch = (role: "customer" | "admin") => {
     const email = role === "customer" ? customerEmail : adminEmail;

@@ -3,7 +3,6 @@ import { Ionicons } from "@expo/vector-icons";
 import { colors } from "@/design/colors";
 
 const ORDER_FLOW = ["pending", "confirmed", "processing", "shipped", "out_for_delivery", "delivered"] as const;
-type Status = (typeof ORDER_FLOW)[number] | "cancelled";
 
 const LABELS: Record<string, string> = {
   pending: "Order placed",
