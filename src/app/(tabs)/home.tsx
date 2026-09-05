@@ -141,44 +141,13 @@ export default function HomeScreen() {
         )}
       </View>
 
-      {/* Featured — 3D carousel (from youtube k2ax0t4dYAY) */}
-      <View style={styles.section}>
-        <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Featured</Text>
-          <Text style={styles.sectionHint}>Elegant edit • 3D</Text>
-        </View>
-        {loadingFeat ? (
-          <View style={{ flexDirection: "row", gap: spacing.lg }}>
-            {[1, 2].map((i) => (
-              <View key={i} style={{ flex: 1, gap: 8 }}>
-                <Skeleton
-                  style={{ aspectRatio: 0.78, borderRadius: radius.lg }}
-                />
-                <Skeleton style={{ height: 12, width: "60%" }} />
-              </View>
-            ))}
+      {/* Featured — hidden when no active products (admin may hide all) */}
+      {loadingFeat ? (
+        <View style={styles.section}>
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>Featured</Text>
+            <Text style={styles.sectionHint}>Elegant edit • 3D</Text>
           </View>
-        ) : (
-          // <Featured3DCarousel products={featured?.data.slice(0, 6) ?? []} />
-          <View style={{ flexDirection: "row", gap: spacing.lg }}>
-            {featured?.data.slice(0, 2).map((p) => (
-              <View key={p.id} style={{ flex: 1 }}>
-                <ProductCard product={p} />
-              </View>
-            ))}
-          </View>
-        )}
-      </View>
-
-      {/* New Arrivals — PRD Home section */}
-      <View style={styles.section}>
-        <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>New Arrivals</Text>
-          <Pressable onPress={() => router.push("/shop" as any)} hitSlop={8}>
-            <Text style={styles.seeAll}>See all</Text>
-          </Pressable>
-        </View>
-        {loadingNew ? (
           <View style={{ flexDirection: "row", gap: spacing.lg }}>
             {[1, 2].map((i) => (
               <View key={i} style={{ flex: 1, gap: 8 }}>
@@ -187,24 +156,32 @@ export default function HomeScreen() {
               </View>
             ))}
           </View>
-        ) : (
+        </View>
+      ) : featured?.data?.length ? (
+        <View style={styles.section}>
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>Featured</Text>
+            <Text style={styles.sectionHint}>Elegant edit • 3D</Text>
+          </View>
           <View style={{ flexDirection: "row", gap: spacing.lg }}>
-            {newArrivals?.data.slice(0, 2).map((p) => (
+            {featured.data.slice(0, 2).map((p) => (
               <View key={p.id} style={{ flex: 1 }}>
                 <ProductCard product={p} />
               </View>
             ))}
           </View>
-        )}
-      </View>
-
-      {/* Best Sellers — top rated */}
-      <View style={styles.section}>
-        <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Best Sellers</Text>
-          <Text style={styles.sectionHint}>Top rated</Text>
         </View>
-        {loadingBest ? (
+      ) : null}
+
+      {/* New Arrivals — hidden when empty */}
+      {loadingNew ? (
+        <View style={styles.section}>
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>New Arrivals</Text>
+            <Pressable onPress={() => router.push("/shop" as any)} hitSlop={8}>
+              <Text style={styles.seeAll}>See all</Text>
+            </Pressable>
+          </View>
           <View style={{ flexDirection: "row", gap: spacing.lg }}>
             {[1, 2].map((i) => (
               <View key={i} style={{ flex: 1, gap: 8 }}>
@@ -213,7 +190,47 @@ export default function HomeScreen() {
               </View>
             ))}
           </View>
-        ) : bestSellers?.data.length ? (
+        </View>
+      ) : newArrivals?.data?.length ? (
+        <View style={styles.section}>
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>New Arrivals</Text>
+            <Pressable onPress={() => router.push("/shop" as any)} hitSlop={8}>
+              <Text style={styles.seeAll}>See all</Text>
+            </Pressable>
+          </View>
+          <View style={{ flexDirection: "row", gap: spacing.lg }}>
+            {newArrivals.data.slice(0, 2).map((p) => (
+              <View key={p.id} style={{ flex: 1 }}>
+                <ProductCard product={p} />
+              </View>
+            ))}
+          </View>
+        </View>
+      ) : null}
+
+      {/* Best Sellers — hidden when no products/ratings */}
+      {loadingBest ? (
+        <View style={styles.section}>
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>Best Sellers</Text>
+            <Text style={styles.sectionHint}>Top rated</Text>
+          </View>
+          <View style={{ flexDirection: "row", gap: spacing.lg }}>
+            {[1, 2].map((i) => (
+              <View key={i} style={{ flex: 1, gap: 8 }}>
+                <Skeleton style={{ aspectRatio: 0.78, borderRadius: radius.lg }} />
+                <Skeleton style={{ height: 12, width: "60%" }} />
+              </View>
+            ))}
+          </View>
+        </View>
+      ) : bestSellers?.data?.length ? (
+        <View style={styles.section}>
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>Best Sellers</Text>
+            <Text style={styles.sectionHint}>Top rated</Text>
+          </View>
           <View style={{ flexDirection: "row", gap: spacing.lg }}>
             {bestSellers.data.slice(0, 2).map((p) => (
               <View key={p.id} style={{ flex: 1 }}>
@@ -221,10 +238,16 @@ export default function HomeScreen() {
               </View>
             ))}
           </View>
-        ) : (
-          <Text style={styles.sectionHint}>No ratings yet — be first to review.</Text>
-        )}
-      </View>
+        </View>
+      ) : null}
+
+      {/* Empty catalog hint — when admin hides all products */}
+      {!loadingFeat && !loadingNew && !loadingBest && !featured?.data?.length && !newArrivals?.data?.length && !bestSellers?.data?.length ? (
+        <View style={styles.emptyCatalog}>
+          <Text style={styles.emptyCatalogTitle}>No collections available</Text>
+          <Text style={styles.emptyCatalogSub}>Products are currently hidden. Toggle active in Admin → Products.</Text>
+        </View>
+      ) : null}
 
       {/* Shop by Occasion */}
       <View style={styles.section}>
@@ -461,6 +484,25 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     color: colors.foreground,
     letterSpacing: 0.2,
+  },
+  emptyCatalog: {
+    padding: 16,
+    borderRadius: radius.lg,
+    backgroundColor: colors.surface,
+    borderWidth: 1,
+    borderColor: colors.border,
+    alignItems: "center",
+    gap: 4,
+  },
+  emptyCatalogTitle: {
+    fontSize: 13,
+    fontWeight: "700",
+    color: colors.foreground,
+  },
+  emptyCatalogSub: {
+    fontSize: 11,
+    color: colors.muted,
+    textAlign: "center",
   },
   discoverCard: {
     padding: 16,
