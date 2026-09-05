@@ -1,9 +1,9 @@
-import { View, StyleSheet } from "react-native";
-import { useForm, Controller } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
-import { FieldInput } from "@/components/ui/FieldInput";
 import { Button } from "@/components/ui/Button";
+import { FieldInput } from "@/components/ui/FieldInput";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Controller, useForm } from "react-hook-form";
+import { StyleSheet, View } from "react-native";
+import { z } from "zod";
 
 const schema = z.object({
   recipient_name: z.string().min(2, "Name required"),
@@ -42,7 +42,7 @@ export function AddressForm({ onSubmit, submitting, defaultValues }: Props) {
       city: "",
       state: "",
       postal_code: "",
-      country: "US",
+      country: "MM",
       is_default: true,
       ...defaultValues,
     },
@@ -54,35 +54,72 @@ export function AddressForm({ onSubmit, submitting, defaultValues }: Props) {
         control={control}
         name="recipient_name"
         render={({ field: { value, onChange, onBlur } }) => (
-          <FieldInput label="Full name" placeholder="Jane Doe" value={value} onChangeText={onChange} onBlur={onBlur} error={errors.recipient_name?.message} autoCapitalize="words" />
+          <FieldInput
+            label="Full name"
+            placeholder="Jane Doe"
+            value={value}
+            onChangeText={onChange}
+            onBlur={onBlur}
+            error={errors.recipient_name?.message}
+            autoCapitalize="words"
+          />
         )}
       />
       <Controller
         control={control}
         name="phone"
         render={({ field: { value, onChange, onBlur } }) => (
-          <FieldInput label="Phone (optional)" placeholder="+1 555 0100" value={value ?? ""} onChangeText={onChange} onBlur={onBlur} error={errors.phone?.message} keyboardType="phone-pad" />
+          <FieldInput
+            label="Phone (optional)"
+            placeholder="+1 555 0100"
+            value={value ?? ""}
+            onChangeText={onChange}
+            onBlur={onBlur}
+            error={errors.phone?.message}
+            keyboardType="phone-pad"
+          />
         )}
       />
       <Controller
         control={control}
         name="label"
         render={({ field: { value, onChange, onBlur } }) => (
-          <FieldInput label="Label (Home / Work)" placeholder="Home" value={value ?? ""} onChangeText={onChange} onBlur={onBlur} error={errors.label?.message} />
+          <FieldInput
+            label="Label (Home / Work)"
+            placeholder="Home"
+            value={value ?? ""}
+            onChangeText={onChange}
+            onBlur={onBlur}
+            error={errors.label?.message}
+          />
         )}
       />
       <Controller
         control={control}
         name="address_line_1"
         render={({ field: { value, onChange, onBlur } }) => (
-          <FieldInput label="Address line 1" placeholder="123 Market St" value={value} onChangeText={onChange} onBlur={onBlur} error={errors.address_line_1?.message} />
+          <FieldInput
+            label="Address line 1"
+            placeholder="123 Market St"
+            value={value}
+            onChangeText={onChange}
+            onBlur={onBlur}
+            error={errors.address_line_1?.message}
+          />
         )}
       />
       <Controller
         control={control}
         name="address_line_2"
         render={({ field: { value, onChange, onBlur } }) => (
-          <FieldInput label="Address line 2 (optional)" placeholder="Apt 4B" value={value ?? ""} onChangeText={onChange} onBlur={onBlur} error={errors.address_line_2?.message} />
+          <FieldInput
+            label="Address line 2 (optional)"
+            placeholder="Apt 4B"
+            value={value ?? ""}
+            onChangeText={onChange}
+            onBlur={onBlur}
+            error={errors.address_line_2?.message}
+          />
         )}
       />
       <View style={{ flexDirection: "row", gap: 12 }}>
@@ -91,7 +128,14 @@ export function AddressForm({ onSubmit, submitting, defaultValues }: Props) {
             control={control}
             name="city"
             render={({ field: { value, onChange, onBlur } }) => (
-              <FieldInput label="City" placeholder="New York" value={value} onChangeText={onChange} onBlur={onBlur} error={errors.city?.message} />
+              <FieldInput
+                label="City"
+                placeholder="Yangon"
+                value={value}
+                onChangeText={onChange}
+                onBlur={onBlur}
+                error={errors.city?.message}
+              />
             )}
           />
         </View>
@@ -100,7 +144,14 @@ export function AddressForm({ onSubmit, submitting, defaultValues }: Props) {
             control={control}
             name="state"
             render={({ field: { value, onChange, onBlur } }) => (
-              <FieldInput label="State" placeholder="NY" value={value ?? ""} onChangeText={onChange} onBlur={onBlur} error={errors.state?.message} />
+              <FieldInput
+                label="State"
+                placeholder="Yangon"
+                value={value ?? ""}
+                onChangeText={onChange}
+                onBlur={onBlur}
+                error={errors.state?.message}
+              />
             )}
           />
         </View>
@@ -111,7 +162,14 @@ export function AddressForm({ onSubmit, submitting, defaultValues }: Props) {
             control={control}
             name="postal_code"
             render={({ field: { value, onChange, onBlur } }) => (
-              <FieldInput label="Postal code" placeholder="10001" value={value ?? ""} onChangeText={onChange} onBlur={onBlur} error={errors.postal_code?.message} />
+              <FieldInput
+                label="Postal code"
+                placeholder="10001"
+                value={value ?? ""}
+                onChangeText={onChange}
+                onBlur={onBlur}
+                error={errors.postal_code?.message}
+              />
             )}
           />
         </View>
@@ -120,12 +178,25 @@ export function AddressForm({ onSubmit, submitting, defaultValues }: Props) {
             control={control}
             name="country"
             render={({ field: { value, onChange, onBlur } }) => (
-              <FieldInput label="Country" placeholder="US" value={value ?? ""} onChangeText={onChange} onBlur={onBlur} error={errors.country?.message} autoCapitalize="characters" />
+              <FieldInput
+                label="Country"
+                placeholder="US"
+                value={value ?? ""}
+                onChangeText={onChange}
+                onBlur={onBlur}
+                error={errors.country?.message}
+                autoCapitalize="characters"
+              />
             )}
           />
         </View>
       </View>
-      <Button title={submitting ? "Saving…" : "Save address"} onPress={handleSubmit(onSubmit as any)} loading={!!submitting} disabled={!!submitting} />
+      <Button
+        title={submitting ? "Saving…" : "Save address"}
+        onPress={handleSubmit(onSubmit as any)}
+        loading={!!submitting}
+        disabled={!!submitting}
+      />
     </View>
   );
 }
