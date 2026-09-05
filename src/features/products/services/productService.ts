@@ -50,9 +50,28 @@ export const productService = {
           pageSize,
         };
     }
+    // Search: name/description/style/occasion/slug + category name
+    let searchIds: string[] | null = null;
     if (params.search) {
-      const s = params.search.trim();
-      if (s) query = query.ilike("name", `%${s}%`);
+      const raw = params.search.trim();
+      if (raw) {
+        const s = raw.replace(/%/g, "\\%").replace(/,/g, " ");
+        const orFilter = `name.ilike.%${s}%,description.ilike.%${s}%,style.ilike.%${s}%,occasion.ilike.%${s}%,slug.ilike.%${s}%`;
+        const { data: catMatches } = await supabase.from("categories").select("id").ilike("name", `%${s}%`);
+        const catIds = (catMatches ?? []).map((c: any) => c.id);
+        const { data: orMatched } = await supabase.from("products").select("id").or(orFilter).eq("is_active", params.isActive ?? true).limit(200);
+        const orIds = (orMatched ?? []).map((p: any) => p.id);
+        let byCatIds: string[] = [];
+        if (catIds.length) {
+          const { data: byCat } = await supabase.from("products").select("id").in("category_id", catIds).eq("is_active", params.isActive ?? true).limit(200);
+          byCatIds = (byCat ?? []).map((p: any) => p.id);
+        }
+        const union = [...new Set([...orIds, ...byCatIds])];
+        searchIds = union;
+        if (searchIds.length === 0) {
+          return { data: [], count: 0, page, pageSize };
+        }
+      }
     }
     if (params.style) query = query.eq("style", params.style);
     if (params.occasion) query = query.eq("occasion", params.occasion);
@@ -60,19 +79,32 @@ export const productService = {
     if (params.maxPrice != null) query = query.lte("base_price", params.maxPrice);
 
     // Variant-level filters (color/size/inStock) → resolve product_ids via product_variants
+    let variantIds: string[] | null = null;
     const needsVariantFilter = !!params.color || !!params.size || !!params.inStock;
     if (needsVariantFilter) {
       let vQuery = supabase.from("product_variants").select("product_id").eq("is_active", true);
       if (params.color) vQuery = vQuery.eq("color", params.color);
       if (params.size) vQuery = vQuery.eq("size", params.size);
       if (params.inStock) vQuery = vQuery.gt("stock_quantity", 0);
-      const { data: vData, error: vErr } = await vQuery;
+      const { data: vData, error: vErr } = await vQuery.limit(500);
       if (vErr) throw vErr;
       const ids = [...new Set((vData ?? []).map((r: any) => r.product_id))];
-      if (ids.length === 0) {
+      variantIds = ids;
+      if (variantIds.length === 0) {
         return { data: [], count: 0, page, pageSize };
       }
-      query = query.in("id", ids);
+    }
+
+    // Apply id intersections (search + variant) — intersect so all criteria satisfied
+    if (searchIds !== null && variantIds !== null) {
+      const setV = new Set(variantIds);
+      const intersect = searchIds.filter((id) => setV.has(id));
+      if (intersect.length === 0) return { data: [], count: 0, page, pageSize };
+      query = query.in("id", intersect);
+    } else if (searchIds !== null) {
+      query = query.in("id", searchIds);
+    } else if (variantIds !== null) {
+      query = query.in("id", variantIds);
     }
 
     // Sorting

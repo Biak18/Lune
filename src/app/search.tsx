@@ -25,14 +25,14 @@ export default function SearchScreen() {
         </View>
         <SearchInput value={q} onChangeText={setQ} onClear={() => setQ("")} />
         {!hasSearched ? (
-          <Text style={styles.hint}>Try “satin”, “linen” or “velvet”.</Text>
+          <Text style={styles.hint}>Try “satin”, “linen” or category like “Party” — also style/occasion.</Text>
         ) : null}
       </View>
       <View style={styles.list}>
         {!hasSearched ? (
           <View style={styles.center}>
             <Text style={styles.emptyTitle}>Discover dresses</Text>
-            <Text style={styles.emptySub}>Search by name, style or occasion.</Text>
+            <Text style={styles.emptySub}>Search by name, style, occasion or category.</Text>
           </View>
         ) : (
           <ProductGrid

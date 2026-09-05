@@ -5,6 +5,7 @@ import { spacing } from "@/design/spacing";
 import { ProductCard } from "./ProductCard";
 import { Skeleton } from "@/components/ui/Skeleton";
 import type { ProductWithRelations } from "../types";
+import { router } from "expo-router";
 
 type Props = {
   products?: ProductWithRelations[];
@@ -59,6 +60,9 @@ export function ProductGrid({
       <View style={styles.center}>
         <Text style={styles.emptyTitle}>No dresses found.</Text>
         <Text style={styles.emptySub}>Try another search or explore our collections.</Text>
+        <Text onPress={() => router.push("/(tabs)/shop" as any)} style={styles.retry}>
+          Browse Collections
+        </Text>
       </View>
     );
   }
