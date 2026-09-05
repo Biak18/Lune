@@ -173,7 +173,7 @@ export default function ProfileScreen() {
           </View>
         </View>
 
-        {/* Membership — loyalty in one glance */}
+        {/* Membership — slim */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>Membership</Text>
@@ -183,21 +183,18 @@ export default function ProfileScreen() {
           <RewardsList currentPoints={loyalty?.points ?? 0} />
         </View>
 
-        {/* Recent activity — compact, max 3 */}
+        {/* Recent activity — subtle list, not card-heavy */}
         {tx && tx.length > 0 ? (
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
-              <Text style={styles.sectionTitle}>Recent activity</Text>
+              <Text style={styles.sectionTitle}>Activity</Text>
               <Text style={styles.sectionHint}>{tx.length} events</Text>
             </View>
-            <View style={styles.activityCard}>
-              {tx.slice(0, 3).map((t, idx) => (
-                <View key={t.id} style={[styles.activityRow, idx === 0 && { borderTopWidth: 0 }]}>
-                  <View style={styles.activityDot} />
-                  <View style={{ flex: 1, gap: 2 }}>
-                    <Text style={styles.activityTitle} numberOfLines={1}>{t.description ?? t.type}</Text>
-                    <Text style={styles.activityDate}>{new Date(t.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric" })}</Text>
-                  </View>
+            <View style={styles.activityList}>
+              {tx.slice(0, 3).map((t) => (
+                <View key={t.id} style={styles.activityRow}>
+                  <Text style={styles.activityType} numberOfLines={1}>{t.type.replace("_", " ")}</Text>
+                  <Text style={styles.activityPointsSub} numberOfLines={1}>{t.description ?? ""}</Text>
                   <Text style={[styles.activityPoints, { color: t.points >= 0 ? colors.success : colors.error }]}>{t.points >= 0 ? `+${t.points}` : `${t.points}`}</Text>
                 </View>
               ))}
@@ -302,12 +299,11 @@ const styles = StyleSheet.create({
   menuLabel: { fontSize: 13, fontWeight: "600", color: colors.foreground },
   menuSub: { fontSize: 11, color: colors.muted },
   menuDivider: { height: StyleSheet.hairlineWidth, backgroundColor: colors.border, marginLeft: 60 },
-  activityCard: { backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border, borderRadius: radius.lg, overflow: "hidden" },
-  activityRow: { flexDirection: "row", alignItems: "center", gap: 10, paddingHorizontal: 14, paddingVertical: 12, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: colors.border },
-  activityDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: colors.clay, marginTop: 2 },
-  activityTitle: { fontSize: 12, fontWeight: "600", color: colors.foreground },
-  activityDate: { fontSize: 11, color: colors.mutedLight },
-  activityPoints: { fontSize: 12, fontWeight: "800" },
+  activityList: { gap: 8 },
+  activityRow: { flexDirection: "row", alignItems: "center", gap: 8, paddingVertical: 6, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: colors.border },
+  activityType: { fontSize: 11, fontWeight: "700", color: colors.foreground, textTransform: "capitalize", minWidth: 56 },
+  activityPointsSub: { flex: 1, fontSize: 11, color: colors.mutedLight },
+  activityPoints: { fontSize: 11, fontWeight: "800" },
   footer: { alignItems: "center", gap: 12, paddingTop: 4 },
   signOutPill: { flexDirection: "row", gap: 6, alignItems: "center", paddingHorizontal: 16, height: 36, borderRadius: 999, backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border },
   signOutText: { fontSize: 11, fontWeight: "700", letterSpacing: 0.6, textTransform: "uppercase", color: colors.muted },
