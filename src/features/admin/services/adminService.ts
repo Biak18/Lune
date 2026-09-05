@@ -50,4 +50,27 @@ export const adminService = {
     const { error } = await supabase.from("orders").update({ status } as any).eq("id", id);
     if (error) throw error;
   },
+
+  async getCategoriesAdmin() {
+    const { data, error } = await supabase.from("categories").select("*").order("sort_order", { ascending: true }).order("name");
+    if (error) throw error;
+    return data ?? [];
+  },
+
+  async createCategory(payload: { name: string; slug: string; description?: string | null; is_active?: boolean }) {
+    const { data, error } = await supabase.from("categories").insert(payload as any).select().single();
+    if (error) throw error;
+    return data;
+  },
+
+  async updateCategory(id: string, patch: Partial<{ name: string; slug: string; description: string | null; is_active: boolean; sort_order: number }>) {
+    const { data, error } = await supabase.from("categories").update(patch as any).eq("id", id).select().single();
+    if (error) throw error;
+    return data;
+  },
+
+  async deleteCategory(id: string) {
+    const { error } = await supabase.from("categories").delete().eq("id", id);
+    if (error) throw error;
+  },
 };
