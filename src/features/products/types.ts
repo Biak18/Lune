@@ -21,6 +21,11 @@ export type ProductsQueryParams = {
   occasion?: string;
   sort?: "recommended" | "newest" | "price_asc" | "price_desc" | "top_rated";
   isActive?: boolean;
+  color?: string;
+  size?: string;
+  minPrice?: number;
+  maxPrice?: number;
+  inStock?: boolean;
 };
 
 export type PaginatedProducts = {
