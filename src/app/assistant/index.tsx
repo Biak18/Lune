@@ -43,16 +43,17 @@ export default function AssistantScreen() {
     {
       id: "m0",
       role: "assistant",
-      text: "Hi! I'm your Dress Shop stylist — powered by Gemini 3.8 Flash. What occasion are you dressing for?",
+      text: "Hi! I'm your Dress Shop stylist — powered by Gemini 2.0 Flash. What occasion are you dressing for?",
       chips: OCCASIONS,
     },
   ]);
   const scrollRef = useRef<ScrollView>(null);
   const historyRef = useRef<ChatMessage[]>([]);
 
-  const queryEnabled = step === 3 && !!occasion && !!style;
+  const hasIntent = !!occasion || !!style;
+  const queryEnabled = step === 3 && hasIntent;
   const { data: result, isLoading } = useProductsQuery(
-    queryEnabled ? { occasion: occasion!, style: style!, pageSize: 8 } : { pageSize: 1 },
+    queryEnabled ? { occasion: occasion ?? undefined, style: style ?? undefined, pageSize: 8 } : { pageSize: 1 },
   );
   const products = useMemo(() => {
     if (!queryEnabled) return [];
@@ -145,10 +146,12 @@ export default function AssistantScreen() {
       if (sty) setStyle(sty);
       if (col) setColorPref(col);
 
-      if (occ && sty) {
+      const hasAny = !!(occ || sty);
+      if (hasAny) {
         setStep(3);
         setTimeout(() => {
-          const curatedText = `Curated for ${occ} • ${sty}${col ? ` • ${col}` : ""}. Here are my picks — tap any dress for details.`;
+          const parts = [occ, sty, col].filter(Boolean).join(" • ");
+          const curatedText = `Curated for ${parts}. Here are my picks — tap any dress for details.`;
           push({ id: `a-products-${Date.now()}`, role: "assistant", text: curatedText, products: true });
         }, 400);
       } else if (!chatText || !chatText.trim()) {
@@ -170,9 +173,10 @@ export default function AssistantScreen() {
       if (occ) setOccasion(occ);
       if (sty) setStyle(sty);
       if (col) setColorPref(col);
-      if (occ && sty) {
+      if (occ || sty) {
         setStep(3);
-        push({ id: `a-fb-${Date.now()}`, role: "assistant", text: `Got it — ${occ} • ${sty}${col ? ` • ${col}` : ""}. Here are my picks.`, products: true });
+        const parts = [occ, sty, col].filter(Boolean).join(" • ");
+        push({ id: `a-fb-${Date.now()}`, role: "assistant", text: `Got it — ${parts}. Here are my picks.`, products: true });
       } else {
         push({ id: `a-${Date.now()}`, role: "assistant", text: "Tell me occasion (everyday/office/vacation/party) and style (minimal/elegant/casual/bold). Try chips below.", chips: OCCASIONS });
       }
@@ -194,7 +198,7 @@ export default function AssistantScreen() {
       {
         id: "m0",
         role: "assistant",
-        text: "Hi! I'm your Dress Shop stylist — powered by Gemini 3.8 Flash. What occasion are you dressing for?",
+        text: "Hi! I'm your Dress Shop stylist — powered by Gemini 2.0 Flash. What occasion are you dressing for?",
         chips: OCCASIONS,
       },
     ]);
@@ -209,7 +213,7 @@ export default function AssistantScreen() {
           <Text style={styles.backText}>← Back</Text>
         </Pressable>
         <Text style={styles.heading}>AI Fashion Assistant</Text>
-        <Text style={styles.sub}>Powered by Gemini 3.8 Flash • Editorial stylist • Real AI</Text>
+        <Text style={styles.sub}>Powered by Gemini 2.0 Flash • Editorial stylist • Real AI</Text>
       </View>
 
       <KeyboardAvoidingView style={{ flex: 1 }} behavior="padding" keyboardVerticalOffset={0}>
