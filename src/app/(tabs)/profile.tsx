@@ -159,6 +159,8 @@ export default function ProfileScreen() {
             <View style={styles.menuDivider} />
             <MenuRow icon="heart-outline" label="Wishlist" sub="Saved dresses" onPress={() => router.push("/(tabs)/wishlist" as any)} />
             <View style={styles.menuDivider} />
+            <MenuRow icon="location-outline" label="Addresses" sub="Saved shipping addresses" onPress={() => router.push("/addresses" as any)} />
+            <View style={styles.menuDivider} />
             <MenuRow icon="notifications-outline" label="Notifications" sub="Order updates & offers" onPress={() => router.push("/notifications" as any)} />
             {isAdmin ? (
               <>

@@ -75,6 +75,10 @@ export default function RootLayout() {
                   name="assistant/index"
                   options={{ headerShown: false, animation: "slide_from_right", animationDuration: 280 }}
                 />
+                <Stack.Screen
+                  name="addresses/index"
+                  options={{ headerShown: false, animation: "slide_from_right", animationDuration: 280 }}
+                />
               </Stack>
             </AuthProvider>
           </QueryProvider>

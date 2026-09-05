@@ -40,3 +40,12 @@ export function useSetDefaultAddress() {
     onSuccess: () => qc.invalidateQueries({ queryKey: addressKeys.list() }),
   });
 }
+
+export function useUpdateAddress() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, payload }: { id: string; payload: Parameters<typeof addressService.update>[1] }) =>
+      addressService.update(id, payload),
+    onSuccess: () => qc.invalidateQueries({ queryKey: addressKeys.list() }),
+  });
+}
