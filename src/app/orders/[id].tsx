@@ -1,18 +1,21 @@
-import { View, Text, ScrollView, Pressable, StyleSheet, ActivityIndicator } from "react-native";
+import { View, Text, ScrollView, Pressable, StyleSheet, ActivityIndicator, Alert } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useLocalSearchParams, router } from "expo-router";
-import { useOrderQuery } from "@/features/orders/hooks/useOrders";
+import { useOrderQuery, useCancelOrder } from "@/features/orders/hooks/useOrders";
 import { OrderTimeline } from "@/features/orders/components/OrderTimeline";
 import { OrderItemsList } from "@/features/orders/components/OrderItemsList";
 import { DeliveryInfo } from "@/features/orders/components/DeliveryInfo";
 import { colors } from "@/design/colors";
 import { spacing, radius } from "@/design/spacing";
 import { Button } from "@/components/ui/Button";
+import * as Haptics from "expo-haptics";
 
 export default function OrderDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const orderId = Array.isArray(id) ? id[0] : id;
   const { data: order, isLoading, isError, error, refetch } = useOrderQuery(orderId ?? "");
+  const cancel = useCancelOrder();
+  const canCancel = order ? ["pending", "confirmed"].includes(order.status) : false;
 
   if (isLoading) {
     return (
@@ -62,6 +65,38 @@ export default function OrderDetailScreen() {
         </View>
 
         <OrderTimeline status={order.status} createdAt={order.created_at} />
+        {canCancel ? (
+          <View style={styles.cancelCard}>
+            <Text style={styles.cancelHint}>You can cancel while pending/confirmed.</Text>
+            <Button
+              title={cancel.isPending ? "Cancelling…" : "Cancel order"}
+              variant="secondary"
+              loading={cancel.isPending}
+              disabled={cancel.isPending}
+              onPress={() => {
+                Alert.alert("Cancel order?", "Stock will be restored.", [
+                  { text: "Keep order", style: "cancel" },
+                  {
+                    text: "Cancel",
+                    style: "destructive",
+                    onPress: async () => {
+                      try {
+                        await cancel.mutateAsync(orderId!);
+                        try { await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success); } catch {}
+                      } catch (e: any) {
+                        try { await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error); } catch {}
+                        Alert.alert("Could not cancel", String(e?.message ?? "Try again"));
+                      }
+                    },
+                  },
+                ]);
+              }}
+            />
+            {cancel.isError ? <Text style={styles.cancelError}>{String((cancel.error as Error)?.message)}</Text> : null}
+          </View>
+        ) : order.status === "cancelled" ? (
+          <View style={styles.cancelCard}><Text style={[styles.cancelHint, { color: colors.error }]}>This order was cancelled.</Text></View>
+        ) : null}
 
         <View style={styles.totalsCard}>
           <View style={styles.row}>
@@ -181,5 +216,22 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "800",
     color: colors.foreground,
+  },
+  cancelCard: {
+    padding: 12,
+    borderRadius: radius.lg,
+    backgroundColor: colors.surface,
+    borderWidth: 1,
+    borderColor: colors.border,
+    gap: 8,
+  },
+  cancelHint: {
+    fontSize: 11,
+    color: colors.muted,
+  },
+  cancelError: {
+    fontSize: 12,
+    color: colors.error,
+    textAlign: "center",
   },
 });

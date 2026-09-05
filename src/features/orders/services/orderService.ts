@@ -27,6 +27,29 @@ export const orderService = {
     return { ...order, items: items ?? [] } as any;
   },
 
+  async cancelOrder(orderId: string): Promise<Order> {
+    const { data: userData } = await supabase.auth.getUser();
+    const userId = userData.user?.id;
+    if (!userId) throw new Error("Please sign in");
+    const { data: order, error } = await supabase.from("orders").select("*").eq("id", orderId).eq("user_id", userId).single();
+    if (error) throw error;
+    if (!order) throw new Error("Order not found");
+    const cancellable = ["pending", "confirmed"].includes(order.status);
+    if (!cancellable) throw new Error(`Cannot cancel order in "${order.status}" status`);
+    const { data: updated, error: upErr } = await supabase.from("orders").update({ status: "cancelled" }).eq("id", orderId).eq("user_id", userId).select().single();
+    if (upErr) throw upErr;
+    // Restore stock for each item
+    try {
+      const { data: items } = await supabase.from("order_items").select("variant_id, quantity").eq("order_id", orderId);
+      for (const it of (items ?? []) as any[]) {
+        if (!it.variant_id) continue;
+        const { data: v } = await supabase.from("product_variants").select("stock_quantity").eq("id", it.variant_id).maybeSingle();
+        if (v) await supabase.from("product_variants").update({ stock_quantity: (v.stock_quantity ?? 0) + it.quantity }).eq("id", it.variant_id);
+      }
+    } catch {}
+    return updated as Order;
+  },
+
   /**
    * Trusted order creation: validates stock, resolves live prices, snapshots address.
    * Cart items are passed from client (already fetched), but price/stock are re-validated server-side via reads.

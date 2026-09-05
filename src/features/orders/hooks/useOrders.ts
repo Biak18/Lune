@@ -38,3 +38,14 @@ export function useCreateOrder() {
     },
   });
 }
+
+export function useCancelOrder() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (orderId: string) => orderService.cancelOrder(orderId),
+    onSuccess: (_data, orderId) => {
+      qc.invalidateQueries({ queryKey: orderKeys.list() });
+      qc.invalidateQueries({ queryKey: orderKeys.detail(orderId) });
+    },
+  });
+}

@@ -107,25 +107,66 @@ export const productService = {
       query = query.in("id", variantIds);
     }
 
-    // Sorting
-    switch (params.sort) {
-      case "newest":
-        query = query.order("created_at", { ascending: false });
-        break;
-      case "price_asc":
-        query = query.order("base_price", { ascending: true });
-        break;
-      case "price_desc":
-        query = query.order("base_price", { ascending: false });
-        break;
-      case "top_rated":
-        // Top rated requires review aggregation — fallback to newest for now;
-        // proper ranking added in sorting step via reviews avg.
-        query = query.order("created_at", { ascending: false });
-        break;
-      default:
-        query = query.order("created_at", { ascending: false });
-        break;
+    // Sorting — top_rated handled separately via review aggregation below
+    const isTopRated = params.sort === "top_rated";
+    if (!isTopRated) {
+      switch (params.sort) {
+        case "newest":
+          query = query.order("created_at", { ascending: false });
+          break;
+        case "price_asc":
+          query = query.order("base_price", { ascending: true });
+          break;
+        case "price_desc":
+          query = query.order("base_price", { ascending: false });
+          break;
+        default:
+          query = query.order("created_at", { ascending: false });
+          break;
+      }
+    }
+
+    if (isTopRated) {
+      // Compute avg rating per product from reviews, then paginate ordered ids
+      const { data: reviewRows } = await supabase.from("reviews").select("product_id, rating");
+      const avgMap = new Map<string, { sum: number; cnt: number }>();
+      for (const r of (reviewRows ?? []) as any[]) {
+        const cur = avgMap.get(r.product_id) ?? { sum: 0, cnt: 0 };
+        cur.sum += r.rating;
+        cur.cnt += 1;
+        avgMap.set(r.product_id, cur);
+      }
+      // Fetch candidate product ids matching filters (without pagination) to sort, then slice
+      // To respect search/variant filters already narrowed via `in`, we run the query without range to get ids sorted
+      const { data: candidates, error: candErr } = await query.limit(200);
+      if (candErr) throw candErr;
+      const candidateIds = ((candidates as any[]) ?? []).map((p: any) => p.id);
+      // Sort candidate ids by avg desc, then fill unsorted (no reviews) at end by created_at desc already approximated
+      const sortedIds = [...candidateIds].sort((a, b) => {
+        const avA = avgMap.get(a);
+        const avB = avgMap.get(b);
+        const avgA = avA ? avA.sum / avA.cnt : 0;
+        const avgB = avB ? avB.sum / avB.cnt : 0;
+        if (avgA !== avgB) return avgB - avgA;
+        return 0;
+      });
+      const pagedIds = sortedIds.slice(from, from + pageSize);
+      if (pagedIds.length === 0) return { data: [], count: candidateIds.length, page, pageSize };
+      const { data, error } = await supabase
+        .from("products")
+        .select(`*, category:categories(*), images:product_images(*), variants:product_variants(*)`)
+        .in("id", pagedIds);
+      if (error) throw error;
+      const byId = new Map(((data as any[]) ?? []).map((p: any) => [p.id, p]));
+      const ordered = pagedIds.map((id) => byId.get(id)).filter(Boolean) as ProductWithRelations[];
+      const normalized = ordered.map((p) => ({
+        ...p,
+        images: [...(p.images ?? [])].sort((a, b) => {
+          if (a.is_primary !== b.is_primary) return a.is_primary ? -1 : 1;
+          return (a.sort_order ?? 0) - (b.sort_order ?? 0);
+        }),
+      }));
+      return { data: normalized, count: candidateIds.length, page, pageSize };
     }
 
     query = query.range(from, to);
