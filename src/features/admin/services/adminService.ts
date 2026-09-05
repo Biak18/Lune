@@ -40,6 +40,12 @@ export const adminService = {
     if (error) throw error;
   },
 
+  async updateVariantStock(variantId: string, quantity: number) {
+    if (quantity < 0) throw new Error("Stock cannot be negative");
+    const { error } = await supabase.from("product_variants").update({ stock_quantity: quantity } as any).eq("id", variantId);
+    if (error) throw error;
+  },
+
   async updateOrderStatus(id: string, status: string) {
     const { error } = await supabase.from("orders").update({ status } as any).eq("id", id);
     if (error) throw error;

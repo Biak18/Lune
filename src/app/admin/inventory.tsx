@@ -1,16 +1,25 @@
 import { View, Text, FlatList, Pressable, StyleSheet, ActivityIndicator } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { router } from "expo-router";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { AdminGuard } from "@/features/admin/components/AdminGuard";
 import { adminService } from "@/features/admin/services/adminService";
 import { colors } from "@/design/colors";
 import { spacing, radius } from "@/design/spacing";
+import * as Haptics from "expo-haptics";
 
 export default function AdminInventoryScreen() {
+  const qc = useQueryClient();
   const { data, isLoading, isError, error, refetch } = useQuery({
     queryKey: ["admin", "low-stock"],
     queryFn: () => adminService.getLowStock(),
+  });
+  const restock = useMutation({
+    mutationFn: ({ id, qty }: { id: string; qty: number }) => adminService.updateVariantStock(id, qty),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["admin", "low-stock"] });
+      qc.invalidateQueries({ queryKey: ["admin", "stats"] });
+    },
   });
 
   return (
@@ -42,12 +51,47 @@ export default function AdminInventoryScreen() {
             contentContainerStyle={{ padding: spacing.xl, gap: 8, paddingBottom: 32 }}
             renderItem={({ item }: any) => (
               <View style={[styles.card, item.stock_quantity === 0 && styles.oosCard]}>
-                <View style={{ flex: 1 }}>
+                <View style={{ flex: 1, gap: 4 }}>
                   <Text style={styles.name}>{(item.product as any)?.name ?? item.sku}</Text>
                   <Text style={styles.meta}>{item.sku} • {item.color ?? "?"} / {item.size ?? "?"}</Text>
+                  <View style={{ flexDirection: "row", gap: 6, marginTop: 4 }}>
+                    <Pressable
+                      onPress={async () => {
+                        try { await Haptics.selectionAsync(); } catch {}
+                        restock.mutate({ id: item.id, qty: Math.max(0, (item.stock_quantity ?? 0) - 1) });
+                      }}
+                      style={styles.stepBtn}
+                      hitSlop={8}
+                    >
+                      <Text style={styles.stepText}>−1</Text>
+                    </Pressable>
+                    <Pressable
+                      onPress={async () => {
+                        try { await Haptics.selectionAsync(); } catch {}
+                        restock.mutate({ id: item.id, qty: (item.stock_quantity ?? 0) + 1 });
+                      }}
+                      style={styles.stepBtn}
+                      hitSlop={8}
+                    >
+                      <Text style={styles.stepText}>+1</Text>
+                    </Pressable>
+                    <Pressable
+                      onPress={async () => {
+                        try { await Haptics.selectionAsync(); } catch {}
+                        restock.mutate({ id: item.id, qty: (item.stock_quantity ?? 0) + 10 });
+                      }}
+                      style={[styles.stepBtn, styles.stepPrimary]}
+                      hitSlop={8}
+                    >
+                      <Text style={[styles.stepText, { color: colors.surface }]}>+10</Text>
+                    </Pressable>
+                  </View>
                 </View>
-                <View style={[styles.badge, item.stock_quantity === 0 ? styles.oosBadge : styles.lowBadge]}>
-                  <Text style={[styles.badgeText, item.stock_quantity === 0 && { color: colors.error }]}>{item.stock_quantity} left</Text>
+                <View style={{ alignItems: "center", gap: 6 }}>
+                  <View style={[styles.badge, item.stock_quantity === 0 ? styles.oosBadge : styles.lowBadge]}>
+                    <Text style={[styles.badgeText, item.stock_quantity === 0 && { color: colors.error }]}>{item.stock_quantity} left</Text>
+                  </View>
+                  {restock.isPending ? <ActivityIndicator size="small" color={colors.muted} /> : null}
                 </View>
               </View>
             )}
@@ -165,5 +209,24 @@ const styles = StyleSheet.create({
     fontSize: 11,
     fontWeight: "800",
     color: colors.warning,
+  },
+  stepBtn: {
+    paddingHorizontal: 10,
+    height: 28,
+    borderRadius: 999,
+    backgroundColor: colors.surfaceMuted,
+    borderWidth: 1,
+    borderColor: colors.border,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  stepPrimary: {
+    backgroundColor: colors.foreground,
+    borderColor: colors.foreground,
+  },
+  stepText: {
+    fontSize: 11,
+    fontWeight: "800",
+    color: colors.foreground,
   },
 });

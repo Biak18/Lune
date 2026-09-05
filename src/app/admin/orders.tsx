@@ -5,10 +5,12 @@ import { adminService } from "@/features/admin/services/adminService";
 import { OrderStatusControl } from "@/features/orders/components/OrderStatusControl";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { router } from "expo-router";
+import { useState } from "react";
 import {
   ActivityIndicator,
   FlatList,
   Pressable,
+  ScrollView,
   StyleSheet,
   Text,
   View,
@@ -17,10 +19,13 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function AdminOrdersScreen() {
   const qc = useQueryClient();
+  const [statusFilter, setStatusFilter] = useState<string | null>(null);
   const { data, isLoading, isError, error, refetch } = useQuery({
     queryKey: ["admin", "orders-list"],
     queryFn: () => adminService.getAllOrders(),
   });
+  const filtered = (data ?? []).filter((o: any) => (statusFilter ? o.status === statusFilter : true));
+  const statuses: (string | null)[] = [null, "pending", "confirmed", "processing", "shipped", "out_for_delivery", "delivered", "cancelled"];
 
   const update = useMutation({
     mutationFn: ({ id, status }: { id: string; status: string }) =>
@@ -40,6 +45,18 @@ export default function AdminOrdersScreen() {
             <Text style={styles.backText}>← Admin</Text>
           </Pressable>
           <Text style={styles.heading}>Orders</Text>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8, paddingRight: spacing.xl }} showsVerticalScrollIndicator={false} style={{ marginTop: 8 }}>
+            {statuses.map((s) => (
+              <Pressable
+                key={String(s)}
+                onPress={() => setStatusFilter(s)}
+                style={[styles.filterChip, statusFilter === s && styles.filterChipActive]}
+              >
+                <Text style={[styles.filterText, statusFilter === s && styles.filterTextActive]}>{s ?? "All"}</Text>
+              </Pressable>
+            ))}
+          </ScrollView>
+          <Text style={styles.sub}>{filtered.length} shown • {data?.length ?? 0} total</Text>
         </View>
 
         {isLoading ? (
@@ -57,7 +74,7 @@ export default function AdminOrdersScreen() {
           </View>
         ) : (
           <FlatList
-            data={data ?? []}
+            data={filtered}
             keyExtractor={(o: any) => o.id}
             contentContainerStyle={{
               padding: spacing.xl,
@@ -200,4 +217,18 @@ const styles = StyleSheet.create({
     textTransform: "uppercase",
     color: colors.muted,
   },
+  sub: { fontSize: 11, color: colors.muted, marginTop: 2 },
+  filterChip: {
+    paddingHorizontal: 12,
+    height: 30,
+    borderRadius: 999,
+    backgroundColor: colors.surface,
+    borderWidth: 1,
+    borderColor: colors.border,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  filterChipActive: { backgroundColor: colors.foreground, borderColor: colors.foreground },
+  filterText: { fontSize: 11, fontWeight: "700", color: colors.foreground, textTransform: "capitalize" },
+  filterTextActive: { color: colors.surface },
 });
