@@ -27,7 +27,7 @@ export function SearchInput({ value, onChangeText, onClear, placeholder = "Searc
         accessibilityLabel="Search"
       />
       {value ? (
-        <Pressable onPress={onClear} style={styles.clear} hitSlop={8}>
+        <Pressable onPress={onClear} style={styles.clear} hitSlop={12} accessibilityRole="button" accessibilityLabel="Clear search">
           <Ionicons name="close" size={14} color={colors.muted} />
         </Pressable>
       ) : null}

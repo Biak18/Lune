@@ -1,11 +1,17 @@
-import { View, ActivityIndicator, Text, StyleSheet, Pressable } from "react-native";
-import { FlashList } from "@shopify/flash-list";
+import { Skeleton } from "@/components/ui/Skeleton";
 import { colors } from "@/design/colors";
 import { spacing } from "@/design/spacing";
-import { ProductCard } from "./ProductCard";
-import { Skeleton } from "@/components/ui/Skeleton";
-import type { ProductWithRelations } from "../types";
+import { FlashList } from "@shopify/flash-list";
 import { router } from "expo-router";
+import {
+  ActivityIndicator,
+  Pressable,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
+import type { ProductWithRelations } from "../types";
+import { ProductCard } from "./ProductCard";
 
 type Props = {
   products?: ProductWithRelations[];
@@ -15,6 +21,7 @@ type Props = {
   onRetry?: () => void;
   onEndReached?: () => void;
   isFetchingNextPage?: boolean;
+  onBrowseCollections?: () => void;
 };
 
 export function ProductGrid({
@@ -25,6 +32,7 @@ export function ProductGrid({
   onRetry,
   onEndReached,
   isFetchingNextPage,
+  onBrowseCollections,
 }: Props) {
   if (isLoading) {
     return (
@@ -43,14 +51,25 @@ export function ProductGrid({
   if (isError) {
     return (
       <View style={styles.center}>
-        <Text style={styles.errorTitle}>We couldn&apos;t load the dresses.</Text>
-        <Text style={styles.errorSub}>Check your connection and try again.</Text>
+        <Text style={styles.errorTitle}>
+          We couldn&apos;t load the dresses.
+        </Text>
+        <Text style={styles.errorSub}>
+          Check your connection and try again.
+        </Text>
         {onRetry ? (
-          <Pressable onPress={onRetry} hitSlop={8} accessibilityRole="button" style={({ pressed }) => [pressed && { opacity: 0.6 }]}>
+          <Pressable
+            onPress={onRetry}
+            hitSlop={8}
+            accessibilityRole="button"
+            style={({ pressed }) => [pressed && { opacity: 0.6 }]}
+          >
             <Text style={styles.retry}>Retry</Text>
           </Pressable>
         ) : null}
-        {errorMessage ? <Text style={styles.errorMsg}>{errorMessage}</Text> : null}
+        {errorMessage ? (
+          <Text style={styles.errorMsg}>{errorMessage}</Text>
+        ) : null}
       </View>
     );
   }
@@ -59,13 +78,21 @@ export function ProductGrid({
     return (
       <View style={styles.center}>
         <Text style={styles.emptyTitle}>No dresses found.</Text>
-        <Text style={styles.emptySub}>Try another search or explore our collections.</Text>
+        <Text style={styles.emptySub}>
+          Try another search or explore our collections.
+        </Text>
         <Pressable
-          onPress={() => router.push("/(tabs)/shop" as any)}
-          hitSlop={8}
+          onPress={() => {
+            if (onBrowseCollections) onBrowseCollections();
+            else router.push("/(tabs)/shop" as any);
+          }}
+          hitSlop={12}
           accessibilityRole="button"
           accessibilityLabel="Browse collections"
-          style={({ pressed }) => [styles.browseBtn, pressed && { opacity: 0.7 }]}
+          style={({ pressed }) => [
+            styles.browseBtn,
+            pressed && { opacity: 0.7 },
+          ]}
         >
           <Text style={styles.browseText}>Browse Collections</Text>
         </Pressable>
@@ -93,7 +120,9 @@ export function ProductGrid({
           </View>
         ) : null
       }
-     showsVerticalScrollIndicator={false} showsHorizontalScrollIndicator={false} />
+      showsVerticalScrollIndicator={false}
+      showsHorizontalScrollIndicator={false}
+    />
   );
 }
 

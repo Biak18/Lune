@@ -152,13 +152,15 @@ export default function ShopScreen() {
           products={products}
           isLoading={query.isLoading}
           isError={query.isError}
-          errorMessage={
-            query.error ? String((query.error as Error).message) : undefined
-          }
+          errorMessage={query.error ? String((query.error as Error).message) : undefined}
           onRetry={() => query.refetch()}
+          onBrowseCollections={() => {
+            setSearch("");
+            handleClear();
+            query.refetch();
+          }}
           onEndReached={() => {
-            if (query.hasNextPage && !query.isFetchingNextPage)
-              query.fetchNextPage();
+            if (query.hasNextPage && !query.isFetchingNextPage) query.fetchNextPage();
           }}
           isFetchingNextPage={query.isFetchingNextPage}
         />
