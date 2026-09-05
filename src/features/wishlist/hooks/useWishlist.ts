@@ -4,14 +4,14 @@ import { useAuthStore } from "@/stores/authStore";
 
 export const wishlistKeys = {
   all: ["wishlist"] as const,
-  list: () => [...wishlistKeys.all, "list"] as const,
-  ids: () => [...wishlistKeys.all, "ids"] as const,
+  list: (uid?: string) => [...wishlistKeys.all, "list", uid ?? "anon"] as const,
+  ids: (uid?: string) => [...wishlistKeys.all, "ids", uid ?? "anon"] as const,
 };
 
 export function useWishlistQuery() {
   const userId = useAuthStore((s) => s.user?.id);
   return useQuery({
-    queryKey: wishlistKeys.list(),
+    queryKey: wishlistKeys.list(userId),
     queryFn: () => wishlistService.getWishlist(),
     enabled: !!userId,
     staleTime: 1000 * 60 * 2,
@@ -21,7 +21,7 @@ export function useWishlistQuery() {
 export function useFavoriteIdsQuery() {
   const userId = useAuthStore((s) => s.user?.id);
   return useQuery({
-    queryKey: wishlistKeys.ids(),
+    queryKey: wishlistKeys.ids(userId),
     queryFn: () => wishlistService.getFavoriteIds(),
     enabled: !!userId,
     staleTime: 1000 * 60 * 2,
@@ -37,28 +37,31 @@ export function useToggleWishlist() {
       return !isCurrentlyFavorite;
     },
     onMutate: async ({ productId, isCurrentlyFavorite }) => {
-      await qc.cancelQueries({ queryKey: wishlistKeys.ids() });
-      await qc.cancelQueries({ queryKey: wishlistKeys.list() });
-      const prevIds = qc.getQueryData<Set<string>>(wishlistKeys.ids());
-      const prevList = qc.getQueryData(wishlistKeys.list());
+      const uid = useAuthStore.getState().user?.id;
+      await qc.cancelQueries({ queryKey: wishlistKeys.ids(uid) });
+      await qc.cancelQueries({ queryKey: wishlistKeys.list(uid) });
+      const prevIds = qc.getQueryData<Set<string>>(wishlistKeys.ids(uid));
+      const prevList = qc.getQueryData(wishlistKeys.list(uid));
 
       // Optimistic ids
       if (prevIds) {
         const next = new Set(prevIds);
         if (isCurrentlyFavorite) next.delete(productId);
         else next.add(productId);
-        qc.setQueryData(wishlistKeys.ids(), next);
+        qc.setQueryData(wishlistKeys.ids(uid), next);
       }
 
       return { prevIds, prevList };
     },
     onError: (_err, _vars, ctx) => {
-      if (ctx?.prevIds) qc.setQueryData(wishlistKeys.ids(), ctx.prevIds);
-      if (ctx?.prevList) qc.setQueryData(wishlistKeys.list(), ctx.prevList);
+      const uid = useAuthStore.getState().user?.id;
+      if (ctx?.prevIds) qc.setQueryData(wishlistKeys.ids(uid), ctx.prevIds);
+      if (ctx?.prevList) qc.setQueryData(wishlistKeys.list(uid), ctx.prevList);
     },
     onSettled: () => {
-      qc.invalidateQueries({ queryKey: wishlistKeys.ids() });
-      qc.invalidateQueries({ queryKey: wishlistKeys.list() });
+      const uid = useAuthStore.getState().user?.id;
+      qc.invalidateQueries({ queryKey: wishlistKeys.ids(uid) });
+      qc.invalidateQueries({ queryKey: wishlistKeys.list(uid) });
     },
   });
 }
@@ -68,8 +71,9 @@ export function useAddFavorite() {
   return useMutation({
     mutationFn: (productId: string) => wishlistService.addFavorite(productId),
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: wishlistKeys.ids() });
-      qc.invalidateQueries({ queryKey: wishlistKeys.list() });
+      const uid = useAuthStore.getState().user?.id;
+      qc.invalidateQueries({ queryKey: wishlistKeys.ids(uid) });
+      qc.invalidateQueries({ queryKey: wishlistKeys.list(uid) });
     },
   });
 }
@@ -79,8 +83,9 @@ export function useRemoveFavorite() {
   return useMutation({
     mutationFn: (productId: string) => wishlistService.removeFavorite(productId),
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: wishlistKeys.ids() });
-      qc.invalidateQueries({ queryKey: wishlistKeys.list() });
+      const uid = useAuthStore.getState().user?.id;
+      qc.invalidateQueries({ queryKey: wishlistKeys.ids(uid) });
+      qc.invalidateQueries({ queryKey: wishlistKeys.list(uid) });
     },
   });
 }

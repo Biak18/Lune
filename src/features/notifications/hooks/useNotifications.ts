@@ -4,15 +4,15 @@ import { useAuthStore } from "@/stores/authStore";
 
 export const notifKeys = {
   all: ["notifications"] as const,
-  list: () => [...notifKeys.all, "list"] as const,
-  count: () => [...notifKeys.all, "count"] as const,
-  prefs: () => [...notifKeys.all, "prefs"] as const,
+  list: (uid?: string) => [...notifKeys.all, "list", uid ?? "anon"] as const,
+  count: (uid?: string) => [...notifKeys.all, "count", uid ?? "anon"] as const,
+  prefs: (uid?: string) => [...notifKeys.all, "prefs", uid ?? "anon"] as const,
 };
 
 export function useNotificationsQuery() {
   const userId = useAuthStore((s) => s.user?.id);
   return useQuery({
-    queryKey: notifKeys.list(),
+    queryKey: notifKeys.list(userId),
     queryFn: () => notificationService.list(),
     enabled: !!userId,
     staleTime: 1000 * 20,
@@ -22,7 +22,7 @@ export function useNotificationsQuery() {
 export function useUnreadCountQuery() {
   const userId = useAuthStore((s) => s.user?.id);
   return useQuery({
-    queryKey: notifKeys.count(),
+    queryKey: notifKeys.count(userId),
     queryFn: () => notificationService.unreadCount(),
     enabled: !!userId,
     staleTime: 1000 * 15,
@@ -34,8 +34,9 @@ export function useMarkRead() {
   return useMutation({
     mutationFn: (id: string) => notificationService.markRead(id),
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: notifKeys.list() });
-      qc.invalidateQueries({ queryKey: notifKeys.count() });
+      const uid = useAuthStore.getState().user?.id;
+      qc.invalidateQueries({ queryKey: notifKeys.list(uid) });
+      qc.invalidateQueries({ queryKey: notifKeys.count(uid) });
     },
   });
 }
@@ -45,8 +46,9 @@ export function useMarkAllRead() {
   return useMutation({
     mutationFn: () => notificationService.markAllRead(),
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: notifKeys.list() });
-      qc.invalidateQueries({ queryKey: notifKeys.count() });
+      const uid = useAuthStore.getState().user?.id;
+      qc.invalidateQueries({ queryKey: notifKeys.list(uid) });
+      qc.invalidateQueries({ queryKey: notifKeys.count(uid) });
     },
   });
 }
@@ -54,7 +56,7 @@ export function useMarkAllRead() {
 export function useNotificationPrefsQuery() {
   const userId = useAuthStore((s) => s.user?.id);
   return useQuery({
-    queryKey: notifKeys.prefs(),
+    queryKey: notifKeys.prefs(userId),
     queryFn: () => notificationService.getPrefs(),
     enabled: !!userId,
     staleTime: 1000 * 60 * 2,
@@ -65,6 +67,9 @@ export function useUpdatePrefs() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (patch: Parameters<typeof notificationService.updatePrefs>[0]) => notificationService.updatePrefs(patch),
-    onSuccess: () => qc.invalidateQueries({ queryKey: notifKeys.prefs() }),
+    onSuccess: () => {
+      const uid = useAuthStore.getState().user?.id;
+      qc.invalidateQueries({ queryKey: notifKeys.prefs(uid) });
+    },
   });
 }

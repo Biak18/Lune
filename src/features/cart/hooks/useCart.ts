@@ -4,13 +4,13 @@ import { useAuthStore } from "@/stores/authStore";
 
 export const cartKeys = {
   all: ["cart"] as const,
-  list: () => [...cartKeys.all, "list"] as const,
+  list: (uid?: string) => [...cartKeys.all, "list", uid ?? "anon"] as const,
 };
 
 export function useCartQuery() {
   const userId = useAuthStore((s) => s.user?.id);
   return useQuery({
-    queryKey: cartKeys.list(),
+    queryKey: cartKeys.list(userId),
     queryFn: () => cartService.getCart(),
     enabled: !!userId,
     staleTime: 1000 * 30,
@@ -23,14 +23,15 @@ export function useAddToCart() {
     mutationFn: ({ variantId, quantity }: { variantId: string; quantity?: number }) =>
       cartService.addToCart(variantId, quantity ?? 1),
     onMutate: async ({ variantId, quantity }) => {
-      await qc.cancelQueries({ queryKey: cartKeys.list() });
-      const prev = qc.getQueryData<CartItem[]>(cartKeys.list());
+      const uid = useAuthStore.getState().user?.id;
+      await qc.cancelQueries({ queryKey: cartKeys.list(uid) });
+      const prev = qc.getQueryData<CartItem[]>(cartKeys.list(uid));
       if (prev) {
         const idx = prev.findIndex((it) => it.variant_id === variantId);
         if (idx !== -1) {
           const next = [...prev];
           next[idx] = { ...next[idx], quantity: next[idx].quantity + (quantity ?? 1) };
-          qc.setQueryData(cartKeys.list(), next);
+          qc.setQueryData(cartKeys.list(uid), next);
         } else {
           // New item: create optimistic placeholder so wishlist->bag feels instant
           const optimistic: CartItem = {
@@ -47,15 +48,19 @@ export function useAddToCart() {
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString(),
           };
-          qc.setQueryData(cartKeys.list(), [...prev, optimistic]);
+          qc.setQueryData(cartKeys.list(uid), [...prev, optimistic]);
         }
       }
       return { prev };
     },
     onError: (_e, _v, ctx) => {
-      if (ctx?.prev) qc.setQueryData(cartKeys.list(), ctx.prev);
+      const uid = useAuthStore.getState().user?.id;
+      if (ctx?.prev) qc.setQueryData(cartKeys.list(uid), ctx.prev);
     },
-    onSettled: () => qc.invalidateQueries({ queryKey: cartKeys.list() }),
+    onSettled: () => {
+      const uid = useAuthStore.getState().user?.id;
+      qc.invalidateQueries({ queryKey: cartKeys.list(uid) });
+    },
   });
 }
 
@@ -65,14 +70,15 @@ export function useUpdateCartQuantity() {
     mutationFn: ({ cartItemId, quantity }: { cartItemId: string; quantity: number }) =>
       cartService.updateQuantity(cartItemId, quantity),
     onMutate: async ({ cartItemId, quantity }) => {
-      await qc.cancelQueries({ queryKey: cartKeys.list() });
-      const prev = qc.getQueryData<CartItem[]>(cartKeys.list());
+      const uid = useAuthStore.getState().user?.id;
+      await qc.cancelQueries({ queryKey: cartKeys.list(uid) });
+      const prev = qc.getQueryData<CartItem[]>(cartKeys.list(uid));
       if (prev) {
         if (quantity <= 0) {
-          qc.setQueryData(cartKeys.list(), prev.filter((it) => it.id !== cartItemId));
+          qc.setQueryData(cartKeys.list(uid), prev.filter((it) => it.id !== cartItemId));
         } else {
           qc.setQueryData(
-            cartKeys.list(),
+            cartKeys.list(uid),
             prev.map((it) => (it.id === cartItemId ? { ...it, quantity } : it))
           );
         }
@@ -80,9 +86,13 @@ export function useUpdateCartQuantity() {
       return { prev };
     },
     onError: (_e, _v, ctx) => {
-      if (ctx?.prev) qc.setQueryData(cartKeys.list(), ctx.prev);
+      const uid = useAuthStore.getState().user?.id;
+      if (ctx?.prev) qc.setQueryData(cartKeys.list(uid), ctx.prev);
     },
-    onSettled: () => qc.invalidateQueries({ queryKey: cartKeys.list() }),
+    onSettled: () => {
+      const uid = useAuthStore.getState().user?.id;
+      qc.invalidateQueries({ queryKey: cartKeys.list(uid) });
+    },
   });
 }
 
@@ -91,14 +101,19 @@ export function useRemoveFromCart() {
   return useMutation({
     mutationFn: (cartItemId: string) => cartService.removeFromCart(cartItemId),
     onMutate: async (cartItemId) => {
-      await qc.cancelQueries({ queryKey: cartKeys.list() });
-      const prev = qc.getQueryData<CartItem[]>(cartKeys.list());
-      if (prev) qc.setQueryData(cartKeys.list(), prev.filter((it) => it.id !== cartItemId));
+      const uid = useAuthStore.getState().user?.id;
+      await qc.cancelQueries({ queryKey: cartKeys.list(uid) });
+      const prev = qc.getQueryData<CartItem[]>(cartKeys.list(uid));
+      if (prev) qc.setQueryData(cartKeys.list(uid), prev.filter((it) => it.id !== cartItemId));
       return { prev };
     },
     onError: (_e, _v, ctx) => {
-      if (ctx?.prev) qc.setQueryData(cartKeys.list(), ctx.prev);
+      const uid = useAuthStore.getState().user?.id;
+      if (ctx?.prev) qc.setQueryData(cartKeys.list(uid), ctx.prev);
     },
-    onSettled: () => qc.invalidateQueries({ queryKey: cartKeys.list() }),
+    onSettled: () => {
+      const uid = useAuthStore.getState().user?.id;
+      qc.invalidateQueries({ queryKey: cartKeys.list(uid) });
+    },
   });
 }

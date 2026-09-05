@@ -5,14 +5,14 @@ import { cartKeys } from "@/features/cart/hooks/useCart";
 
 export const orderKeys = {
   all: ["orders"] as const,
-  list: () => [...orderKeys.all, "list"] as const,
-  detail: (id: string) => [...orderKeys.all, "detail", id] as const,
+  list: (userId?: string) => [...orderKeys.all, "list", userId ?? "anon"] as const,
+  detail: (id: string, userId?: string) => [...orderKeys.all, "detail", id, userId ?? "anon"] as const,
 };
 
 export function useOrdersQuery() {
   const userId = useAuthStore((s) => s.user?.id);
   return useQuery({
-    queryKey: orderKeys.list(),
+    queryKey: orderKeys.list(userId),
     queryFn: () => orderService.getOrders(),
     enabled: !!userId,
     staleTime: 1000 * 30,
@@ -20,8 +20,9 @@ export function useOrdersQuery() {
 }
 
 export function useOrderQuery(id: string) {
+  const userId = useAuthStore((s) => s.user?.id);
   return useQuery({
-    queryKey: orderKeys.detail(id),
+    queryKey: orderKeys.detail(id, userId),
     queryFn: () => orderService.getOrder(id),
     enabled: !!id,
   });
@@ -32,9 +33,11 @@ export function useCreateOrder() {
   return useMutation({
     mutationFn: (args: Parameters<typeof orderService.createOrder>[0]) => orderService.createOrder(args),
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: orderKeys.list() });
-      qc.invalidateQueries({ queryKey: cartKeys.list() });
-      qc.invalidateQueries({ queryKey: ["loyalty"] });
+      const uid = useAuthStore.getState().user?.id;
+      qc.invalidateQueries({ queryKey: orderKeys.list(uid) });
+      qc.invalidateQueries({ queryKey: cartKeys.list(uid) });
+      qc.invalidateQueries({ queryKey: ["loyalty", uid] });
+      qc.invalidateQueries({ queryKey: orderKeys.all });
     },
   });
 }
@@ -44,8 +47,10 @@ export function useCancelOrder() {
   return useMutation({
     mutationFn: (orderId: string) => orderService.cancelOrder(orderId),
     onSuccess: (_data, orderId) => {
-      qc.invalidateQueries({ queryKey: orderKeys.list() });
-      qc.invalidateQueries({ queryKey: orderKeys.detail(orderId) });
+      const uid = useAuthStore.getState().user?.id;
+      qc.invalidateQueries({ queryKey: orderKeys.list(uid) });
+      qc.invalidateQueries({ queryKey: orderKeys.detail(orderId, uid) });
+      qc.invalidateQueries({ queryKey: orderKeys.all });
     },
   });
 }

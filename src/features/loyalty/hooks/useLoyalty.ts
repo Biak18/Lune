@@ -4,15 +4,15 @@ import { useAuthStore } from "@/stores/authStore";
 
 export const loyaltyKeys = {
   all: ["loyalty"] as const,
-  account: () => [...loyaltyKeys.all, "account"] as const,
-  tx: () => [...loyaltyKeys.all, "tx"] as const,
-  pending: () => [...loyaltyKeys.all, "pending"] as const,
+  account: (uid?: string) => [...loyaltyKeys.all, "account", uid ?? "anon"] as const,
+  tx: (uid?: string) => [...loyaltyKeys.all, "tx", uid ?? "anon"] as const,
+  pending: (uid?: string) => [...loyaltyKeys.all, "pending", uid ?? "anon"] as const,
 };
 
 export function useLoyaltyAccount() {
   const userId = useAuthStore((s) => s.user?.id);
   return useQuery({
-    queryKey: loyaltyKeys.account(),
+    queryKey: loyaltyKeys.account(userId),
     queryFn: () => loyaltyService.getAccount(),
     enabled: !!userId,
     staleTime: 1000 * 30,
@@ -22,7 +22,7 @@ export function useLoyaltyAccount() {
 export function useLoyaltyTx() {
   const userId = useAuthStore((s) => s.user?.id);
   return useQuery({
-    queryKey: loyaltyKeys.tx(),
+    queryKey: loyaltyKeys.tx(userId),
     queryFn: () => loyaltyService.getTransactions(),
     enabled: !!userId,
     staleTime: 1000 * 30,
@@ -34,9 +34,10 @@ export function useRedeem() {
   return useMutation({
     mutationFn: ({ points, description }: { points: number; description?: string }) => loyaltyService.redeem(points, description),
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: loyaltyKeys.account() });
-      qc.invalidateQueries({ queryKey: loyaltyKeys.tx() });
-      qc.invalidateQueries({ queryKey: loyaltyKeys.pending() });
+      const uid = useAuthStore.getState().user?.id;
+      qc.invalidateQueries({ queryKey: loyaltyKeys.account(uid) });
+      qc.invalidateQueries({ queryKey: loyaltyKeys.tx(uid) });
+      qc.invalidateQueries({ queryKey: loyaltyKeys.pending(uid) });
     },
   });
 }
@@ -44,7 +45,7 @@ export function useRedeem() {
 export function useLoyaltyPending() {
   const userId = useAuthStore((s) => s.user?.id);
   return useQuery({
-    queryKey: loyaltyKeys.pending(),
+    queryKey: loyaltyKeys.pending(userId),
     queryFn: () => loyaltyService.getPendingDiscount(),
     enabled: !!userId,
     staleTime: 1000 * 10,
