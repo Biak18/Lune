@@ -14,6 +14,8 @@ import { RewardsList } from "@/features/loyalty/components/RewardsList";
 import { useProductsQuery } from "@/features/products/hooks/useProducts";
 import { ProductCard } from "@/features/products/components/ProductCard";
 import { DevAccountSwitcher } from "@/features/auth/components/DevAccountSwitcher";
+import { useOrdersQuery } from "@/features/orders/hooks/useOrders";
+import { useFavoriteIdsQuery } from "@/features/wishlist/hooks/useWishlist";
 
 function getInitials(email?: string, fullName?: string) {
   if (fullName?.trim()) {
@@ -54,6 +56,15 @@ function MenuRow({
   );
 }
 
+function Stat({ label, value }: { label: string; value: string }) {
+  return (
+    <View style={styles.stat}>
+      <Text style={styles.statValue}>{value}</Text>
+      <Text style={styles.statLabel}>{label}</Text>
+    </View>
+  );
+}
+
 export default function ProfileScreen() {
   const user = useAuthStore((s) => s.user);
   const session = useAuthStore((s) => s.session);
@@ -61,10 +72,10 @@ export default function ProfileScreen() {
   const { data: isAdmin } = useIsAdmin();
   const { data: loyalty, isLoading: loyaltyLoading } = useLoyaltyAccount();
   const { data: tx } = useLoyaltyTx();
+  const { data: orders } = useOrdersQuery();
+  const { data: wishlistIds } = useFavoriteIdsQuery();
   const { data: exclusive } = useProductsQuery(
-    loyalty?.tier === "gold" || loyalty?.tier === "platinum"
-      ? { style: "elegant", pageSize: 4 }
-      : { style: "minimal", pageSize: 2 }
+    loyalty?.tier === "gold" || loyalty?.tier === "platinum" ? { style: "elegant", pageSize: 4 } : { style: "minimal", pageSize: 2 }
   );
 
   const fullName = (user?.user_metadata?.full_name as string | undefined)?.trim();
@@ -81,17 +92,13 @@ export default function ProfileScreen() {
             <View style={styles.dot} />
             <Text style={styles.season}>Account</Text>
           </View>
-
           <View style={styles.unauthHero}>
             <View style={styles.unauthIconWrap}>
               <Ionicons name="person-outline" size={28} color={colors.muted} />
             </View>
             <Text style={styles.unauthTitle}>Your boutique awaits</Text>
-            <Text style={styles.unauthDesc}>
-              Sign in to track orders, save dresses, and keep your loyalty points in one place.
-            </Text>
+            <Text style={styles.unauthDesc}>Sign in to track orders, save dresses, and keep your loyalty points in one place.</Text>
           </View>
-
           <View style={{ gap: 10 }}>
             <Button title="Sign in" onPress={() => router.push("/auth/login")} />
             <Button title="Create account" variant="secondary" onPress={() => router.push("/auth/register")} />
@@ -107,12 +114,8 @@ export default function ProfileScreen() {
 
   return (
     <SafeAreaView style={styles.safe} edges={["top"]}>
-      <ScrollView
-        style={{ flex: 1 }}
-        contentContainerStyle={styles.content}
-        showsVerticalScrollIndicator={false}
-       showsHorizontalScrollIndicator={false}>
-        {/* Header */}
+      <ScrollView style={{ flex: 1 }} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false} showsHorizontalScrollIndicator={false}>
+        {/* Header — wordmark + bell */}
         <View style={styles.header}>
           <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
             <Text style={styles.wordmark}>LUNE</Text>
@@ -124,42 +127,41 @@ export default function ProfileScreen() {
           </Pressable>
         </View>
 
-        {/* Identity */}
+        {/* Identity — premium, airy */}
         <View style={styles.identity}>
           <View style={styles.avatar}>
             <Text style={styles.avatarText}>{initials}</Text>
           </View>
-          <View style={{ flex: 1, gap: 4 }}>
-            <Text style={styles.name} numberOfLines={1}>
-              {fullName || email.split("@")[0] || "Member"}
-            </Text>
-            <Text style={styles.email} numberOfLines={1}>
-              {email}
-            </Text>
-            <View style={styles.metaRow}>
-              {memberSince ? (
-                <View style={styles.metaPill}>
-                  <Text style={styles.metaPillText}>Member since {memberSince}</Text>
-                </View>
-              ) : null}
-              {loyalty?.tier ? (
-                <View style={[styles.metaPill, styles.metaPillAccent]}>
-                  <Text style={[styles.metaPillText, { color: colors.clay }]}>{loyalty.tier}</Text>
-                </View>
-              ) : null}
-            </View>
+          <View style={{ flex: 1, gap: 3 }}>
+            <Text style={styles.name} numberOfLines={1}>{fullName || email.split("@")[0] || "Member"}</Text>
+            <Text style={styles.email} numberOfLines={1}>{email}</Text>
+            {memberSince ? <Text style={styles.memberSince}>Member since {memberSince}</Text> : null}
           </View>
+          {loyalty?.tier ? (
+            <View style={styles.tierBadge}>
+              <Text style={styles.tierBadgeText}>{loyalty.tier}</Text>
+            </View>
+          ) : null}
         </View>
 
-        {/* Quick actions */}
+        {/* Stats — quick overview */}
+        <View style={styles.statsRow}>
+          <Stat label="Orders" value={String(orders?.length ?? 0)} />
+          <View style={styles.statDivider} />
+          <Stat label="Wishlist" value={String(wishlistIds?.size ?? 0)} />
+          <View style={styles.statDivider} />
+          <Stat label="Points" value={String(loyalty?.points ?? 0)} />
+        </View>
+
+        {/* Boutique — grouped actions */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Boutique</Text>
+          <Text style={styles.sectionTitle}>Shopping</Text>
           <View style={styles.menuCard}>
-            <MenuRow icon="bag-outline" label="My orders" sub="Track and manage purchases" onPress={() => router.push("/orders" as any)} />
+            <MenuRow icon="bag-outline" label="My orders" sub={`${orders?.length ?? 0} orders • Track & returns`} onPress={() => router.push("/orders" as any)} />
             <View style={styles.menuDivider} />
-            <MenuRow icon="heart-outline" label="Wishlist" sub="Saved dresses" onPress={() => router.push("/(tabs)/wishlist" as any)} />
+            <MenuRow icon="heart-outline" label="Wishlist" sub={`${wishlistIds?.size ?? 0} saved`} onPress={() => router.push("/(tabs)/wishlist" as any)} />
             <View style={styles.menuDivider} />
-            <MenuRow icon="location-outline" label="Addresses" sub="Saved shipping addresses" onPress={() => router.push("/addresses" as any)} />
+            <MenuRow icon="location-outline" label="Addresses" sub="Manage shipping addresses" onPress={() => router.push("/addresses" as any)} />
             <View style={styles.menuDivider} />
             <MenuRow icon="notifications-outline" label="Notifications" sub="Order updates & offers" onPress={() => router.push("/notifications" as any)} />
             {isAdmin ? (
@@ -171,40 +173,39 @@ export default function ProfileScreen() {
           </View>
         </View>
 
-        {/* Loyalty */}
+        {/* Membership — loyalty in one glance */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Loyalty</Text>
-            <Text style={styles.sectionHint}>Earn 1 pt per $1</Text>
+            <Text style={styles.sectionTitle}>Membership</Text>
+            <Text style={styles.sectionHint}>1 pt per $1</Text>
           </View>
           <LoyaltyCard account={loyalty ?? null} isLoading={loyaltyLoading} />
           <RewardsList currentPoints={loyalty?.points ?? 0} />
         </View>
 
-        {/* Recent activity */}
+        {/* Recent activity — compact, max 3 */}
         {tx && tx.length > 0 ? (
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Recent activity</Text>
+            <View style={styles.sectionHeader}>
+              <Text style={styles.sectionTitle}>Recent activity</Text>
+              <Text style={styles.sectionHint}>{tx.length} events</Text>
+            </View>
             <View style={styles.activityCard}>
-              {tx.slice(0, 5).map((t, idx) => (
+              {tx.slice(0, 3).map((t, idx) => (
                 <View key={t.id} style={[styles.activityRow, idx === 0 && { borderTopWidth: 0 }]}>
                   <View style={styles.activityDot} />
                   <View style={{ flex: 1, gap: 2 }}>
-                    <Text style={styles.activityTitle} numberOfLines={1}>
-                      {t.description ?? t.type}
-                    </Text>
+                    <Text style={styles.activityTitle} numberOfLines={1}>{t.description ?? t.type}</Text>
                     <Text style={styles.activityDate}>{new Date(t.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric" })}</Text>
                   </View>
-                  <Text style={[styles.activityPoints, { color: t.points >= 0 ? colors.success : colors.error }]}>
-                    {t.points >= 0 ? `+${t.points}` : `${t.points}`}
-                  </Text>
+                  <Text style={[styles.activityPoints, { color: t.points >= 0 ? colors.success : colors.error }]}>{t.points >= 0 ? `+${t.points}` : `${t.points}`}</Text>
                 </View>
               ))}
             </View>
           </View>
         ) : null}
 
-        {/* Exclusive */}
+        {/* Exclusive — only gold/platinum, editorial */}
         {(loyalty?.tier === "gold" || loyalty?.tier === "platinum") && exclusive?.data?.length ? (
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
@@ -214,7 +215,7 @@ export default function ProfileScreen() {
               </Pressable>
             </View>
             <Text style={styles.sectionHint}>Elegant curation, reserved for you</Text>
-            <View style={{ flexDirection: "row", gap: 12 }}>
+            <View style={{ flexDirection: "row", gap: 12, marginTop: 2 }}>
               {exclusive.data.slice(0, 2).map((p) => (
                 <View key={p.id} style={{ flex: 1 }}>
                   <ProductCard product={p} />
@@ -224,22 +225,22 @@ export default function ProfileScreen() {
           </View>
         ) : null}
 
-        {/* Dev switcher */}
+        {/* Dev switcher — muted */}
         {__DEV__ ? <DevAccountSwitcher /> : null}
 
-        {/* Footer */}
+        {/* Footer — clean sign out */}
         <View style={styles.footer}>
           <Pressable
             onPress={() => logout.mutate(undefined, { onSuccess: () => router.replace("/auth/login") })}
             disabled={logout.isPending}
-            style={({ pressed }) => [styles.signOutLink, pressed && { opacity: 0.6 }]}
+            style={({ pressed }) => [styles.signOutPill, pressed && { opacity: 0.6 }]}
             accessibilityRole="button"
             accessibilityLabel="Sign out"
           >
             <Ionicons name="log-out-outline" size={14} color={colors.muted} />
             <Text style={styles.signOutText}>{logout.isPending ? "Signing out..." : "Sign out"}</Text>
           </Pressable>
-          <Text style={styles.footerHint}>LUNE — FW 2026</Text>
+          <Text style={styles.footerHint}>LUNE — FW 2026 • Editorial boutique</Text>
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -247,294 +248,76 @@ export default function ProfileScreen() {
 }
 
 const styles = StyleSheet.create({
-  safe: {
-    flex: 1,
-    backgroundColor: colors.background,
-  },
+  safe: { flex: 1, backgroundColor: colors.background },
   content: {
     paddingHorizontal: spacing.xl,
     paddingTop: spacing.lg,
     paddingBottom: 32,
-    gap: 24,
+    gap: 28,
     backgroundColor: colors.background,
   },
-  header: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    paddingTop: 4,
-  },
-  wordmark: {
-    fontSize: 13,
-    letterSpacing: 2.08,
-    fontWeight: "800",
-    color: colors.foreground,
-  },
-  dot: {
-    width: 4,
-    height: 4,
-    borderRadius: 2,
-    backgroundColor: colors.clay,
-  },
-  season: {
-    fontSize: 11,
-    fontWeight: "600",
-    letterSpacing: 0.8,
-    color: colors.muted,
-  },
-  bellBtn: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: colors.surface,
-    borderWidth: 1,
-    borderColor: colors.border,
-    alignItems: "center",
-    justifyContent: "center",
-  },
+  header: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", paddingTop: 4 },
+  wordmark: { fontSize: 13, letterSpacing: 2.08, fontWeight: "800", color: colors.foreground },
+  dot: { width: 4, height: 4, borderRadius: 2, backgroundColor: colors.clay },
+  season: { fontSize: 11, fontWeight: "600", letterSpacing: 0.8, color: colors.muted },
+  bellBtn: { width: 36, height: 36, borderRadius: 18, backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border, alignItems: "center", justifyContent: "center" },
   identity: {
     flexDirection: "row",
     gap: 14,
     alignItems: "center",
-    padding: 14,
+    padding: 16,
     borderRadius: radius.lg,
     backgroundColor: colors.surface,
     borderWidth: 1,
     borderColor: colors.border,
   },
-  avatar: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: colors.foreground,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  avatarText: {
-    fontSize: 16,
-    fontWeight: "800",
-    letterSpacing: 0.8,
-    color: colors.paper,
-  },
-  name: {
-    fontSize: 16,
-    fontWeight: "700",
-    color: colors.foreground,
-    letterSpacing: -0.2,
-  },
-  email: {
-    fontSize: 12,
-    color: colors.muted,
-    lineHeight: 16,
-  },
-  metaRow: {
+  avatar: { width: 60, height: 60, borderRadius: 30, backgroundColor: colors.foreground, alignItems: "center", justifyContent: "center" },
+  avatarText: { fontSize: 17, fontWeight: "800", letterSpacing: 0.8, color: colors.paper },
+  name: { fontSize: 18, fontWeight: "700", color: colors.foreground, letterSpacing: -0.3 },
+  email: { fontSize: 12, color: colors.muted, lineHeight: 16 },
+  memberSince: { fontSize: 11, color: colors.mutedLight, marginTop: 1 },
+  tierBadge: { paddingHorizontal: 10, height: 26, borderRadius: 999, backgroundColor: colors.foreground, alignItems: "center", justifyContent: "center" },
+  tierBadgeText: { fontSize: 10, fontWeight: "800", letterSpacing: 0.6, textTransform: "capitalize", color: colors.surface },
+  statsRow: {
     flexDirection: "row",
-    gap: 6,
-    marginTop: 2,
-    flexWrap: "wrap",
-  },
-  metaPill: {
-    paddingHorizontal: 8,
-    height: 22,
-    borderRadius: 999,
-    backgroundColor: colors.surfaceMuted,
-    borderWidth: 1,
-    borderColor: colors.border,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  metaPillAccent: {
-    backgroundColor: colors.roseSoft,
-    borderColor: colors.rose,
-  },
-  metaPillText: {
-    fontSize: 10,
-    fontWeight: "700",
-    letterSpacing: 0.5,
-    textTransform: "uppercase",
-    color: colors.muted,
-  },
-  section: {
-    gap: 10,
-  },
-  sectionHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "baseline",
-  },
-  sectionTitle: {
-    fontSize: 11,
-    fontWeight: "800",
-    letterSpacing: 0.7,
-    textTransform: "uppercase",
-    color: colors.foreground,
-  },
-  sectionHint: {
-    fontSize: 11,
-    color: colors.muted,
-    fontWeight: "600",
-  },
-  seeAll: {
-    fontSize: 11,
-    fontWeight: "700",
-    color: colors.clayDeep,
-    textDecorationLine: "underline",
-  },
-  menuCard: {
     backgroundColor: colors.surface,
     borderWidth: 1,
     borderColor: colors.border,
     borderRadius: radius.lg,
     overflow: "hidden",
-  },
-  menuRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
-    paddingHorizontal: 14,
-    height: 56,
-    backgroundColor: colors.surface,
-  },
-  menuIconWrap: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: colors.surfaceMuted,
-    borderWidth: 1,
-    borderColor: colors.border,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  menuLabel: {
-    fontSize: 13,
-    fontWeight: "600",
-    color: colors.foreground,
-  },
-  menuSub: {
-    fontSize: 11,
-    color: colors.muted,
-  },
-  menuDivider: {
-    height: StyleSheet.hairlineWidth,
-    backgroundColor: colors.border,
-    marginLeft: 58,
-  },
-  activityCard: {
-    backgroundColor: colors.surface,
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: radius.lg,
-    overflow: "hidden",
-  },
-  activityRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 10,
-    paddingHorizontal: 14,
     paddingVertical: 12,
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: colors.border,
   },
-  activityDot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: colors.clay,
-    marginTop: 2,
-  },
-  activityTitle: {
-    fontSize: 12,
-    fontWeight: "600",
-    color: colors.foreground,
-  },
-  activityDate: {
-    fontSize: 11,
-    color: colors.mutedLight,
-  },
-  activityPoints: {
-    fontSize: 12,
-    fontWeight: "800",
-  },
-  footer: {
-    alignItems: "center",
-    gap: 10,
-    paddingTop: 8,
-  },
-  signOutLink: {
-    flexDirection: "row",
-    gap: 6,
-    alignItems: "center",
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-  },
-  signOutText: {
-    fontSize: 11,
-    fontWeight: "700",
-    letterSpacing: 0.6,
-    textTransform: "uppercase",
-    color: colors.muted,
-  },
-  footerHint: {
-    fontSize: 10,
-    color: colors.mutedLight,
-    letterSpacing: 0.3,
-  },
-  unauthContent: {
-    flexGrow: 1,
-    paddingHorizontal: spacing.xl,
-    paddingTop: spacing.xl,
-    paddingBottom: 32,
-    gap: 24,
-    justifyContent: "center",
-    backgroundColor: colors.background,
-  },
-  unauthHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 10,
-    justifyContent: "center",
-  },
-  unauthHero: {
-    alignItems: "center",
-    gap: 10,
-    paddingVertical: 8,
-  },
-  unauthIconWrap: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
-    backgroundColor: colors.surface,
-    borderWidth: 1,
-    borderColor: colors.border,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  unauthTitle: {
-    fontSize: 20,
-    fontWeight: "700",
-    color: colors.foreground,
-    letterSpacing: -0.3,
-    textAlign: "center",
-  },
-  unauthDesc: {
-    fontSize: 13,
-    color: colors.muted,
-    textAlign: "center",
-    lineHeight: 18,
-    paddingHorizontal: 12,
-  },
-  browseLink: {
-    flexDirection: "row",
-    gap: 6,
-    alignItems: "center",
-    justifyContent: "center",
-    paddingVertical: 8,
-  },
-  browseText: {
-    fontSize: 11,
-    fontWeight: "700",
-    letterSpacing: 0.6,
-    textTransform: "uppercase",
-    color: colors.muted,
-  },
+  stat: { flex: 1, alignItems: "center", gap: 2 },
+  statValue: { fontSize: 16, fontWeight: "800", color: colors.foreground, letterSpacing: -0.2 },
+  statLabel: { fontSize: 10, fontWeight: "700", letterSpacing: 0.6, textTransform: "uppercase", color: colors.muted },
+  statDivider: { width: StyleSheet.hairlineWidth, backgroundColor: colors.border, marginVertical: 4 },
+  section: { gap: 12 },
+  sectionHeader: { flexDirection: "row", justifyContent: "space-between", alignItems: "baseline" },
+  sectionTitle: { fontSize: 11, fontWeight: "800", letterSpacing: 0.7, textTransform: "uppercase", color: colors.foreground },
+  sectionHint: { fontSize: 11, color: colors.muted, fontWeight: "600" },
+  seeAll: { fontSize: 11, fontWeight: "700", color: colors.clayDeep, textDecorationLine: "underline" },
+  menuCard: { backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border, borderRadius: radius.lg, overflow: "hidden" },
+  menuRow: { flexDirection: "row", alignItems: "center", gap: 12, paddingHorizontal: 14, height: 54, backgroundColor: colors.surface },
+  menuIconWrap: { width: 34, height: 34, borderRadius: 17, backgroundColor: colors.surfaceMuted, borderWidth: 1, borderColor: colors.border, alignItems: "center", justifyContent: "center" },
+  menuLabel: { fontSize: 13, fontWeight: "600", color: colors.foreground },
+  menuSub: { fontSize: 11, color: colors.muted },
+  menuDivider: { height: StyleSheet.hairlineWidth, backgroundColor: colors.border, marginLeft: 60 },
+  activityCard: { backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border, borderRadius: radius.lg, overflow: "hidden" },
+  activityRow: { flexDirection: "row", alignItems: "center", gap: 10, paddingHorizontal: 14, paddingVertical: 12, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: colors.border },
+  activityDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: colors.clay, marginTop: 2 },
+  activityTitle: { fontSize: 12, fontWeight: "600", color: colors.foreground },
+  activityDate: { fontSize: 11, color: colors.mutedLight },
+  activityPoints: { fontSize: 12, fontWeight: "800" },
+  footer: { alignItems: "center", gap: 12, paddingTop: 4 },
+  signOutPill: { flexDirection: "row", gap: 6, alignItems: "center", paddingHorizontal: 16, height: 36, borderRadius: 999, backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border },
+  signOutText: { fontSize: 11, fontWeight: "700", letterSpacing: 0.6, textTransform: "uppercase", color: colors.muted },
+  footerHint: { fontSize: 10, color: colors.mutedLight, letterSpacing: 0.3 },
+  unauthContent: { flexGrow: 1, paddingHorizontal: spacing.xl, paddingTop: spacing.xl, paddingBottom: 32, gap: 24, justifyContent: "center", backgroundColor: colors.background },
+  unauthHeader: { flexDirection: "row", alignItems: "center", gap: 10, justifyContent: "center" },
+  unauthHero: { alignItems: "center", gap: 10, paddingVertical: 8 },
+  unauthIconWrap: { width: 64, height: 64, borderRadius: 32, backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border, alignItems: "center", justifyContent: "center" },
+  unauthTitle: { fontSize: 20, fontWeight: "700", color: colors.foreground, letterSpacing: -0.3, textAlign: "center" },
+  unauthDesc: { fontSize: 13, color: colors.muted, textAlign: "center", lineHeight: 18, paddingHorizontal: 12 },
+  browseLink: { flexDirection: "row", gap: 6, alignItems: "center", justifyContent: "center", paddingVertical: 8 },
+  browseText: { fontSize: 11, fontWeight: "700", letterSpacing: 0.6, textTransform: "uppercase", color: colors.muted },
 });
