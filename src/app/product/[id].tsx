@@ -337,6 +337,20 @@ export default function ProductScreen() {
           )}
         </View>
 
+        {/* Additional info per PRD 13: size guide / shipping / details */}
+        <View style={styles.infoCard}>
+          <Text style={styles.infoTitle}>Size guide</Text>
+          <Text style={styles.infoText}>XS: Bust 32′ • S: 34′ • M: 36′ • L: 38′ • XL: 40′ • XXL: 42′. Model is 5′9 wearing S.</Text>
+        </View>
+        <View style={styles.infoCard}>
+          <Text style={styles.infoTitle}>Shipping & returns</Text>
+          <Text style={styles.infoText}>Free shipping over $80 • Standard 3–5 days • Easy 30-day returns. Order snapshot preserves price.</Text>
+        </View>
+        <View style={styles.infoCard}>
+          <Text style={styles.infoTitle}>Product details</Text>
+          <Text style={styles.infoText}>{product.description ?? "Premium fabric • Lined • Care: hand wash cold. "} Style: {product.style ?? "—"} • Occasion: {product.occasion ?? "—"}</Text>
+        </View>
+
         <CompleteTheLook product={product} />
 
         <RecommendationCarousel
@@ -624,5 +638,25 @@ const styles = StyleSheet.create({
     fontSize: 11,
     fontWeight: "600",
     color: "rgba(255,255,255,0.85)",
+  },
+  infoCard: {
+    padding: 12,
+    borderRadius: 12,
+    backgroundColor: colors.surface,
+    borderWidth: 1,
+    borderColor: colors.border,
+    gap: 4,
+  },
+  infoTitle: {
+    fontSize: 11,
+    fontWeight: "800",
+    letterSpacing: 0.7,
+    textTransform: "uppercase",
+    color: colors.foreground,
+  },
+  infoText: {
+    fontSize: 12,
+    lineHeight: 16,
+    color: colors.muted,
   },
 });

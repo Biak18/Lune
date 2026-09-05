@@ -20,8 +20,16 @@ export default function HomeScreen() {
     style: "elegant",
     pageSize: 4,
   });
-  const { data: recentProds, isLoading: loadingRecent } =
-    useRecentlyViewedProducts();
+  const { data: newArrivals, isLoading: loadingNew } = useProductsQuery({ sort: "newest", pageSize: 4 });
+  const { data: bestSellers, isLoading: loadingBest } = useProductsQuery({ sort: "top_rated", pageSize: 4 });
+  const { data: recentProds, isLoading: loadingRecent } = useRecentlyViewedProducts();
+  const occasions = [
+    { label: "Party", value: "party" },
+    { label: "Office", value: "office" },
+    { label: "Vacation", value: "vacation" },
+    { label: "Wedding", value: "wedding" },
+    { label: "Everyday", value: "everyday" },
+  ];
 
   return (
     <ScrollView
@@ -160,6 +168,76 @@ export default function HomeScreen() {
             ))}
           </View>
         )}
+      </View>
+
+      {/* New Arrivals — PRD Home section */}
+      <View style={styles.section}>
+        <View style={styles.sectionHeader}>
+          <Text style={styles.sectionTitle}>New Arrivals</Text>
+          <Pressable onPress={() => router.push("/shop" as any)} hitSlop={8}>
+            <Text style={styles.seeAll}>See all</Text>
+          </Pressable>
+        </View>
+        {loadingNew ? (
+          <View style={{ flexDirection: "row", gap: spacing.lg }}>
+            {[1, 2].map((i) => (
+              <View key={i} style={{ flex: 1, gap: 8 }}>
+                <Skeleton style={{ aspectRatio: 0.78, borderRadius: radius.lg }} />
+                <Skeleton style={{ height: 12, width: "60%" }} />
+              </View>
+            ))}
+          </View>
+        ) : (
+          <View style={{ flexDirection: "row", gap: spacing.lg }}>
+            {newArrivals?.data.slice(0, 2).map((p) => (
+              <View key={p.id} style={{ flex: 1 }}>
+                <ProductCard product={p} />
+              </View>
+            ))}
+          </View>
+        )}
+      </View>
+
+      {/* Best Sellers — top rated */}
+      <View style={styles.section}>
+        <View style={styles.sectionHeader}>
+          <Text style={styles.sectionTitle}>Best Sellers</Text>
+          <Text style={styles.sectionHint}>Top rated</Text>
+        </View>
+        {loadingBest ? (
+          <View style={{ flexDirection: "row", gap: spacing.lg }}>
+            {[1, 2].map((i) => (
+              <View key={i} style={{ flex: 1, gap: 8 }}>
+                <Skeleton style={{ aspectRatio: 0.78, borderRadius: radius.lg }} />
+                <Skeleton style={{ height: 12, width: "60%" }} />
+              </View>
+            ))}
+          </View>
+        ) : bestSellers?.data.length ? (
+          <View style={{ flexDirection: "row", gap: spacing.lg }}>
+            {bestSellers.data.slice(0, 2).map((p) => (
+              <View key={p.id} style={{ flex: 1 }}>
+                <ProductCard product={p} />
+              </View>
+            ))}
+          </View>
+        ) : (
+          <Text style={styles.sectionHint}>No ratings yet — be first to review.</Text>
+        )}
+      </View>
+
+      {/* Shop by Occasion */}
+      <View style={styles.section}>
+        <View style={styles.sectionHeader}>
+          <Text style={styles.sectionTitle}>Shop by Occasion</Text>
+        </View>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 10, paddingRight: spacing.xl }} showsVerticalScrollIndicator={false}>
+          {occasions.map((o) => (
+            <Pressable key={o.value} onPress={() => router.push(`/shop?occasion=${o.value}` as any)} style={styles.occChip}>
+              <Text style={styles.occText}>{o.label}</Text>
+            </Pressable>
+          ))}
+        </ScrollView>
       </View>
 
       {/* Discover — single editorial card combining Style Finder + AI */}
