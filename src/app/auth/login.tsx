@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars -- Google auth temporarily disabled */
 import React, { useState } from "react";
 import { View, Text, Pressable, StyleSheet } from "react-native";
 import { Link, router } from "expo-router";
@@ -158,6 +159,7 @@ export default function LoginScreen() {
           />
         </Animated.View>
 
+        {/* Google auth temporarily disabled
         <Animated.View entering={FadeInUp.delay(380).duration(420).springify()}>
           <Divider label="or" />
         </Animated.View>
@@ -172,6 +174,7 @@ export default function LoginScreen() {
             style={styles.googleBtn}
           />
         </Animated.View>
+        */}
 
         <Animated.View entering={FadeInUp.delay(500).duration(420).springify()} style={styles.footer}>
           <Text style={styles.footerText}>Don&apos;t have an account?</Text>
