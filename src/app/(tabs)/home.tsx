@@ -23,13 +23,6 @@ export default function HomeScreen() {
   const { data: newArrivals, isLoading: loadingNew } = useProductsQuery({ sort: "newest", pageSize: 4 });
   const { data: bestSellers, isLoading: loadingBest } = useProductsQuery({ sort: "top_rated", pageSize: 4 });
   const { data: recentProds, isLoading: loadingRecent } = useRecentlyViewedProducts();
-  const occasions = [
-    { label: "Party", value: "party" },
-    { label: "Office", value: "office" },
-    { label: "Vacation", value: "vacation" },
-    { label: "Wedding", value: "wedding" },
-    { label: "Everyday", value: "everyday" },
-  ];
 
   return (
     <ScrollView
@@ -73,13 +66,9 @@ export default function HomeScreen() {
         />
         <View style={styles.heroOverlay} />
         <View style={styles.heroText}>
-          <Text style={styles.heroEyebrow}>
-            New collection — Nobero curation
-          </Text>
+          <Text style={styles.heroEyebrow}>New Collection</Text>
           <Text style={styles.heroTitle}>Effortless{"\n"}elegance</Text>
-          <Text style={styles.heroSub}>
-            Soft cottons, airy linens, quiet tailoring
-          </Text>
+          <Text style={styles.heroSub}>Made to move with you</Text>
           <Pressable
             style={styles.heroBtn}
             onPress={() => router.push("/shop" as any)}
@@ -146,7 +135,7 @@ export default function HomeScreen() {
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>Featured</Text>
-            <Text style={styles.sectionHint}>Elegant edit • 3D</Text>
+            <Text style={styles.sectionHint}>Curated</Text>
           </View>
           <View style={{ flexDirection: "row", gap: spacing.lg }}>
             {[1, 2].map((i) => (
@@ -161,7 +150,7 @@ export default function HomeScreen() {
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>Featured</Text>
-            <Text style={styles.sectionHint}>Elegant edit • 3D</Text>
+            <Text style={styles.sectionHint}>Curated</Text>
           </View>
           <View style={{ flexDirection: "row", gap: spacing.lg }}>
             {featured.data.slice(0, 2).map((p) => (
@@ -241,37 +230,20 @@ export default function HomeScreen() {
         </View>
       ) : null}
 
-      {/* Empty catalog hint — when admin hides all products */}
+      {/* Empty catalog hint */}
       {!loadingFeat && !loadingNew && !loadingBest && !featured?.data?.length && !newArrivals?.data?.length && !bestSellers?.data?.length ? (
         <View style={styles.emptyCatalog}>
           <Text style={styles.emptyCatalogTitle}>No collections available</Text>
-          <Text style={styles.emptyCatalogSub}>Products are currently hidden. Toggle active in Admin → Products.</Text>
+          <Text style={styles.emptyCatalogSub}>Products are currently hidden</Text>
         </View>
       ) : null}
 
-      {/* Shop by Occasion */}
-      <View style={styles.section}>
-        <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Shop by Occasion</Text>
-        </View>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 10, paddingRight: spacing.xl }} showsVerticalScrollIndicator={false}>
-          {occasions.map((o) => (
-            <Pressable key={o.value} onPress={() => router.push(`/shop?occasion=${o.value}` as any)} style={styles.occChip}>
-              <Text style={styles.occText}>{o.label}</Text>
-            </Pressable>
-          ))}
-        </ScrollView>
-      </View>
-
-      {/* Discover — single editorial card combining Style Finder + AI */}
+      {/* Discover */}
       <View style={styles.discoverCard}>
         <View style={styles.discoverHeader}>
           <Text style={styles.discoverEyebrow}>Discover</Text>
           <Text style={styles.discoverTitle}>Find your perfect piece</Text>
-          <Text style={styles.discoverDesc}>
-            Answer 2 questions or chat with our stylist — same curated catalog,
-            no AI required.
-          </Text>
+          <Text style={styles.discoverDesc}>Answer two questions or chat with our stylist</Text>
         </View>
         <View style={styles.discoverActions}>
           <Pressable
@@ -469,7 +441,7 @@ const styles = StyleSheet.create({
     color: colors.foreground,
     textAlign: "center",
   },
-  occChip: {
+  occChip: { // kept for legacy, Shop by Occasion removed
     paddingHorizontal: 14,
     height: 34,
     borderRadius: 999,
@@ -479,12 +451,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  occText: {
-    fontSize: 11,
-    fontWeight: "700",
-    color: colors.foreground,
-    letterSpacing: 0.2,
-  },
+  occText: { fontSize: 11, fontWeight: "700", color: colors.foreground },
   emptyCatalog: {
     padding: 16,
     borderRadius: radius.lg,
