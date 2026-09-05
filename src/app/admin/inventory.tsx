@@ -19,6 +19,7 @@ export default function AdminInventoryScreen() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["admin", "low-stock"] });
       qc.invalidateQueries({ queryKey: ["admin", "stats"] });
+      qc.invalidateQueries({ queryKey: ["products"] });
     },
   });
 
