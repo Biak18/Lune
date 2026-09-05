@@ -1,4 +1,4 @@
-import { View, Text, FlatList, Pressable, StyleSheet, Switch, ActivityIndicator } from "react-native";
+import { View, Text, FlatList, Pressable, StyleSheet, Switch, ActivityIndicator, RefreshControl } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { router } from "expo-router";
 import { useAuthStore } from "@/stores/authStore";
@@ -9,6 +9,31 @@ import { Button } from "@/components/ui/Button";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { Ionicons } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
+
+function relativeTime(iso: string) {
+  const diff = Date.now() - new Date(iso).getTime();
+  const m = Math.floor(diff / 60000);
+  if (m < 1) return "Just now";
+  if (m < 60) return `${m}m ago`;
+  const h = Math.floor(m / 60);
+  if (h < 24) return `${h}h ago`;
+  const d = Math.floor(h / 24);
+  if (d === 1) return "Yesterday";
+  if (d < 7) return `${d}d ago`;
+  return new Date(iso).toLocaleDateString("en-US", { month: "short", day: "numeric" });
+}
+
+function typeMeta(type: string): { icon: keyof typeof Ionicons.glyphMap; bg: string } {
+  switch (type) {
+    case "order_confirmed": return { icon: "checkmark-circle-outline", bg: colors.successBackground };
+    case "order_shipped": return { icon: "cube-outline", bg: colors.surfaceMuted };
+    case "out_for_delivery": return { icon: "bicycle-outline", bg: colors.roseSoft };
+    case "delivered": return { icon: "home-outline", bg: colors.successBackground };
+    case "back_in_stock": return { icon: "refresh-outline", bg: colors.surfaceMuted };
+    case "price_drop": return { icon: "pricetag-outline", bg: colors.roseSoft };
+    default: return { icon: "notifications-outline", bg: colors.surfaceMuted };
+  }
+}
 
 function NotifSkeleton() {
   return (
@@ -74,48 +99,43 @@ export default function NotificationsScreen() {
         <Text style={styles.heading}>Notifications</Text>
         <View style={styles.headerRow}>
           <Text style={styles.count}>{list.length} total • {unread} unread</Text>
-          {unread > 0 && (
-            <Pressable
-              onPress={async () => {
-                try {
-                  await Haptics.selectionAsync();
-                } catch {}
-                markAll.mutate();
-              }}
-              style={styles.markAll}
-            >
-              <Text style={styles.markAllText}>Mark all read</Text>
-            </Pressable>
-          )}
+          <Pressable
+            onPress={async () => {
+              if (unread === 0) return;
+              try { await Haptics.selectionAsync(); } catch {}
+              markAll.mutate();
+            }}
+            style={[styles.markAll, unread === 0 && { opacity: 0.5 }]}
+            disabled={unread === 0 || markAll.isPending}
+          >
+            <Text style={styles.markAllText}>{markAll.isPending ? "…" : "Mark all read"}</Text>
+          </Pressable>
         </View>
       </View>
 
-      {/* Preferences */}
+      {/* Preferences — editorial, dividers */}
       <View style={styles.prefsCard}>
         <Text style={styles.sectionTitle}>Preferences</Text>
         {prefs ? (
-          <View style={{ gap: 10 }}>
-            <View style={styles.prefRow}>
-              <View style={{ flex: 1 }}>
-                <Text style={styles.prefLabel}>Order updates</Text>
-                <Text style={styles.prefDesc}>Confirmed • Shipped • Out for delivery • Delivered</Text>
+          <View>
+            {[
+              { key: "order_updates", label: "Order updates", desc: "Confirmed • Shipped • Out for delivery • Delivered", value: !!prefs.order_updates },
+              { key: "back_in_stock", label: "Back in stock", desc: "When a saved item is back", value: !!prefs.back_in_stock },
+              { key: "price_drop", label: "Price drop", desc: "When a saved item drops in price", value: !!prefs.price_drop },
+            ].map((row, idx) => (
+              <View key={row.key} style={[styles.prefRow, idx !== 0 && styles.prefDivider]}>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.prefLabel}>{row.label}</Text>
+                  <Text style={styles.prefDesc}>{row.desc}</Text>
+                </View>
+                <Switch
+                  value={row.value}
+                  onValueChange={(v) => updatePrefs.mutate({ [row.key]: v } as any)}
+                  trackColor={{ true: colors.foreground, false: colors.border }}
+                  thumbColor={colors.surface}
+                />
               </View>
-              <Switch value={!!prefs.order_updates} onValueChange={(v) => updatePrefs.mutate({ order_updates: v })} trackColor={{ true: colors.foreground }} />
-            </View>
-            <View style={styles.prefRow}>
-              <View style={{ flex: 1 }}>
-                <Text style={styles.prefLabel}>Back in stock</Text>
-                <Text style={styles.prefDesc}>When a saved item is back</Text>
-              </View>
-              <Switch value={!!prefs.back_in_stock} onValueChange={(v) => updatePrefs.mutate({ back_in_stock: v })} trackColor={{ true: colors.foreground }} />
-            </View>
-            <View style={styles.prefRow}>
-              <View style={{ flex: 1 }}>
-                <Text style={styles.prefLabel}>Price drop</Text>
-                <Text style={styles.prefDesc}>When a saved item drops in price</Text>
-              </View>
-              <Switch value={!!prefs.price_drop} onValueChange={(v) => updatePrefs.mutate({ price_drop: v })} trackColor={{ true: colors.foreground }} />
-            </View>
+            ))}
           </View>
         ) : (
           <ActivityIndicator color={colors.foreground} />
@@ -134,37 +154,41 @@ export default function NotificationsScreen() {
           data={list}
           keyExtractor={(n) => n.id}
           contentContainerStyle={{ padding: spacing.xl, gap: 10, paddingBottom: 32 }}
-          renderItem={({ item }) => (
-            <Pressable
-              onPress={async () => {
-                if (!item.is_read) {
-                  try {
-                    await Haptics.selectionAsync();
-                  } catch {}
-                  markRead.mutate(item.id);
-                }
-                const oid = (item.data as any)?.order_id;
-                if (oid) router.push(`/orders/${oid}` as any);
-              }}
-              style={[styles.notifCard, !item.is_read && styles.unreadCard]}
-            >
-              <View style={{ flex: 1, gap: 4 }}>
-                <View style={{ flexDirection: "row", gap: 6, alignItems: "center" }}>
-                  <Text style={styles.notifTitle}>{item.title}</Text>
-                  {!item.is_read && <View style={styles.dot} />}
+          refreshControl={<RefreshControl refreshing={isLoading} onRefresh={() => refetch()} tintColor={colors.foreground} />}
+          renderItem={({ item }) => {
+            const meta = typeMeta(item.type);
+            return (
+              <Pressable
+                onPress={async () => {
+                  if (!item.is_read) {
+                    try { await Haptics.selectionAsync(); } catch {}
+                    markRead.mutate(item.id);
+                  }
+                  const oid = (item.data as any)?.order_id;
+                  if (oid) router.push(`/orders/${oid}` as any);
+                }}
+                style={[styles.notifCard, !item.is_read && styles.unreadCard]}
+              >
+                <View style={[styles.typeIcon, { backgroundColor: meta.bg }]}>
+                  <Ionicons name={meta.icon} size={14} color={colors.foreground} />
                 </View>
-                {item.body ? <Text style={styles.notifBody}>{item.body}</Text> : null}
-                <Text style={styles.notifDate}>{new Date(item.created_at).toLocaleString()}</Text>
-                <Text style={styles.notifType}>{item.type.replace(/_/g, " ")}</Text>
-              </View>
-              {!item.is_read ? (
-                <Ionicons name="ellipse" size={8} color={colors.clay} />
-              ) : (
-                <Ionicons name="checkmark" size={14} color={colors.mutedLight} />
-              )}
-            </Pressable>
-          )}
-         showsVerticalScrollIndicator={false} showsHorizontalScrollIndicator={false} />
+                <View style={{ flex: 1, gap: 3 }}>
+                  <View style={{ flexDirection: "row", gap: 6, alignItems: "center" }}>
+                    <Text style={styles.notifTitle} numberOfLines={1}>{item.title}</Text>
+                    {!item.is_read && <View style={styles.dot} />}
+                  </View>
+                  {item.body ? <Text style={styles.notifBody} numberOfLines={2}>{item.body}</Text> : null}
+                  <View style={{ flexDirection: "row", gap: 6, alignItems: "center" }}>
+                    <Text style={styles.notifType}>{item.type.replace(/_/g, " ")}</Text>
+                    <Text style={styles.dotSep}>•</Text>
+                    <Text style={styles.notifDate}>{relativeTime(item.created_at)}</Text>
+                  </View>
+                </View>
+                {markRead.isPending ? <ActivityIndicator size="small" color={colors.muted} /> : !item.is_read ? <Ionicons name="ellipse" size={8} color={colors.clay} /> : <Ionicons name="checkmark" size={14} color={colors.mutedLight} />}
+              </Pressable>
+            );
+          }}
+          showsVerticalScrollIndicator={false} showsHorizontalScrollIndicator={false} />
       )}
     </SafeAreaView>
   );
@@ -236,6 +260,11 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 12,
+    paddingVertical: 12,
+  },
+  prefDivider: {
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: colors.border,
   },
   prefLabel: {
     fontSize: 13,
@@ -286,13 +315,23 @@ const styles = StyleSheet.create({
   notifCard: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 10,
+    gap: 12,
     padding: 14,
     borderRadius: radius.lg,
     backgroundColor: colors.surface,
     borderWidth: 1,
     borderColor: colors.border,
   },
+  typeIcon: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  dotSep: { fontSize: 10, color: colors.mutedLight },
   unreadCard: {
     borderColor: colors.foreground,
     backgroundColor: colors.surface,
