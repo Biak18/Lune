@@ -31,20 +31,31 @@ export const orderService = {
     const { data: userData } = await supabase.auth.getUser();
     const userId = userData.user?.id;
     if (!userId) throw new Error("Please sign in");
-    const { data: order, error } = await supabase.from("orders").select("*").eq("id", orderId).eq("user_id", userId).single();
+    const { data: order, error } = await supabase.from("orders").select("*").eq("id", orderId).eq("user_id", userId).maybeSingle();
     if (error) throw error;
-    if (!order) throw new Error("Order not found");
+    if (!order) throw new Error("Order not found — it may have been removed or you don't have access.");
     const cancellable = ["pending", "confirmed"].includes(order.status);
-    if (!cancellable) throw new Error(`Cannot cancel order in "${order.status}" status`);
-    const { data: updated, error: upErr } = await supabase.from("orders").update({ status: "cancelled" }).eq("id", orderId).eq("user_id", userId).select().single();
+    if (!cancellable) throw new Error(`Cannot cancel order in "${order.status}" status — only pending/confirmed can be cancelled.`);
+    const { data: updated, error: upErr } = await supabase
+      .from("orders")
+      .update({ status: "cancelled" })
+      .eq("id", orderId)
+      .eq("user_id", userId)
+      .select()
+      .maybeSingle();
     if (upErr) throw upErr;
-    // Restore stock for each item
+    if (!updated) throw new Error("Cancel failed — order update returned 0 rows. Check RLS or if status already changed.");
+    // Restore stock via definer function (works even without variant update RLS)
     try {
       const { data: items } = await supabase.from("order_items").select("variant_id, quantity").eq("order_id", orderId);
       for (const it of (items ?? []) as any[]) {
         if (!it.variant_id) continue;
-        const { data: v } = await supabase.from("product_variants").select("stock_quantity").eq("id", it.variant_id).maybeSingle();
-        if (v) await supabase.from("product_variants").update({ stock_quantity: (v.stock_quantity ?? 0) + it.quantity }).eq("id", it.variant_id);
+        const { error: rpcErr } = await (supabase as any).rpc("restore_variant_stock", { variant_uuid: it.variant_id, delta: it.quantity });
+        if (rpcErr) {
+          // fallback to direct update (may fail due to RLS but not critical)
+          const { data: v } = await supabase.from("product_variants").select("stock_quantity").eq("id", it.variant_id).maybeSingle();
+          if (v) await supabase.from("product_variants").update({ stock_quantity: (v.stock_quantity ?? 0) + it.quantity }).eq("id", it.variant_id);
+        }
       }
     } catch {}
     return updated as Order;
