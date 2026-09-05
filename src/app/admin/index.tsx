@@ -63,7 +63,7 @@ export default function AdminDashboard() {
                     <Ionicons name="bag-handle-outline" size={18} color={colors.foreground} />
                     <View style={{ flex: 1 }}>
                       <Text style={styles.rowTitle}>Orders</Text>
-                      <Text style={styles.rowDesc}>Update status (pending→delivered)</Text>
+                      <Text style={styles.rowDesc}>Update status (pending delivered)</Text>
                     </View>
                     <Ionicons name="chevron-forward" size={16} color={colors.muted} />
                   </Pressable>

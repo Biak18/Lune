@@ -1,5 +1,5 @@
 // src/components/ui/PasswordRequirements.tsx
-// Visual checklist for password rules. No external icon/i18n deps — uses design tokens + unicode.
+// Visual checklist for password rules. No external icon/i18n deps uses design tokens + unicode.
 // Pair with `getPasswordRequirements` from @/utils/passwordValidation.
 
 import { Text, View, StyleSheet } from "react-native";
@@ -73,7 +73,7 @@ export function PasswordRequirements({
                 { color: item.met ? colors.success : colors.muted },
               ]}
             >
-              {item.met ? "✓" : "·"}
+              {item.met ? "" : " "}
             </Text>
           </View>
           <Text

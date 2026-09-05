@@ -56,7 +56,7 @@ export default function AdminOrdersScreen() {
               </Pressable>
             ))}
           </ScrollView>
-          <Text style={styles.sub}>{filtered.length} shown • {data?.length ?? 0} total</Text>
+          <Text style={styles.sub}>{filtered.length} shown {data?.length ?? 0} total</Text>
         </View>
 
         {isLoading ? (
@@ -85,11 +85,11 @@ export default function AdminOrdersScreen() {
               <View style={styles.card}>
                 <View style={styles.cardInfo}>
                   <Text style={styles.id} numberOfLines={1}>
-                    #{item.id.slice(0, 8).toUpperCase()} • $
+                    #{item.id.slice(0, 8).toUpperCase()} $
                     {Number(item.total).toFixed(2)}
                   </Text>
                   <Text style={styles.meta} numberOfLines={1}>
-                    {new Date(item.created_at).toLocaleString()} •{" "}
+                    {new Date(item.created_at).toLocaleString()} {" "}
                     {item.user_id.slice(0, 8)}…
                   </Text>
                   <Pressable
@@ -177,7 +177,7 @@ const styles = StyleSheet.create({
   },
 
   // Card is stacked: info on top, full-width status control below.
-  // A side-by-side row layout was tried and dropped — it left too little
+  // A side-by-side row layout was tried and dropped it left too little
   // width for OrderStatusControl's two pill buttons on typical phone
   // screens (~360-400dp), causing label wrap/clip.
   card: {

@@ -31,7 +31,7 @@ export default function HomeScreen() {
       showsVerticalScrollIndicator={false}
       showsHorizontalScrollIndicator={false}
     >
-      {/* Header — minimal wordmark + actions */}
+      {/* Header minimal wordmark + actions */}
       <View style={styles.header}>
         <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
           <Text style={styles.wordmark}>LUNE</Text>
@@ -55,7 +55,7 @@ export default function HomeScreen() {
         </View>
       </View>
 
-      {/* Hero — immersive editorial */}
+      {/* Hero immersive editorial */}
       <View style={styles.hero}>
         <Image
           source={{ uri: "https://picsum.photos/seed/hero-dress/800/900" }}
@@ -78,7 +78,7 @@ export default function HomeScreen() {
         </View>
       </View>
 
-      {/* Categories — image tiles, not chips */}
+      {/* Categories image tiles, not chips */}
       <View style={styles.section}>
         <View style={styles.sectionHeader}>
           <Text style={styles.sectionTitle}>Shop by category</Text>
@@ -130,7 +130,7 @@ export default function HomeScreen() {
         )}
       </View>
 
-      {/* Featured — hidden when no active products (admin may hide all) */}
+      {/* Featured hidden when no active products (admin may hide all) */}
       {loadingFeat ? (
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
@@ -162,7 +162,7 @@ export default function HomeScreen() {
         </View>
       ) : null}
 
-      {/* New Arrivals — hidden when empty */}
+      {/* New Arrivals hidden when empty */}
       {loadingNew ? (
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
@@ -198,7 +198,7 @@ export default function HomeScreen() {
         </View>
       ) : null}
 
-      {/* Best Sellers — hidden when no products/ratings */}
+      {/* Best Sellers hidden when no products/ratings */}
       {loadingBest ? (
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
@@ -271,7 +271,7 @@ export default function HomeScreen() {
         </View>
       </View>
 
-      {/* Occasion — quiet pills */}
+      {/* Occasion quiet pills */}
 
       {recentProds && recentProds.length > 0 && (
         <RecommendationCarousel

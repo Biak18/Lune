@@ -134,7 +134,7 @@ export default function AddressesScreen() {
         <View style={styles.headerRow}>
           <View>
             <Text style={styles.heading}>Addresses</Text>
-            <Text style={styles.sub}>{list.length} saved • {list.filter((a) => a.is_default).length ? "1 default" : "no default"}</Text>
+            <Text style={styles.sub}>{list.length} saved {list.filter((a) => a.is_default).length ? "1 default" : "no default"}</Text>
           </View>
           <Pressable onPress={() => { setEditing(null); setShowForm((v) => !v); }} style={styles.addBtn} hitSlop={8} accessibilityRole="button">
             <Ionicons name={showForm ? "close" : "add"} size={14} color={colors.foreground} />

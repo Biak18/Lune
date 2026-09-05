@@ -24,10 +24,10 @@ export function ReviewCard({ review, onEdit, onDelete }: Props) {
         <View style={{ gap: 4, flex: 1 }}>
           <RatingStars value={review.rating} size={14} />
           <Text style={styles.meta}>
-            {name} • {date} {verified ? "• Verified purchase" : ""}
+            {name} {date} {verified ? " Verified purchase" : ""}
           </Text>
         </View>
-        {verified && <Text style={styles.verified}>✓ Verified</Text>}
+        {verified && <Text style={styles.verified}>Verified</Text>}
       </View>
       {review.body ? <Text style={styles.body}>{review.body}</Text> : <Text style={styles.emptyBody}>No written review</Text>}
       {isOwner && (onEdit || onDelete) && (

@@ -100,8 +100,8 @@ export function CompleteTheLook({ product }: Props) {
           <Text style={styles.eyebrow}>Outfit</Text>
           <Text style={styles.title}>Complete the Look</Text>
           <Text style={styles.desc}>
-            Curated with {product.occasion ?? "everyday"} •{" "}
-            {product.style ?? "minimal"} • different category
+            Curated with {product.occasion ?? "everyday"} {" "}
+            {product.style ?? "minimal"} different category
           </Text>
         </View>
         <Text style={styles.count}>{100} pieces</Text>
@@ -129,7 +129,7 @@ export function CompleteTheLook({ product }: Props) {
             {product.name}
           </Text>
           <Text style={styles.tilePrice}>
-            ${Number(product.base_price).toFixed(0)} • yours
+            ${Number(product.base_price).toFixed(0)} yours
           </Text>
         </View>
         {items.map((p) => {
@@ -173,7 +173,7 @@ export function CompleteTheLook({ product }: Props) {
       </View>
 
       <Text style={styles.hint}>
-        Adds first in-stock variant of each related piece • Stock validated at
+        Adds first in-stock variant of each related piece Stock validated at
         checkout
       </Text>
     </View>

@@ -11,7 +11,7 @@ export function OrderItemsList({ items }: Props) {
   if (!items.length) return null;
   return (
     <View style={styles.card}>
-      <Text style={styles.title}>Items • {items.length}</Text>
+      <Text style={styles.title}>Items {items.length}</Text>
       {items.map((it) => (
         <View key={it.id} style={styles.row}>
           <View style={{ flex: 1, gap: 2 }}>
@@ -19,7 +19,7 @@ export function OrderItemsList({ items }: Props) {
               {it.product_name}
             </Text>
             {it.variant_description ? <Text style={styles.variant}>{it.variant_description}</Text> : null}
-            <Text style={styles.qty}>×{it.quantity} • ${Number(it.unit_price).toFixed(0)} each</Text>
+            <Text style={styles.qty}>×{it.quantity} ${Number(it.unit_price).toFixed(0)} each</Text>
           </View>
           <Text style={styles.total}>${(Number(it.unit_price) * it.quantity).toFixed(2)}</Text>
         </View>

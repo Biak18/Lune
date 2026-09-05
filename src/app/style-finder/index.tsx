@@ -69,10 +69,10 @@ export default function StyleFinderScreen() {
           </Text>
           <Text style={styles.desc}>
             {step === 0
-              ? "Choose an occasion — we'll match dresses and co-ords by metadata."
+              ? "Choose an occasion we'll match dresses and co-ords by metadata."
               : step === 1
                 ? "Pick a style vibe. This filters products by style + occasion deterministically (no AI)."
-                : `Occasion: ${occasion} • Style: ${style}`}
+                : `Occasion: ${occasion} Style: ${style}`}
           </Text>
           <View style={styles.steps}>
             {[0, 1, 2].map((i) => (
@@ -164,13 +164,13 @@ export default function StyleFinderScreen() {
             ) : products.length === 0 ? (
               <View style={styles.center}>
                 <Text style={styles.emptyTitle}>No exact match</Text>
-                <Text style={styles.desc}>No products match {occasion} + {style}. Try another pair — our catalog is curated around Nobero essentials.</Text>
+                <Text style={styles.desc}>No products match {occasion} + {style}. Try another pair our catalog is curated around Nobero essentials.</Text>
                 <Button title="Try different style" variant="secondary" onPress={() => setStep(1)} style={{ marginTop: 12 }} />
                 <Button title="Browse all" onPress={() => router.push("/(tabs)/shop" as any)} style={{ marginTop: 8 }} />
               </View>
             ) : (
               <>
-                <Text style={styles.resultCount}>{products.length} matches • Deterministic filter</Text>
+                <Text style={styles.resultCount}>{products.length} matches Deterministic filter</Text>
                 <FlatList
                   data={products}
                   keyExtractor={(p) => p.id}

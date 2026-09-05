@@ -134,7 +134,7 @@ export default function AdminProductsScreen() {
         {/* Categories */}
         <View style={styles.catSection}>
           <Text style={styles.sectionTitle}>
-            Categories • {categories?.length ?? 0}
+            Categories {categories?.length ?? 0}
           </Text>
           <View style={styles.catForm}>
             <TextInput
@@ -225,7 +225,7 @@ export default function AdminProductsScreen() {
                         {c.name}
                       </Text>
                       <Text style={styles.catSlug}>
-                        {c.slug} {c.is_active ? "" : "• hidden"}
+                        {c.slug} {c.is_active ? "" : " hidden"}
                       </Text>
                     </Pressable>
                     <Switch
@@ -240,7 +240,7 @@ export default function AdminProductsScreen() {
                       onPress={() =>
                         Alert.alert(
                           "Delete category?",
-                          `${c.name} — products will become uncategorized.`,
+                          `${c.name} products will become uncategorized.`,
                           [
                             { text: "Cancel", style: "cancel" },
                             {
@@ -289,7 +289,7 @@ export default function AdminProductsScreen() {
             }}
             ListHeaderComponent={
               <Text style={styles.sectionTitle}>
-                Products • {data?.length ?? 0}
+                Products {data?.length ?? 0}
               </Text>
             }
             renderItem={({ item }: any) => (
@@ -299,8 +299,8 @@ export default function AdminProductsScreen() {
                     {item.name}
                   </Text>
                   <Text style={styles.meta}>
-                    {item.category?.name ?? "No category"} • $
-                    {Number(item.base_price).toFixed(0)} • {item.slug}
+                    {item.category?.name ?? "No category"} $
+                    {Number(item.base_price).toFixed(0)} {item.slug}
                   </Text>
                 </View>
                 <View style={{ alignItems: "center", gap: 4 }}>

@@ -37,7 +37,7 @@ export function CartItemRow({ item, onUpdateQuantity, onRemove, updating }: Prop
           {product?.name ?? "Product"}
         </Text>
         <Text style={styles.variant}>
-          {variant.color ?? ""} {variant.color && variant.size ? "·" : ""} {variant.size ?? ""} • SKU {variant.sku}
+          {variant.color ?? ""} {variant.color && variant.size ? " " : ""} {variant.size ?? ""} SKU {variant.sku}
         </Text>
         <Text style={styles.price}>${unitPrice.toFixed(0)} × {item.quantity} = ${lineTotal.toFixed(0)}</Text>
         {isLow && <Text style={styles.low}>Only {max} in stock</Text>}

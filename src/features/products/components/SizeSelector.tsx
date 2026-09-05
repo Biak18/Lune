@@ -17,7 +17,7 @@ export function SizeSelector({ sizes, selectedSize, onSelect, variants, selected
   return (
     <View style={styles.wrap} accessibilityRole="radiogroup">
       <Text style={styles.label}>
-        Size{selectedSize ? ` — ${selectedSize}` : ""}
+        Size{selectedSize ? ` ${selectedSize}` : ""}
       </Text>
       <View style={styles.row}>
         {sizes.map((s) => {

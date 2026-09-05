@@ -1,4 +1,4 @@
-// Search exception to FieldInput — per instruction, Search uses its own input (not FieldInput)
+// Search exception to FieldInput per instruction, Search uses its own input (not FieldInput)
 import { View, TextInput, Pressable, StyleSheet } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { colors } from "@/design/colors";

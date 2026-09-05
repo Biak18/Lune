@@ -21,7 +21,7 @@ export function CartSummary({ subtotal, shipping, total, itemCount, isFreeShippi
       {!isFreeShipping && subtotal > 0 && (
         <Text style={styles.freeHint}>Add ${remaining.toFixed(0)} more for free shipping</Text>
       )}
-      {isFreeShipping && subtotal > 0 && <Text style={styles.freeOk}>You have free shipping ✓</Text>}
+      {isFreeShipping && subtotal > 0 && <Text style={styles.freeOk}>You have free shipping </Text>}
       <View style={styles.row}>
         <Text style={styles.label}>Subtotal ({itemCount} {itemCount === 1 ? "item" : "items"})</Text>
         <Text style={styles.value}>${subtotal.toFixed(2)}</Text>

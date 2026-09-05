@@ -11,7 +11,7 @@ export function AuthArt() {
       {/* Gold outer circle */}
       <View style={styles.goldOuter} />
       <View style={styles.goldInner} />
-      {/* Dress silhouette — cream block */}
+      {/* Dress silhouette cream block */}
       <View style={styles.dressTop} />
       <View style={styles.dressSkirt} />
       <View style={styles.dressHighlight} />

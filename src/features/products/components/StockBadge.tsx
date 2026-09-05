@@ -21,7 +21,7 @@ export function StockBadge({ variant, compact }: Props) {
         ]}
       >
         {text}
-        {variant ? ` • SKU ${variant.sku}` : ""}
+        {variant ? ` SKU ${variant.sku}` : ""}
       </Text>
       {!compact && variant && tone !== "oos" && tone !== "unavailable" ? (
         <Text style={styles.sub}>Ready to ship</Text>

@@ -117,7 +117,7 @@ export default function LoginScreen() {
             render={({ field: { value, onChange, onBlur } }) => (
               <FieldInput
                 label="Password"
-                placeholder="••••••••"
+                placeholder="        "
                 secureTextEntry={!showPassword}
                 textContentType="password"
                 autoComplete="password"

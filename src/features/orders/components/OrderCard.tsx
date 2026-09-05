@@ -27,7 +27,7 @@ export function OrderCard({ order, onPress }: Props) {
       <View style={styles.top}>
         <View>
           <Text style={styles.id}>#{order.id.slice(0, 8).toUpperCase()}</Text>
-          <Text style={styles.date}>{d} • ${Number(order.total).toFixed(2)}</Text>
+          <Text style={styles.date}>{d} ${Number(order.total).toFixed(2)}</Text>
         </View>
         <View style={[styles.badge, { backgroundColor: color + "18", borderColor: color + "30" }]}>
           <Text style={[styles.badgeText, { color }]}>{order.status.replace(/_/g, " ")}</Text>

@@ -98,7 +98,7 @@ export default function NotificationsScreen() {
         </Pressable>
         <Text style={styles.heading}>Notifications</Text>
         <View style={styles.headerRow}>
-          <Text style={styles.count}>{list.length} total • {unread} unread</Text>
+          <Text style={styles.count}>{list.length} total {unread} unread</Text>
           <Pressable
             onPress={async () => {
               if (unread === 0) return;
@@ -113,13 +113,13 @@ export default function NotificationsScreen() {
         </View>
       </View>
 
-      {/* Preferences — editorial, dividers */}
+      {/* Preferences editorial, dividers */}
       <View style={styles.prefsCard}>
         <Text style={styles.sectionTitle}>Preferences</Text>
         {prefs ? (
           <View>
             {[
-              { key: "order_updates", label: "Order updates", desc: "Confirmed • Shipped • Out for delivery • Delivered", value: !!prefs.order_updates },
+              { key: "order_updates", label: "Order updates", desc: "Confirmed Shipped Out for delivery Delivered", value: !!prefs.order_updates },
               { key: "back_in_stock", label: "Back in stock", desc: "When a saved item is back", value: !!prefs.back_in_stock },
               { key: "price_drop", label: "Price drop", desc: "When a saved item drops in price", value: !!prefs.price_drop },
             ].map((row, idx) => (
@@ -180,7 +180,7 @@ export default function NotificationsScreen() {
                   {item.body ? <Text style={styles.notifBody} numberOfLines={2}>{item.body}</Text> : null}
                   <View style={{ flexDirection: "row", gap: 6, alignItems: "center" }}>
                     <Text style={styles.notifType}>{item.type.replace(/_/g, " ")}</Text>
-                    <Text style={styles.dotSep}>•</Text>
+                    <Text style={styles.dotSep}> </Text>
                     <Text style={styles.notifDate}>{relativeTime(item.created_at)}</Text>
                   </View>
                 </View>

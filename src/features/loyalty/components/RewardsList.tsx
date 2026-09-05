@@ -7,9 +7,9 @@ import * as Haptics from "expo-haptics";
 type Reward = { points: number; title: string; desc: string };
 
 const REWARDS: Reward[] = [
-  { points: 200, title: "$10 off", desc: "200 pts • next order" },
-  { points: 400, title: "$25 off", desc: "400 pts • next order" },
-  { points: 800, title: "Free shipping year", desc: "800 pts • 12 months" },
+  { points: 200, title: "$10 off", desc: "200 pts next order" },
+  { points: 400, title: "$25 off", desc: "400 pts next order" },
+  { points: 800, title: "Free shipping year", desc: "800 pts 12 months" },
 ];
 
 export function RewardsList({ currentPoints }: { currentPoints: number }) {
@@ -21,10 +21,10 @@ export function RewardsList({ currentPoints }: { currentPoints: number }) {
       <Text style={styles.title}>Rewards</Text>
       {hasPending ? (
         <View style={styles.pendingBanner}>
-          <Text style={styles.pendingText}>✓ Pending: {pending?.freeShipping ? "Free shipping" : `$${pending?.amount} off`} → next order</Text>
+          <Text style={styles.pendingText}>Pending {pending?.freeShipping ? "Free shipping" : `$${pending?.amount} off`} next order</Text>
         </View>
       ) : null}
-      {redeem.isSuccess ? <Text style={styles.success}>Redeemed — discount applies at checkout</Text> : null}
+      {redeem.isSuccess ? <Text style={styles.success}>Redeemed discount applies at checkout</Text> : null}
       <View style={styles.grid}>
         {REWARDS.map((r) => {
           const can = currentPoints >= r.points;
@@ -32,7 +32,7 @@ export function RewardsList({ currentPoints }: { currentPoints: number }) {
             <View key={r.points} style={[styles.card, !can && { opacity: 0.55 }]}>
               <Text style={styles.pts}>{r.points}</Text>
               <Text style={styles.rewardTitle}>{r.title}</Text>
-              <Text style={styles.rewardDesc}>{r.desc.split("•")[0].trim()}</Text>
+              <Text style={styles.rewardDesc}>{r.desc}</Text>
               <Pressable
                 onPress={async () => {
                   if (!can) return;

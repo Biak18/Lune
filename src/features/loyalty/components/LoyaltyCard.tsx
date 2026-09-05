@@ -32,9 +32,9 @@ export function LoyaltyCard({ account, isLoading }: Props) {
     try {
       await Haptics.selectionAsync();
     } catch {}
-    try {
-      await Share.share({ message: `Join LUNE with my code ${code} — earn 100 points!` });
-    } catch {}
+      try {
+        await Share.share({ message: `Join LUNE with my code ${code} earn 100 points` });
+      } catch {}
   };
 
   if (isLoading) {
@@ -47,7 +47,7 @@ export function LoyaltyCard({ account, isLoading }: Props) {
     <View style={[styles.card, { borderColor: tierColor[tier] ?? colors.border }]}>
       <View style={styles.top}>
         <View style={{ flex: 1 }}>
-          <Text style={styles.eyebrow}>Membership • {tier.toUpperCase()}</Text>
+          <Text style={styles.eyebrow}>Membership {tier.toUpperCase()}</Text>
           <View style={{ flexDirection: "row", alignItems: "baseline", gap: 8, marginTop: 2 }}>
             <Text style={styles.points}>{points}</Text>
             <Text style={styles.pointsSub}>pts</Text>
@@ -65,13 +65,13 @@ export function LoyaltyCard({ account, isLoading }: Props) {
           <View style={[styles.fill, { width: `${progress * 100}%`, backgroundColor: tierColor[tier] }]} />
         </View>
         <Text style={styles.progressText}>
-          {nextTier ? `${points - currentTh} / ${(nextTh ?? 0) - currentTh} to ${nextTier}` : "Platinum — top tier"}
+          {nextTier ? `${points - currentTh} / ${(nextTh ?? 0) - currentTh} to ${nextTier}` : "Platinum top tier"}
         </Text>
       </View>
 
       <View style={styles.referRow}>
         <Text style={styles.referLabel}>Code</Text>
-        <Text style={styles.referCode}>{account?.referral_code ?? "—"}</Text>
+        <Text style={styles.referCode}>{account?.referral_code ?? "-"}</Text>
         <Pressable onPress={handleShare} style={styles.shareChip} hitSlop={8}>
           <Ionicons name="share-outline" size={12} color={colors.foreground} />
           <Text style={styles.shareText}>Share</Text>

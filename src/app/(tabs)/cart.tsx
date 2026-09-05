@@ -79,7 +79,7 @@ export default function CartScreen() {
     return (
       <View style={styles.center}>
         <Text style={styles.title}>Your bag is empty.</Text>
-        <Text style={styles.desc}>Add products with your size and color — they’ll appear here for checkout.</Text>
+        <Text style={styles.desc}>Add products with your size and color they’ll appear here for checkout.</Text>
         <Link href={"/shop" as any} asChild>
           <Button title="Start shopping" style={{ marginTop: spacing.lg }} />
         </Link>

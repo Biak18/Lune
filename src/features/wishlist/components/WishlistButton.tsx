@@ -43,7 +43,7 @@ export function WishlistButton({ productId, size = 28, style, hitSlop = 8 }: Pro
       if (nextFav) await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       else await Haptics.selectionAsync();
     } catch {}
-    // subtle pop — shared value mutation intentional
+    // subtle pop shared value mutation intentional
     // eslint-disable-next-line react-hooks/immutability
     scale.value = withSequence(withSpring(1.18, { damping: 8, stiffness: 200 }), withSpring(1, { damping: 10 }));
     toggle.mutate({ productId, isCurrentlyFavorite: isFav });

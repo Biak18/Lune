@@ -43,7 +43,7 @@ export default function AssistantScreen() {
     {
       id: "m0",
       role: "assistant",
-      text: "Hi! I'm your Dress Shop stylist — powered by Gemini 2.0 Flash. What occasion are you dressing for?",
+      text: "Hi! I'm your Dress Shop stylist powered by Gemini 2.0 Flash. What occasion are you dressing for?",
       chips: OCCASIONS,
     },
   ]);
@@ -77,7 +77,7 @@ export default function AssistantScreen() {
     push({ id: `u-${Date.now()}`, role: "user", text: o });
     historyRef.current.push({ role: "user", content: o });
     setStep(1);
-    const reply = `Lovely — ${o} vibes. What style do you prefer?`;
+    const reply = `Lovely ${o} vibes. What style do you prefer?`;
     historyRef.current.push({ role: "assistant", content: reply });
     setTimeout(() => push({ id: `a-${Date.now()}`, role: "assistant", text: reply, chips: STYLES }), 300);
   };
@@ -105,7 +105,7 @@ export default function AssistantScreen() {
     push({ id: `u-${Date.now()}`, role: "user", text: isSkip ? "No preference" : c });
     historyRef.current.push({ role: "user", content: isSkip ? "No preference" : c });
     setStep(3);
-    const reply = `Perfect — curated for ${occasion} • ${style}${col ? ` • ${col}` : ""}. Here are my picks.`;
+    const reply = `Perfect curated for ${occasion} ${style}${col ? ` ${col}` : ""}. Here are my picks.`;
     historyRef.current.push({ role: "assistant", content: reply });
     setTimeout(() => push({ id: `a-${Date.now()}`, role: "assistant", text: reply, products: true }), 400);
   };
@@ -126,7 +126,7 @@ export default function AssistantScreen() {
     setIsParsing(true);
     setIsAiThinking(true);
 
-    // Single Edge Function call — gemini returns both stylist reply + intent (saves free-tier quota)
+    // Single Edge Function call gemini returns both stylist reply + intent (saves free-tier quota)
     const historyForAi = historyRef.current.slice(0, -1).slice(-10);
     try {
       const { text: chatText, intent } = await assistantService.chatWithIntent(trimmed, historyForAi);
@@ -150,8 +150,8 @@ export default function AssistantScreen() {
       if (hasAny) {
         setStep(3);
         setTimeout(() => {
-          const parts = [occ, sty, col].filter(Boolean).join(" • ");
-          const curatedText = `Curated for ${parts}. Here are my picks — tap any dress for details.`;
+          const parts = [occ, sty, col].filter(Boolean).join(" ");
+          const curatedText = `Curated for ${parts}. Here are my picks tap any dress for details.`;
           push({ id: `a-products-${Date.now()}`, role: "assistant", text: curatedText, products: true });
         }, 400);
       } else if (!chatText || !chatText.trim()) {
@@ -175,8 +175,8 @@ export default function AssistantScreen() {
       if (col) setColorPref(col);
       if (occ || sty) {
         setStep(3);
-        const parts = [occ, sty, col].filter(Boolean).join(" • ");
-        push({ id: `a-fb-${Date.now()}`, role: "assistant", text: `Got it — ${parts}. Here are my picks.`, products: true });
+        const parts = [occ, sty, col].filter(Boolean).join(" ");
+        push({ id: `a-fb-${Date.now()}`, role: "assistant", text: `Got it ${parts}. Here are my picks.`, products: true });
       } else {
         push({ id: `a-${Date.now()}`, role: "assistant", text: "Tell me occasion (everyday/office/vacation/party) and style (minimal/elegant/casual/bold). Try chips below.", chips: OCCASIONS });
       }
@@ -198,7 +198,7 @@ export default function AssistantScreen() {
       {
         id: "m0",
         role: "assistant",
-        text: "Hi! I'm your Dress Shop stylist — powered by Gemini 2.0 Flash. What occasion are you dressing for?",
+        text: "Hi! I'm your Dress Shop stylist powered by Gemini 2.0 Flash. What occasion are you dressing for?",
         chips: OCCASIONS,
       },
     ]);
@@ -213,7 +213,7 @@ export default function AssistantScreen() {
           <Text style={styles.backText}>← Back</Text>
         </Pressable>
         <Text style={styles.heading}>AI Fashion Assistant</Text>
-        <Text style={styles.sub}>Powered by Gemini 2.0 Flash • Editorial stylist • Real AI</Text>
+        <Text style={styles.sub}>Powered by Gemini 2.0 Flash Editorial stylist Real AI</Text>
       </View>
 
       <KeyboardAvoidingView style={{ flex: 1 }} behavior="padding" keyboardVerticalOffset={0}>

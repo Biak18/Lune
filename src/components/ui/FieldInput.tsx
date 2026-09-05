@@ -1,5 +1,5 @@
 // src/components/ui/FieldInput.tsx
-// Canonical TextInput — floating label with reanimated (UI thread), 50h input, 14r, line→clay focus.
+// Canonical TextInput floating label with reanimated (UI thread), 50h input, 14r, line clay focus.
 // Default `variant="floating"` provides the boutique animation; use `variant="stacked"` for static search-style fields.
 
 import { colors } from "@/design/colors";
@@ -31,7 +31,7 @@ export type FieldInputProps = Omit<TextInputProps, "style"> & {
   rightElement?: React.ReactNode;
   /** Controls label placement. `floating` (default) = animated boutique label. `stacked` = static label above input (e.g. Search). */
   variant?: "stacked" | "floating";
-  /** Extra element rendered on same row as label — only for stacked variant */
+  /** Extra element rendered on same row as label only for stacked variant */
   labelExtra?: React.ReactNode;
 };
 
@@ -77,7 +77,7 @@ export const FieldInput = forwardRef<TextInput, FieldInputProps>(
     const bg = colors.surface;
     const isDisabled = editable === false;
 
-    // Floating styles — reduced for compact boutique feel
+    // Floating styles reduced for compact boutique feel
     const animatedLabelStyle = useAnimatedStyle(() => ({
       top: 15 + progress.value * -21,
       fontSize: 12 + progress.value * -2,
@@ -167,7 +167,7 @@ export const FieldInput = forwardRef<TextInput, FieldInputProps>(
       );
     }
 
-    // stacked — sample fidelity
+    // stacked sample fidelity
     return (
       <View style={[{ gap: 7 }, containerStyle]}>
         <View style={styles.labelRow}>

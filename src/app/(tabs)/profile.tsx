@@ -115,7 +115,7 @@ export default function ProfileScreen() {
   return (
     <SafeAreaView style={styles.safe} edges={["top"]}>
       <ScrollView style={{ flex: 1 }} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false} showsHorizontalScrollIndicator={false}>
-        {/* Header — wordmark + bell */}
+        {/* Header wordmark + bell */}
         <View style={styles.header}>
           <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
             <Text style={styles.wordmark}>LUNE</Text>
@@ -127,7 +127,7 @@ export default function ProfileScreen() {
           </Pressable>
         </View>
 
-        {/* Identity — premium, airy */}
+        {/* Identity premium, airy */}
         <View style={styles.identity}>
           <View style={styles.avatar}>
             <Text style={styles.avatarText}>{initials}</Text>
@@ -144,7 +144,7 @@ export default function ProfileScreen() {
           ) : null}
         </View>
 
-        {/* Stats — quick overview */}
+        {/* Stats quick overview */}
         <View style={styles.statsRow}>
           <Stat label="Orders" value={String(orders?.length ?? 0)} />
           <View style={styles.statDivider} />
@@ -153,11 +153,11 @@ export default function ProfileScreen() {
           <Stat label="Points" value={String(loyalty?.points ?? 0)} />
         </View>
 
-        {/* Boutique — grouped actions */}
+        {/* Boutique grouped actions */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Shopping</Text>
           <View style={styles.menuCard}>
-            <MenuRow icon="bag-outline" label="My orders" sub={`${orders?.length ?? 0} orders • Track & returns`} onPress={() => router.push("/orders" as any)} />
+            <MenuRow icon="bag-outline" label="My orders" sub={`${orders?.length ?? 0} orders Track & returns`} onPress={() => router.push("/orders" as any)} />
             <View style={styles.menuDivider} />
             <MenuRow icon="heart-outline" label="Wishlist" sub={`${wishlistIds?.size ?? 0} saved`} onPress={() => router.push("/(tabs)/wishlist" as any)} />
             <View style={styles.menuDivider} />
@@ -173,7 +173,7 @@ export default function ProfileScreen() {
           </View>
         </View>
 
-        {/* Membership — slim */}
+        {/* Membership slim */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>Membership</Text>
@@ -183,7 +183,7 @@ export default function ProfileScreen() {
           <RewardsList currentPoints={loyalty?.points ?? 0} />
         </View>
 
-        {/* Recent activity — subtle list, not card-heavy */}
+        {/* Recent activity subtle list, not card-heavy */}
         {tx && tx.length > 0 ? (
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
@@ -202,7 +202,7 @@ export default function ProfileScreen() {
           </View>
         ) : null}
 
-        {/* Exclusive — only gold/platinum, editorial */}
+        {/* Exclusive only gold/platinum, editorial */}
         {(loyalty?.tier === "gold" || loyalty?.tier === "platinum") && exclusive?.data?.length ? (
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
@@ -222,10 +222,10 @@ export default function ProfileScreen() {
           </View>
         ) : null}
 
-        {/* Dev switcher — muted */}
+        {/* Dev switcher muted */}
         {__DEV__ ? <DevAccountSwitcher /> : null}
 
-        {/* Footer — clean sign out */}
+        {/* Footer clean sign out */}
         <View style={styles.footer}>
           <Pressable
             onPress={() => logout.mutate(undefined, { onSuccess: () => router.replace("/auth/login") })}
@@ -237,7 +237,7 @@ export default function ProfileScreen() {
             <Ionicons name="log-out-outline" size={14} color={colors.muted} />
             <Text style={styles.signOutText}>{logout.isPending ? "Signing out..." : "Sign out"}</Text>
           </Pressable>
-          <Text style={styles.footerHint}>LUNE — FW 2026 • Editorial boutique</Text>
+          <Text style={styles.footerHint}>LUNE FW 2026 Editorial boutique</Text>
         </View>
       </ScrollView>
     </SafeAreaView>

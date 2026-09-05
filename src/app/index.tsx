@@ -16,7 +16,7 @@ export default function Index() {
     );
   }
 
-  // Catalog is public (ROADMAP Phase 3) — everyone lands on Home tab;
+  // Catalog is public (ROADMAP Phase 3) everyone lands on Home tab;
   // auth is handled via Profile tab / auth screens.
   return <Redirect href={"/home" as any} />;
 }

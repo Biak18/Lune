@@ -176,7 +176,7 @@ export default function ProductScreen() {
   return (
     <SafeAreaView style={styles.root} edges={["top"]}>
       <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false} showsHorizontalScrollIndicator={false}>
-        {/* HERO — full-bleed gallery */}
+        {/* HERO full-bleed gallery */}
         <View style={[styles.hero, { width: windowWidth, marginHorizontal: -spacing.xl, marginTop: -spacing.xl }]}>
           <ProductGallery hero images={product.images} selectedColor={selectedColor} colorsList={colorsList} />
           <View style={styles.heroTop} pointerEvents="box-none">
@@ -207,9 +207,9 @@ export default function ProductScreen() {
               <View style={{ flexDirection: "row", alignItems: "center", gap: 6, marginTop: 2 }}>
                 <RatingStars value={avg} size={14} />
                 <Text style={styles.ratingText}>
-                  {count ? `${avg.toFixed(1)} • ${count} ${count === 1 ? "review" : "reviews"}` : "No reviews yet"}
+                  {count ? `${avg.toFixed(1)} ${count} ${count === 1 ? "review" : "reviews"}` : "No reviews yet"}
                 </Text>
-                {isVerified && <Text style={styles.verifiedHint}>• Verified</Text>}
+                {isVerified && <Text style={styles.verifiedHint}>Verified</Text>}
               </View>
             </View>
             <WishlistButton productId={product.id} size={42} style={{ marginTop: 2 }} />
@@ -340,15 +340,15 @@ export default function ProductScreen() {
         {/* Additional info per PRD 13: size guide / shipping / details */}
         <View style={styles.infoCard}>
           <Text style={styles.infoTitle}>Size guide</Text>
-          <Text style={styles.infoText}>XS: Bust 32′ • S: 34′ • M: 36′ • L: 38′ • XL: 40′ • XXL: 42′. Model is 5′9 wearing S.</Text>
+          <Text style={styles.infoText}>XS: Bust 32′ S: 34′ M: 36′ L: 38′ XL: 40′ XXL: 42′. Model is 5′9 wearing S.</Text>
         </View>
         <View style={styles.infoCard}>
           <Text style={styles.infoTitle}>Shipping & returns</Text>
-          <Text style={styles.infoText}>Free shipping over $80 • Standard 3–5 days • Easy 30-day returns. Order snapshot preserves price.</Text>
+          <Text style={styles.infoText}>Free shipping over $80 Standard 3–5 days Easy 30-day returns. Order snapshot preserves price.</Text>
         </View>
         <View style={styles.infoCard}>
           <Text style={styles.infoTitle}>Product details</Text>
-          <Text style={styles.infoText}>{product.description ?? "Premium fabric • Lined • Care: hand wash cold. "} Style: {product.style ?? "—"} • Occasion: {product.occasion ?? "—"}</Text>
+          <Text style={styles.infoText}>{product.description ?? "Premium fabric Lined Care: hand wash cold. "} Style: {product.style ?? " "} Occasion: {product.occasion ?? " "}</Text>
         </View>
 
         <CompleteTheLook product={product} />

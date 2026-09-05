@@ -28,7 +28,7 @@ export function AddressCard({ address, selected, onSelect, onSetDefault, onDelet
           <Text style={styles.line}>
             {address.address_line_1}
             {address.address_line_2 ? `, ${address.address_line_2}` : ""}, {address.city}
-            {address.state ? `, ${address.state}` : ""} {address.postal_code ?? ""} • {address.country}
+            {address.state ? `, ${address.state}` : ""} {address.postal_code ?? ""} {address.country}
           </Text>
           {address.phone ? <Text style={styles.phone}>{address.phone}</Text> : null}
         </View>

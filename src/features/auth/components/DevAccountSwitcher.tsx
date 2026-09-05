@@ -57,7 +57,7 @@ export function DevAccountSwitcher() {
         <Text style={styles.badge}>DEV ONLY</Text>
         <Text style={styles.title}>Quick switch</Text>
       </View>
-      <Text style={styles.hint}>Switches session instantly — no typing. Not shown in production.</Text>
+      <Text style={styles.hint}>Switches session instantly no typing. Not shown in production.</Text>
 
       {!hasAny ? (
         <View style={styles.notice}>

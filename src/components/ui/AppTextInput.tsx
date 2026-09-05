@@ -45,7 +45,7 @@ export const AppTextInput = forwardRef<TextInput, Props>(function AppTextInput(
     );
   }
 
-  // Fallback: legacy mode without floating label — still delegate with placeholder-as-label
+  // Fallback: legacy mode without floating label still delegate with placeholder-as-label
   // to keep styling consistent. `FieldInput` requires a label, so derive one.
   const fallbackLabel = (props.placeholder as string) || "Field";
   return (

@@ -25,7 +25,7 @@ export default function SearchScreen() {
         </View>
         <SearchInput value={q} onChangeText={setQ} onClear={() => setQ("")} />
         {!hasSearched ? (
-          <Text style={styles.hint}>Try “satin”, “linen” or category like “Party” — also style/occasion.</Text>
+          <Text style={styles.hint}>Try “satin”, “linen” or category like “Party” also style/occasion.</Text>
         ) : null}
       </View>
       <View style={styles.list}>

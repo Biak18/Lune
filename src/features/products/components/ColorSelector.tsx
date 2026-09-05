@@ -17,7 +17,7 @@ export function ColorSelector({ colorsList, selectedColor, onSelect, variants, s
   return (
     <View style={styles.wrap} accessibilityRole="radiogroup">
       <Text style={styles.label}>
-        Color{selectedColor ? ` — ${selectedColor}` : ""}
+        Color{selectedColor ? ` ${selectedColor}` : ""}
       </Text>
       <View style={styles.row}>
         {colorsList.map((c) => {

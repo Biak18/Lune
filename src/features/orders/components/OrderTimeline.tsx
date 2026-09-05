@@ -53,7 +53,7 @@ export function OrderTimeline({ status, createdAt }: Props) {
       <Text style={styles.title}>Order timeline</Text>
       {ORDER_FLOW.map((s, idx) => {
         const done = idx <= progress;
-        // Delivered is terminal — show it as green done, not black current
+        // Delivered is terminal show it as green done, not black current
         const current = idx === progress && !isDelivered;
         const future = idx > progress;
         const isDeliveredStep = isDelivered && s === "delivered";

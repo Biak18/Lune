@@ -77,7 +77,7 @@ export default function WishlistScreen() {
       <View style={styles.center}>
         <Text style={styles.title}>Wishlist</Text>
         <Text style={styles.sub}>Your wishlist is empty.</Text>
-        <Text style={styles.desc}>Save styles you love — heart any product to keep it here.</Text>
+        <Text style={styles.desc}>Save styles you love heart any product to keep it here.</Text>
         <Link href={"/shop" as any} asChild>
           <Button title="Explore products" style={{ marginTop: spacing.lg }} />
         </Link>
@@ -112,7 +112,7 @@ export default function WishlistScreen() {
                       } catch {}
                       return;
                     }
-                    // Instant feedback — optimistic cart already updates via useAddToCart
+                    // Instant feedback optimistic cart already updates via useAddToCart
                     try {
                       await Haptics.selectionAsync();
                     } catch {}

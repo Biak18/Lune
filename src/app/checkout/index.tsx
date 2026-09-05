@@ -183,7 +183,7 @@ export default function CheckoutScreen() {
         </Pressable>
 
         <Text style={styles.heading}>Checkout</Text>
-        <Text style={styles.step}>Shipping → Review → Pay</Text>
+        <Text style={styles.step}>Shipping Review Pay</Text>
 
         {/* Shipping Address */}
         <View style={styles.section}>
@@ -221,7 +221,7 @@ export default function CheckoutScreen() {
 
         {/* Order Summary */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Order summary • {totals.itemCount} items</Text>
+          <Text style={styles.sectionTitle}>Order summary {totals.itemCount} items</Text>
           <View style={{ gap: 10 }}>
             {cartItems.map((it) => {
               const p = it.variant.product;
@@ -232,7 +232,7 @@ export default function CheckoutScreen() {
                   <Image source={{ uri: primary?.image_url ?? "https://picsum.photos/300/400" }} style={styles.summaryImg} contentFit="cover" />
                   <View style={{ flex: 1, gap: 2 }}>
                     <Text style={styles.summaryName} numberOfLines={1}>{p?.name ?? "Product"}</Text>
-                    <Text style={styles.summaryVariant}>{[it.variant.color, it.variant.size].filter(Boolean).join(" · ")} • ×{it.quantity}</Text>
+                    <Text style={styles.summaryVariant}>{[it.variant.color, it.variant.size].filter(Boolean).join(" ")} x{it.quantity}</Text>
                     <Text style={styles.summaryPrice}>${unit.toFixed(0)} each</Text>
                   </View>
                   <Text style={styles.summaryTotal}>${(unit * it.quantity).toFixed(0)}</Text>
@@ -251,17 +251,17 @@ export default function CheckoutScreen() {
             </View>
             <View style={{ flex: 1 }}>
               <Text style={styles.paymentTitle}>Pay on delivery</Text>
-              <Text style={styles.paymentDesc}>Cash / UPI on delivery — no payment required now (mock)</Text>
+              <Text style={styles.paymentDesc}>Cash or UPI on delivery no payment now</Text>
             </View>
           </View>
-          <Text style={styles.paymentHint}>Payment provider will be integrated later. Order total is verified server-side.</Text>
+          <Text style={styles.paymentHint}>Order total is verified server side</Text>
         </View>
 
         {/* Rewards discount preview */}
         {(pendingAmount > 0 || pendingFreeShip) && (
           <View style={styles.rewardsBanner}>
             <Text style={styles.rewardsText}>
-              ✓ Rewards applied: {pendingFreeShip ? "Free shipping" : `$${pendingAmount} off`} — will be deducted on this order
+              Rewards applied {pendingFreeShip ? "Free shipping" : `$${pendingAmount} off`} will be deducted
             </Text>
           </View>
         )}
@@ -281,7 +281,7 @@ export default function CheckoutScreen() {
       <View style={styles.footer}>
         <View style={{ gap: 6 }}>
           <Button
-            title={createOrder.isPending ? "Placing order…" : `Place order • $${totals.total.toFixed(2)}`}
+            title={createOrder.isPending ? "Placing order" : `Place order $${totals.total.toFixed(2)}`}
             onPress={handlePlaceOrder}
             disabled={!selectedAddress || !cartItems.length || createOrder.isPending}
             loading={createOrder.isPending}

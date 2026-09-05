@@ -69,7 +69,7 @@ export function ProductGallery({ images, selectedColor, colorsList, hero = false
     [sorted.length, pagerWidth, fade],
   );
 
-  // Auto-switch on color tap removed per UX — gallery stays manual (swipe/dots/thumbs only)
+  // Auto-switch on color tap removed per UX gallery stays manual (swipe/dots/thumbs only)
 
   const animatedStyle = useAnimatedStyle(() => ({
     opacity: opacity.value,

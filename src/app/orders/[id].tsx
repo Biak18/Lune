@@ -61,7 +61,7 @@ export default function OrderDetailScreen() {
 
         <View style={styles.header}>
           <Text style={styles.heading}>Order #{order.id.slice(0, 8).toUpperCase()}</Text>
-          <Text style={styles.sub}>{new Date(order.created_at).toLocaleString()} • Status: {order.status.replace(/_/g, " ")}</Text>
+          <Text style={styles.sub}>{new Date(order.created_at).toLocaleString()} Status: {order.status.replace(/_/g, " ")}</Text>
         </View>
 
         <OrderTimeline status={order.status} createdAt={order.created_at} />

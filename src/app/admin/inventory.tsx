@@ -31,7 +31,7 @@ export default function AdminInventoryScreen() {
             <Text style={styles.backText}>← Admin</Text>
           </Pressable>
           <Text style={styles.heading}>Inventory</Text>
-          <Text style={styles.sub}>Low stock ≤3 — {data?.length ?? 0} variants</Text>
+          <Text style={styles.sub}>Low stock ≤3 {data?.length ?? 0} variants</Text>
         </View>
 
         {isLoading ? (
@@ -54,7 +54,7 @@ export default function AdminInventoryScreen() {
               <View style={[styles.card, item.stock_quantity === 0 && styles.oosCard]}>
                 <View style={{ flex: 1, gap: 4 }}>
                   <Text style={styles.name}>{(item.product as any)?.name ?? item.sku}</Text>
-                  <Text style={styles.meta}>{item.sku} • {item.color ?? "?"} / {item.size ?? "?"}</Text>
+                  <Text style={styles.meta}>{item.sku} {item.color ?? "?"} / {item.size ?? "?"}</Text>
                   <View style={{ flexDirection: "row", gap: 6, marginTop: 4 }}>
                     <Pressable
                       onPress={async () => {
@@ -98,7 +98,7 @@ export default function AdminInventoryScreen() {
             )}
             ListEmptyComponent={
               <View style={styles.center}>
-                <Text style={styles.desc}>No low stock — all variants well stocked.</Text>
+                <Text style={styles.desc}>No low stock all variants well stocked.</Text>
               </View>
             }
            showsVerticalScrollIndicator={false} showsHorizontalScrollIndicator={false} />

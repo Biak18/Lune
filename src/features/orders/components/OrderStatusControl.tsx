@@ -35,7 +35,7 @@ const REVEAL_GAP = 12;
 function getPrevNext(current: string, flow: readonly string[]) {
   if (current === "cancelled")
     return { prev: null, next: null, isTerminal: true };
-  // Legacy DB value out_for_delivery → treat as shipped step for 5-step flow
+  // Legacy DB value out_for_delivery treat as shipped step for 5-step flow
   if (current === "out_for_delivery")
     return { prev: "shipped", next: "delivered", isTerminal: false };
   const idx = flow.indexOf(current);
@@ -49,11 +49,11 @@ function getPrevNext(current: string, flow: readonly string[]) {
 }
 
 /**
- * Drives the rollback button's reveal. Animates `flexGrow` (0 → 1) rather
+ * Drives the rollback button's reveal. Animates `flexGrow` (0 1) rather
  * than a pixel width, since the button shares row space with the next-status
  * button via flexbox rather than having an intrinsic size. `marginRight`
  * grows in lockstep so spacing doesn't pop in ahead of the button.
- * Runs once per mount — the parent remounts this via a `key` change whenever
+ * Runs once per mount the parent remounts this via a `key` change whenever
  * `currentStatus` changes, so it naturally replays on every transition.
  */
 function useRevealProgress(reduced: boolean) {
@@ -91,7 +91,7 @@ function RollbackButton({
 
   // No `opacity` here: this node also carries `exiting={FadeOut...}`, which
   // animates opacity on unmount. Driving opacity from both a useAnimatedStyle
-  // and a layout animation on the same node races on every frame — that's
+  // and a layout animation on the same node races on every frame that's
   // what the "Property may be overwritten by a layout animation" warning is
   // about. flexGrow/marginRight are untouched by FadeOut, so those are safe
   // to keep here. The button is already effectively invisible at
@@ -158,10 +158,10 @@ export function OrderStatusControl({
     : FadeIn.duration(260).easing(Easing.out(Easing.cubic));
 
   if (isSingle) {
-    // Pending → single next full-width; Delivered/Cancelled → single completed
+    // Pending single next full-width; Delivered/Cancelled single completed
     const isCompleted = isTerminal || currentStatus === "cancelled";
     const label = isCompleted
-      ? `${currentStatus} ✓`
+      ? `${currentStatus} `
       : next
         ? `${next}`
         : currentStatus;
