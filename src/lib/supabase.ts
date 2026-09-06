@@ -52,7 +52,9 @@ if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
 
 // Fallback dummy values allow client creation without crashing when env missing.
 // Requests will fail with auth errors which we surface to user.
-const url = SUPABASE_URL || "https://placeholder.supabase.co";
+// Netlify proxy (EXPO_NETLIFY_API_KEY) takes precedence when set for VPN-blocked regions — keeps original SUPABASE_URL fallback.
+const NETLIFY_PROXY_URL = env.netlifyProxyUrl;
+const url = NETLIFY_PROXY_URL || SUPABASE_URL || "https://placeholder.supabase.co";
 const anonKey = SUPABASE_ANON_KEY || "placeholder-anon-key";
 
 export const supabase = createClient<Database>(url, anonKey, {
