@@ -88,30 +88,58 @@ Use lowercase for occasion/style. Capitalize color exactly as in list. Use null 
 
 /** If model leaks JSON intent, convert to natural editorial reply so UI shows card like offline */
 function sanitizeChatOutput(raw: string, fallbackInput: string): string {
-  const t = raw.trim();
-  // Detect JSON intent leak: {"occasion":...} (sometimes quoted or code-block)
-  const looksJson = t.startsWith("{") || t.startsWith("```");
-  if (!looksJson) return raw;
-  try {
-    const cleaned = t.replace(/^```json\s*/i, "").replace(/^```\s*/, "").replace(/```\s*$/, "").trim();
-    const m = cleaned.match(/\{[\s\S]*?\}/);
-    if (!m) return raw;
-    const obj = JSON.parse(m[0]) as Record<string, unknown>;
-    if (!("occasion" in obj) && !("style" in obj) && !("color" in obj)) return raw;
-    // It's an intent leak — synthesize editorial reply using same intent
-    const occ = typeof obj.occasion === "string" ? obj.occasion : null;
-    const sty = typeof obj.style === "string" ? obj.style : null;
-    const col = typeof obj.color === "string" ? obj.color : null;
-    const parts = [occ, sty, col].filter(Boolean).join(" ");
-    if (parts) return `Lovely ${parts} — here are my curated picks for you.`;
-    // Fallback to local intent from prompt
-    const fb = localFallback(fallbackInput);
-    const fbParts = [fb.occasion, fb.style, fb.color].filter(Boolean).join(" ");
-    if (fbParts) return `Perfect ${fbParts} curation — here are my top picks.`;
-    return raw; // shouldn't happen
-  } catch {
-    return raw;
+  let cleaned = raw;
+  // 1) Strip any fenced json blocks anywhere (```json {..} ```) — handle leak with surrounding text
+  cleaned = cleaned.replace(/```json\s*\{[\s\S]*?\}\s*```/gi, "");
+  cleaned = cleaned.replace(/```\s*\{[\s\S]*?\}\s*```/g, "");
+  // 2) Strip bare JSON intent anywhere and synthesize / keep surrounding natural text
+  const jsonMatch = cleaned.match(/\{[^}]*"occasion"[^}]*\}/i) ?? cleaned.match(/\{[^}]*"style"[^}]*\}/i);
+  if (jsonMatch) {
+    try {
+      const obj = JSON.parse(jsonMatch[0]) as Record<string, unknown>;
+      if ("occasion" in obj || "style" in obj || "color" in obj) {
+        const withoutJson = cleaned.replace(jsonMatch[0], "").trim().replace(/\n{3,}/g, "\n\n").trim();
+        // Remove empty fences leftover
+        const withoutFences = withoutJson.replace(/```/g, "").trim();
+        const remaining = withoutFences.replace(/^\s*[\r\n]+/g, "").trim();
+        if (!remaining || remaining.length < 12) {
+          const occ = typeof obj.occasion === "string" ? obj.occasion : null;
+          const sty = typeof obj.style === "string" ? obj.style : null;
+          const col = typeof obj.color === "string" ? obj.color : null;
+          const parts = [occ, sty, col].filter(Boolean).join(" ");
+          if (parts) return `Lovely ${parts} — here are my curated picks for you.`;
+          const fb = localFallback(fallbackInput);
+          const fbParts = [fb.occasion, fb.style, fb.color].filter(Boolean).join(" ");
+          if (fbParts) return `Perfect ${fbParts} curation — here are my top picks.`;
+        } else {
+          // Keep natural text, ensure no stray ``` left
+          return remaining;
+        }
+      }
+    } catch {
+      // fallthrough
+    }
   }
+  // 3) Generic cleanup: remove any remaining ``` markers and trim
+  cleaned = cleaned.replace(/```json/gi, "").replace(/```/g, "").trim();
+  // 4) If still starts with bare JSON (edge case), synthesize
+  const t = cleaned.trim();
+  if (t.startsWith("{")) {
+    try {
+      const m = t.match(/\{[\s\S]*?\}/);
+      if (m) {
+        const obj = JSON.parse(m[0]) as Record<string, unknown>;
+        if ("occasion" in obj || "style" in obj) {
+          const occ = typeof obj.occasion === "string" ? obj.occasion : null;
+          const sty = typeof obj.style === "string" ? obj.style : null;
+          const col = typeof obj.color === "string" ? obj.color : null;
+          const parts = [occ, sty, col].filter(Boolean).join(" ");
+          if (parts) return `Lovely ${parts} — here are my curated picks for you.`;
+        }
+      }
+    } catch { /* ignore */ }
+  }
+  return cleaned.trim() || raw.replace(/```/g, "").trim();
 }
 
 // deno-lint-ignore no-explicit-any

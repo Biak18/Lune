@@ -51,23 +51,32 @@ export const assistantService = {
     if (data.error) throw new Error(data.error);
     let text = data.output_text ?? data.text ?? "";
     if (!text) throw new Error("AI returned empty text");
-    // Client-side guard: if model leaked JSON intent (e.g. {"occasion":"wedding"...}), sanitize to natural reply
-    const t = text.trim();
-    if (t.startsWith("{") || t.startsWith("```")) {
-      try {
-        const cleaned = t.replace(/^```json\s*/i, "").replace(/^```\s*/, "").replace(/```\s*$/, "").trim();
-        const m = cleaned.match(/\{[\s\S]*?\}/);
-        if (m) {
-          const obj = JSON.parse(m[0]) as Record<string, unknown>;
+    // Client guard: strip any ```json {occasion...}``` leak anywhere (fallbacks may still return it before Edge deploy)
+    {
+      let cleaned = text.replace(/```json\s*\{[\s\S]*?\}\s*```/gi, "").replace(/```\s*\{[\s\S]*?\}\s*```/g, "");
+      const jsonMatch = cleaned.match(/\{[^}]*"occasion"[^}]*\}/i) ?? cleaned.match(/\{[^}]*"style"[^}]*\}/i);
+      if (jsonMatch) {
+        try {
+          const obj = JSON.parse(jsonMatch[0]) as Record<string, unknown>;
           if ("occasion" in obj || "style" in obj || "color" in obj) {
-            const occ = typeof obj.occasion === "string" ? obj.occasion : null;
-            const sty = typeof obj.style === "string" ? obj.style : null;
-            const col = typeof obj.color === "string" ? obj.color : null;
-            const parts = [occ, sty, col].filter(Boolean).join(" ");
-            if (parts) text = `Lovely ${parts} — here are my curated picks for you.`;
+            const withoutJson = cleaned.replace(jsonMatch[0], "").trim().replace(/\n{3,}/g, "\n\n");
+            const remaining = withoutJson.replace(/```/g, "").trim();
+            if (!remaining || remaining.length < 12) {
+              const occ = typeof obj.occasion === "string" ? obj.occasion : null;
+              const sty = typeof obj.style === "string" ? obj.style : null;
+              const col = typeof obj.color === "string" ? obj.color : null;
+              const parts = [occ, sty, col].filter(Boolean).join(" ");
+              if (parts) text = `Lovely ${parts} — here are my curated picks for you.`;
+            } else {
+              text = remaining;
+            }
           }
-        }
-      } catch { /* keep raw */ }
+        } catch { /* keep raw */ }
+      } else {
+        // strip stray fences even if no JSON detected
+        const stripped = cleaned.replace(/```json/gi, "").replace(/```/g, "").trim();
+        if (stripped !== text && stripped) text = stripped;
+      }
     }
     const intent: ParsedIntent = data.intent ?? { occasion: null, style: null, color: null };
     return { text, intent };
