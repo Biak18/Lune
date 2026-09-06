@@ -214,6 +214,7 @@ export default function AssistantScreen() {
         </Pressable>
         <Text style={styles.heading}>AI Fashion Assistant</Text>
         <Text style={styles.sub}>Powered by Gemini 2.0 Flash Editorial stylist Real AI</Text>
+        <Text style={styles.disclaimer}>AI suggestions may not be 100% accurate Please verify before purchase.</Text>
       </View>
 
       <KeyboardAvoidingView style={{ flex: 1 }} behavior="padding" keyboardVerticalOffset={0}>
@@ -332,6 +333,7 @@ const styles = StyleSheet.create({
   backText: { fontSize: 11, fontWeight: "800", letterSpacing: 0.6, textTransform: "uppercase", color: colors.foreground },
   heading: { fontSize: 20, fontWeight: "700", color: colors.foreground, marginTop: 4 },
   sub: { fontSize: 11, color: colors.muted },
+  disclaimer: { fontSize: 10, color: colors.mutedLight, fontStyle: "italic", lineHeight: 13 },
   messages: { padding: spacing.xl, gap: 14, paddingBottom: 24 },
   bubbleRow: { gap: 8 },
   rowUser: { alignItems: "flex-end" },
