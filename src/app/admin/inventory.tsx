@@ -1,4 +1,5 @@
-import { View, Text, FlatList, Pressable, StyleSheet, ActivityIndicator } from "react-native";
+import { FlashList } from "@shopify/flash-list";
+import { View, Text, Pressable, StyleSheet, ActivityIndicator } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { router } from "expo-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -46,62 +47,65 @@ export default function AdminInventoryScreen() {
             </Pressable>
           </View>
         ) : (
-          <FlatList
-            data={data ?? []}
-            keyExtractor={(v: any) => v.id}
-            contentContainerStyle={{ padding: spacing.xl, gap: 8, paddingBottom: 32 }}
-            renderItem={({ item }: any) => (
-              <View style={[styles.card, item.stock_quantity === 0 && styles.oosCard]}>
-                <View style={{ flex: 1, gap: 4 }}>
-                  <Text style={styles.name}>{(item.product as any)?.name ?? item.sku}</Text>
-                  <Text style={styles.meta}>{item.sku} {item.color ?? "?"} / {item.size ?? "?"}</Text>
-                  <View style={{ flexDirection: "row", gap: 6, marginTop: 4 }}>
-                    <Pressable
-                      onPress={async () => {
-                        try { await Haptics.selectionAsync(); } catch {}
-                        restock.mutate({ id: item.id, qty: Math.max(0, (item.stock_quantity ?? 0) - 1) });
-                      }}
-                      style={styles.stepBtn}
-                      hitSlop={8}
-                    >
-                      <Text style={styles.stepText}>−1</Text>
-                    </Pressable>
-                    <Pressable
-                      onPress={async () => {
-                        try { await Haptics.selectionAsync(); } catch {}
-                        restock.mutate({ id: item.id, qty: (item.stock_quantity ?? 0) + 1 });
-                      }}
-                      style={styles.stepBtn}
-                      hitSlop={8}
-                    >
-                      <Text style={styles.stepText}>+1</Text>
-                    </Pressable>
-                    <Pressable
-                      onPress={async () => {
-                        try { await Haptics.selectionAsync(); } catch {}
-                        restock.mutate({ id: item.id, qty: (item.stock_quantity ?? 0) + 10 });
-                      }}
-                      style={[styles.stepBtn, styles.stepPrimary]}
-                      hitSlop={8}
-                    >
-                      <Text style={[styles.stepText, { color: colors.surface }]}>+10</Text>
-                    </Pressable>
+          <View style={{ flex: 1 }}>
+            <FlashList
+              data={data ?? []}
+              keyExtractor={(v: any) => v.id}
+                contentContainerStyle={{ padding: spacing.xl, paddingBottom: 32 }}
+              ItemSeparatorComponent={() => <View style={{ height: 8 }} />}
+              renderItem={({ item }: any) => (
+                <View style={[styles.card, item.stock_quantity === 0 && styles.oosCard]}>
+                  <View style={{ flex: 1, gap: 4 }}>
+                    <Text style={styles.name}>{(item.product as any)?.name ?? item.sku}</Text>
+                    <Text style={styles.meta}>{item.sku} {item.color ?? "?"} / {item.size ?? "?"}</Text>
+                    <View style={{ flexDirection: "row", gap: 6, marginTop: 4 }}>
+                      <Pressable
+                        onPress={async () => {
+                          try { await Haptics.selectionAsync(); } catch {}
+                          restock.mutate({ id: item.id, qty: Math.max(0, (item.stock_quantity ?? 0) - 1) });
+                        }}
+                        style={styles.stepBtn}
+                        hitSlop={8}
+                      >
+                        <Text style={styles.stepText}>−1</Text>
+                      </Pressable>
+                      <Pressable
+                        onPress={async () => {
+                          try { await Haptics.selectionAsync(); } catch {}
+                          restock.mutate({ id: item.id, qty: (item.stock_quantity ?? 0) + 1 });
+                        }}
+                        style={styles.stepBtn}
+                        hitSlop={8}
+                      >
+                        <Text style={styles.stepText}>+1</Text>
+                      </Pressable>
+                      <Pressable
+                        onPress={async () => {
+                          try { await Haptics.selectionAsync(); } catch {}
+                          restock.mutate({ id: item.id, qty: (item.stock_quantity ?? 0) + 10 });
+                        }}
+                        style={[styles.stepBtn, styles.stepPrimary]}
+                        hitSlop={8}
+                      >
+                        <Text style={[styles.stepText, { color: colors.surface }]}>+10</Text>
+                      </Pressable>
+                    </View>
+                  </View>
+                  <View style={{ alignItems: "center", gap: 6 }}>
+                    <View style={[styles.badge, item.stock_quantity === 0 ? styles.oosBadge : styles.lowBadge]}>
+                      <Text style={[styles.badgeText, item.stock_quantity === 0 && { color: colors.error }]}>{item.stock_quantity} left</Text>
+                    </View>
+                    {restock.isPending ? <ActivityIndicator size="small" color={colors.muted} /> : null}
                   </View>
                 </View>
-                <View style={{ alignItems: "center", gap: 6 }}>
-                  <View style={[styles.badge, item.stock_quantity === 0 ? styles.oosBadge : styles.lowBadge]}>
-                    <Text style={[styles.badgeText, item.stock_quantity === 0 && { color: colors.error }]}>{item.stock_quantity} left</Text>
-                  </View>
-                  {restock.isPending ? <ActivityIndicator size="small" color={colors.muted} /> : null}
+              )}
+              ListEmptyComponent={
+                <View style={styles.center}>
+                  <Text style={styles.desc}>No low stock all variants well stocked.</Text>
                 </View>
-              </View>
-            )}
-            ListEmptyComponent={
-              <View style={styles.center}>
-                <Text style={styles.desc}>No low stock all variants well stocked.</Text>
-              </View>
-            }
-           showsVerticalScrollIndicator={false} showsHorizontalScrollIndicator={false} />
+              }
+            />
+          </View>
         )}
       </SafeAreaView>
     </AdminGuard>

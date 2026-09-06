@@ -6,9 +6,9 @@ import { OrderStatusControl } from "@/features/orders/components/OrderStatusCont
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { router } from "expo-router";
 import { useState } from "react";
+import { FlashList } from "@shopify/flash-list";
 import {
   ActivityIndicator,
-  FlatList,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -63,7 +63,7 @@ export default function AdminOrdersScreen() {
     queryFn: () => adminService.getAllOrders(),
   });
   const filtered = (data ?? []).filter((o: any) => (statusFilter ? o.status === statusFilter : true));
-  const statuses: (string | null)[] = [null, "pending", "confirmed", "processing", "shipped", "out_for_delivery", "delivered", "cancelled"];
+  const statuses: (string | null)[] = [null, "pending", "confirmed", "processing", "shipped", "delivered", "cancelled"];
 
   return (
     <AdminGuard>
@@ -101,16 +101,18 @@ export default function AdminOrdersScreen() {
             </Pressable>
           </View>
         ) : (
-          <FlatList
-            data={filtered}
-            keyExtractor={(o: any) => o.id}
-            contentContainerStyle={{
-              padding: spacing.xl,
-              gap: 10,
-              paddingBottom: 32,
-            }}
-            renderItem={({ item }: any) => <AdminOrderRow order={item} />}
-           showsVerticalScrollIndicator={false} showsHorizontalScrollIndicator={false} />
+          <View style={{ flex: 1 }}>
+            <FlashList
+              data={filtered}
+              keyExtractor={(o: any) => o.id}
+                contentContainerStyle={{
+                padding: spacing.xl,
+                paddingBottom: 32,
+              }}
+              ItemSeparatorComponent={() => <View style={{ height: 10 }} />}
+              renderItem={({ item }: any) => <AdminOrderRow order={item} />}
+            />
+          </View>
         )}
       </SafeAreaView>
     </AdminGuard>

@@ -7,10 +7,10 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import * as Haptics from "expo-haptics";
 import { router } from "expo-router";
 import { useState } from "react";
+import { FlashList } from "@shopify/flash-list";
 import {
   ActivityIndicator,
   Alert,
-  FlatList,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -279,50 +279,52 @@ export default function AdminProductsScreen() {
             </Pressable>
           </View>
         ) : (
-          <FlatList
-            data={data ?? []}
-            keyExtractor={(it: any) => it.id}
-            contentContainerStyle={{
-              padding: spacing.xl,
-              gap: 10,
-              paddingBottom: 32,
-            }}
-            ListHeaderComponent={
-              <Text style={styles.sectionTitle}>
-                Products {data?.length ?? 0}
-              </Text>
-            }
-            renderItem={({ item }: any) => (
-              <View style={styles.card}>
-                <View style={{ flex: 1, gap: 4 }}>
-                  <Text style={styles.name} numberOfLines={1}>
-                    {item.name}
-                  </Text>
-                  <Text style={styles.meta}>
-                    {item.category?.name ?? "No category"} $
-                    {Number(item.base_price).toFixed(0)} {item.slug}
+          <View style={{ flex: 1 }}>
+            <FlashList
+              data={data ?? []}
+              keyExtractor={(it: any) => it.id}
+                contentContainerStyle={{
+                padding: spacing.xl,
+                paddingBottom: 32,
+              }}
+              ItemSeparatorComponent={() => <View style={{ height: 10 }} />}
+              ListHeaderComponent={
+                <View style={{ marginBottom: 10 }}>
+                  <Text style={styles.sectionTitle}>
+                    Products {data?.length ?? 0}
                   </Text>
                 </View>
-                <View style={{ alignItems: "center", gap: 4 }}>
-                  <Text style={styles.meta}>
-                    {item.is_active ? "Active" : "Hidden"}
-                  </Text>
-                  <Switch
-                    value={!!item.is_active}
-                    onValueChange={async (v) => {
-                      try {
-                        await Haptics.selectionAsync();
-                      } catch {}
-                      toggle.mutate({ id: item.id, isActive: v });
-                    }}
-                    trackColor={{ true: colors.foreground }}
-                  />
+              }
+              renderItem={({ item }: any) => (
+                <View style={styles.card}>
+                  <View style={{ flex: 1, gap: 4 }}>
+                    <Text style={styles.name} numberOfLines={1}>
+                      {item.name}
+                    </Text>
+                    <Text style={styles.meta}>
+                      {item.category?.name ?? "No category"} $
+                      {Number(item.base_price).toFixed(0)} {item.slug}
+                    </Text>
+                  </View>
+                  <View style={{ alignItems: "center", gap: 4 }}>
+                    <Text style={styles.meta}>
+                      {item.is_active ? "Active" : "Hidden"}
+                    </Text>
+                    <Switch
+                      value={!!item.is_active}
+                      onValueChange={async (v) => {
+                        try {
+                          await Haptics.selectionAsync();
+                        } catch {}
+                        toggle.mutate({ id: item.id, isActive: v });
+                      }}
+                      trackColor={{ true: colors.foreground }}
+                    />
+                  </View>
                 </View>
-              </View>
-            )}
-            showsVerticalScrollIndicator={false}
-            showsHorizontalScrollIndicator={false}
-          />
+              )}
+            />
+          </View>
         )}
       </SafeAreaView>
     </AdminGuard>

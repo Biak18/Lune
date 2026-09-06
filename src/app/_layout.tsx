@@ -1,3 +1,4 @@
+import { OfflineBanner } from "@/components/OfflineBanner";
 import { AuthProvider } from "@/providers/AuthProvider";
 import { QueryProvider } from "@/providers/QueryProvider";
 import { Stack } from "expo-router";
@@ -14,6 +15,7 @@ export default function RootLayout() {
           <QueryProvider>
             <AuthProvider>
               <StatusBar style="dark" />
+              <OfflineBanner />
               <Stack
                 screenOptions={{
                   headerShown: false,

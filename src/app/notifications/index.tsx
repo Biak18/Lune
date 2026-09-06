@@ -1,4 +1,5 @@
-import { View, Text, FlatList, Pressable, StyleSheet, Switch, ActivityIndicator, RefreshControl } from "react-native";
+import { FlashList } from "@shopify/flash-list";
+import { View, Text, Pressable, StyleSheet, Switch, ActivityIndicator, RefreshControl } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { router } from "expo-router";
 import { useAuthStore } from "@/stores/authStore";
@@ -27,7 +28,7 @@ function typeMeta(type: string): { icon: keyof typeof Ionicons.glyphMap; bg: str
   switch (type) {
     case "order_confirmed": return { icon: "checkmark-circle-outline", bg: colors.successBackground };
     case "order_shipped": return { icon: "cube-outline", bg: colors.surfaceMuted };
-    case "out_for_delivery": return { icon: "bicycle-outline", bg: colors.roseSoft };
+    // legacy out_for_delivery maps to shipped
     case "delivered": return { icon: "home-outline", bg: colors.successBackground };
     case "back_in_stock": return { icon: "refresh-outline", bg: colors.surfaceMuted };
     case "price_drop": return { icon: "pricetag-outline", bg: colors.roseSoft };
@@ -119,7 +120,7 @@ export default function NotificationsScreen() {
         {prefs ? (
           <View>
             {[
-              { key: "order_updates", label: "Order updates", desc: "Confirmed Shipped Out for delivery Delivered", value: !!prefs.order_updates },
+              { key: "order_updates", label: "Order updates", desc: "Confirmed Shipped Delivered", value: !!prefs.order_updates },
               { key: "back_in_stock", label: "Back in stock", desc: "When a saved item is back", value: !!prefs.back_in_stock },
               { key: "price_drop", label: "Price drop", desc: "When a saved item drops in price", value: !!prefs.price_drop },
             ].map((row, idx) => (
@@ -150,45 +151,48 @@ export default function NotificationsScreen() {
           <Button title="Shop now" onPress={() => router.push("/(tabs)/shop" as any)} style={{ marginTop: 12 }} />
         </View>
       ) : (
-        <FlatList
-          data={list}
-          keyExtractor={(n) => n.id}
-          contentContainerStyle={{ padding: spacing.xl, gap: 10, paddingBottom: 32 }}
-          refreshControl={<RefreshControl refreshing={isLoading} onRefresh={() => refetch()} tintColor={colors.foreground} />}
-          renderItem={({ item }) => {
-            const meta = typeMeta(item.type);
-            return (
-              <Pressable
-                onPress={async () => {
-                  if (!item.is_read) {
-                    try { await Haptics.selectionAsync(); } catch {}
-                    markRead.mutate(item.id);
-                  }
-                  const oid = (item.data as any)?.order_id;
-                  if (oid) router.push(`/orders/${oid}` as any);
-                }}
-                style={[styles.notifCard, !item.is_read && styles.unreadCard]}
-              >
-                <View style={[styles.typeIcon, { backgroundColor: meta.bg }]}>
-                  <Ionicons name={meta.icon} size={14} color={colors.foreground} />
-                </View>
-                <View style={{ flex: 1, gap: 3 }}>
-                  <View style={{ flexDirection: "row", gap: 6, alignItems: "center" }}>
-                    <Text style={styles.notifTitle} numberOfLines={1}>{item.title}</Text>
-                    {!item.is_read && <View style={styles.dot} />}
+        <View style={{ flex: 1 }}>
+          <FlashList
+            data={list}
+            keyExtractor={(n) => n.id}
+              contentContainerStyle={{ padding: spacing.xl, paddingBottom: 32 }}
+            ItemSeparatorComponent={() => <View style={{ height: 10 }} />}
+            refreshControl={<RefreshControl refreshing={isLoading} onRefresh={() => refetch()} tintColor={colors.foreground} />}
+            renderItem={({ item }) => {
+              const meta = typeMeta(item.type);
+              return (
+                <Pressable
+                  onPress={async () => {
+                    if (!item.is_read) {
+                      try { await Haptics.selectionAsync(); } catch {}
+                      markRead.mutate(item.id);
+                    }
+                    const oid = (item.data as any)?.order_id;
+                    if (oid) router.push(`/orders/${oid}` as any);
+                  }}
+                  style={[styles.notifCard, !item.is_read && styles.unreadCard]}
+                >
+                  <View style={[styles.typeIcon, { backgroundColor: meta.bg }]}>
+                    <Ionicons name={meta.icon} size={14} color={colors.foreground} />
                   </View>
-                  {item.body ? <Text style={styles.notifBody} numberOfLines={2}>{item.body}</Text> : null}
-                  <View style={{ flexDirection: "row", gap: 6, alignItems: "center" }}>
-                    <Text style={styles.notifType}>{item.type.replace(/_/g, " ")}</Text>
-                    <Text style={styles.dotSep}> </Text>
-                    <Text style={styles.notifDate}>{relativeTime(item.created_at)}</Text>
+                  <View style={{ flex: 1, gap: 3 }}>
+                    <View style={{ flexDirection: "row", gap: 6, alignItems: "center" }}>
+                      <Text style={styles.notifTitle} numberOfLines={1}>{item.title}</Text>
+                      {!item.is_read && <View style={styles.dot} />}
+                    </View>
+                    {item.body ? <Text style={styles.notifBody} numberOfLines={2}>{item.body}</Text> : null}
+                    <View style={{ flexDirection: "row", gap: 6, alignItems: "center" }}>
+                      <Text style={styles.notifType}>{item.type.replace(/_/g, " ")}</Text>
+                      <Text style={styles.dotSep}> </Text>
+                      <Text style={styles.notifDate}>{relativeTime(item.created_at)}</Text>
+                    </View>
                   </View>
-                </View>
-                {markRead.isPending ? <ActivityIndicator size="small" color={colors.muted} /> : !item.is_read ? <Ionicons name="ellipse" size={8} color={colors.clay} /> : <Ionicons name="checkmark" size={14} color={colors.mutedLight} />}
-              </Pressable>
-            );
-          }}
-          showsVerticalScrollIndicator={false} showsHorizontalScrollIndicator={false} />
+                  {markRead.isPending ? <ActivityIndicator size="small" color={colors.muted} /> : !item.is_read ? <Ionicons name="ellipse" size={8} color={colors.clay} /> : <Ionicons name="checkmark" size={14} color={colors.mutedLight} />}
+                </Pressable>
+              );
+            }}
+          />
+        </View>
       )}
     </SafeAreaView>
   );

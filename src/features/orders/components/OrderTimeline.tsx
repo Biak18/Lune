@@ -2,21 +2,23 @@ import { View, Text, StyleSheet } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { colors } from "@/design/colors";
 
-const ORDER_FLOW = ["pending", "confirmed", "processing", "shipped", "out_for_delivery", "delivered"] as const;
+const ORDER_FLOW = ["pending", "confirmed", "processing", "shipped", "delivered"] as const;
 
 const LABELS: Record<string, string> = {
   pending: "Order placed",
   confirmed: "Confirmed",
   processing: "Processing",
   shipped: "Shipped",
-  out_for_delivery: "Out for delivery",
+  // legacy: out_for_delivery treated as shipped for display (kept fallback in getOrderProgress)
   delivered: "Delivered",
   cancelled: "Cancelled",
 };
 
 export function getOrderProgress(status: string) {
   if (status === "cancelled") return -1;
-  const idx = ORDER_FLOW.indexOf(status as any);
+  // legacy DB value maps to shipped step
+  const normalized = status === "out_for_delivery" ? "shipped" : status;
+  const idx = ORDER_FLOW.indexOf(normalized as any);
   return idx === -1 ? 0 : idx;
 }
 

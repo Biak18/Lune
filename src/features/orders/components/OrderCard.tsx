@@ -9,9 +9,9 @@ const statusColor: Record<string, string> = {
   confirmed: colors.clay,
   processing: colors.warning,
   shipped: colors.clayDeep,
-  out_for_delivery: colors.foreground,
   delivered: colors.success,
   cancelled: colors.error,
+  // legacy out_for_delivery falls back to shipped color via ?? below
 };
 
 type Props = {
