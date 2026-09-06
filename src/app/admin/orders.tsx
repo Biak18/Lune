@@ -17,16 +17,8 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-export default function AdminOrdersScreen() {
+function AdminOrderRow({ order }: { order: any }) {
   const qc = useQueryClient();
-  const [statusFilter, setStatusFilter] = useState<string | null>(null);
-  const { data, isLoading, isError, error, refetch } = useQuery({
-    queryKey: ["admin", "orders-list"],
-    queryFn: () => adminService.getAllOrders(),
-  });
-  const filtered = (data ?? []).filter((o: any) => (statusFilter ? o.status === statusFilter : true));
-  const statuses: (string | null)[] = [null, "pending", "confirmed", "processing", "shipped", "out_for_delivery", "delivered", "cancelled"];
-
   const update = useMutation({
     mutationFn: ({ id, status }: { id: string; status: string }) =>
       adminService.updateOrderStatus(id, status),
@@ -36,6 +28,42 @@ export default function AdminOrdersScreen() {
       qc.invalidateQueries({ queryKey: ["orders", "detail", vars.id] });
     },
   });
+
+  return (
+    <View style={styles.card}>
+      <View style={styles.cardInfo}>
+        <Text style={styles.id} numberOfLines={1}>
+          #{order.id.slice(0, 8).toUpperCase()} ${Number(order.total).toFixed(2)}
+        </Text>
+        <Text style={styles.meta} numberOfLines={1}>
+          {new Date(order.created_at).toLocaleString()} {order.user_id.slice(0, 8)}…
+        </Text>
+        <Pressable onPress={() => router.push(`/orders/${order.id}` as any)}>
+          <Text style={styles.link}>View order</Text>
+        </Pressable>
+      </View>
+
+      <View style={styles.cardControls}>
+        <Text style={styles.label}>Status: {order.status.replace(/_/g, " ")}</Text>
+        <OrderStatusControl
+          instanceKey={order.id}
+          currentStatus={order.status}
+          onStatusChange={(nextStatus) => update.mutate({ id: order.id, status: nextStatus })}
+          disabled={update.isPending}
+        />
+      </View>
+    </View>
+  );
+}
+
+export default function AdminOrdersScreen() {
+  const [statusFilter, setStatusFilter] = useState<string | null>(null);
+  const { data, isLoading, isError, error, refetch } = useQuery({
+    queryKey: ["admin", "orders-list"],
+    queryFn: () => adminService.getAllOrders(),
+  });
+  const filtered = (data ?? []).filter((o: any) => (statusFilter ? o.status === statusFilter : true));
+  const statuses: (string | null)[] = [null, "pending", "confirmed", "processing", "shipped", "out_for_delivery", "delivered", "cancelled"];
 
   return (
     <AdminGuard>
@@ -81,38 +109,7 @@ export default function AdminOrdersScreen() {
               gap: 10,
               paddingBottom: 32,
             }}
-            renderItem={({ item }: any) => (
-              <View style={styles.card}>
-                <View style={styles.cardInfo}>
-                  <Text style={styles.id} numberOfLines={1}>
-                    #{item.id.slice(0, 8).toUpperCase()} $
-                    {Number(item.total).toFixed(2)}
-                  </Text>
-                  <Text style={styles.meta} numberOfLines={1}>
-                    {new Date(item.created_at).toLocaleString()} {" "}
-                    {item.user_id.slice(0, 8)}…
-                  </Text>
-                  <Pressable
-                    onPress={() => router.push(`/orders/${item.id}` as any)}
-                  >
-                    <Text style={styles.link}>View order</Text>
-                  </Pressable>
-                </View>
-
-                <View style={styles.cardControls}>
-                  <Text style={styles.label}>
-                    Status: {item.status.replace(/_/g, " ")}
-                  </Text>
-                  <OrderStatusControl
-                    currentStatus={item.status}
-                    onStatusChange={(nextStatus) =>
-                      update.mutate({ id: item.id, status: nextStatus })
-                    }
-                    disabled={update.isPending}
-                  />
-                </View>
-              </View>
-            )}
+            renderItem={({ item }: any) => <AdminOrderRow order={item} />}
            showsVerticalScrollIndicator={false} showsHorizontalScrollIndicator={false} />
         )}
       </SafeAreaView>

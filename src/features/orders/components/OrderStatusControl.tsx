@@ -27,6 +27,7 @@ type Props = {
   flow?: readonly string[];
   disabled?: boolean;
   style?: ViewStyle;
+  instanceKey?: string;
 };
 
 const REVEAL_DURATION = 380;
@@ -131,11 +132,13 @@ export function OrderStatusControl({
   flow = DEFAULT_FLOW,
   disabled,
   style,
+  instanceKey,
 }: Props) {
   const { prev, next, isTerminal } = getPrevNext(currentStatus, flow);
   const reduced = useReducedMotion();
   const isSingle =
     !prev || !next || isTerminal || currentStatus === "cancelled";
+  const keyPrefix = instanceKey ? `${instanceKey}-` : "";
 
   const handlePrev = async () => {
     if (!prev || disabled) return;
@@ -174,7 +177,7 @@ export function OrderStatusControl({
         accessibilityRole="toolbar"
       >
         <Animated.View
-          key={`single-${currentStatus}`}
+          key={`${keyPrefix}single-${currentStatus}`}
           entering={nextEntering}
           exiting={FadeOut.duration(180)}
           style={styles.singleWrap}
@@ -195,7 +198,7 @@ export function OrderStatusControl({
             ]}
           >
             <Animated.Text
-              key={`single-text-${currentStatus}`}
+              key={`${keyPrefix}single-text-${currentStatus}`}
               entering={nextEntering}
               style={[
                 styles.singleText,
@@ -214,7 +217,7 @@ export function OrderStatusControl({
   return (
     <View style={[styles.container, style]} accessibilityRole="toolbar">
       <RollbackButton
-        key={`prev-${currentStatus}`}
+        key={`${keyPrefix}prev-${currentStatus}`}
         prev={prev}
         disabled={disabled}
         onPress={handlePrev}
@@ -222,7 +225,7 @@ export function OrderStatusControl({
       />
 
       <Animated.View
-        key={`next-${currentStatus}`}
+        key={`${keyPrefix}next-${currentStatus}`}
         entering={nextEntering}
         exiting={FadeOut.duration(180)}
         style={styles.nextWrap}
@@ -240,7 +243,7 @@ export function OrderStatusControl({
           ]}
         >
           <Animated.Text
-            key={`next-text-${currentStatus}`}
+            key={`${keyPrefix}next-text-${currentStatus}`}
             entering={nextEntering}
             style={styles.nextText}
           >
