@@ -2,11 +2,13 @@
 import "@supabase/functions-js/edge-runtime.d.ts";
 import { GoogleGenAI } from "npm:@google/genai@2.3.0";
 
-// Primary: Gemini (free tier 15 RPM). Fallback: Groq (free 100 req/day, ultra-fast)
-// Keep GEMINI_API_KEY server-side via `supabase secrets set`. Never EXPO_PUBLIC_*.
+// Primary: Gemini (free tier 15 RPM). Fallback: OpenRouter free or Groq (both free, OpenAI-compatible)
+// Keep keys server-side via `supabase secrets set`. Never EXPO_PUBLIC_*.
 const GEMINI_MODEL = "gemini-2.0-flash"; // stable; upgrade to gemini-3.8-flash when available in your project
-const GROQ_MODEL = "llama-3.1-8b-instant"; // Groq free fastest; alt: llama-3.3-70b-versatile
+const GROQ_MODEL = "llama-3.1-8b-instant"; // Groq free fastest
 const GROQ_URL = "https://api.groq.com/openai/v1/chat/completions";
+const OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions";
+const OPENROUTER_MODEL = "meta-llama/llama-3.1-8b-instruct:free"; // free; alt: google/gemma-3-4b-it:free
 
 const CORS_HEADERS: Record<string, string> = {
   "Access-Control-Allow-Origin": "*",
@@ -110,15 +112,29 @@ function buildInput(
   return parts.join("\n\n");
 }
 
-// ── Groq fallback helpers (free-tier, OpenAI-compatible) ───────────────────
-async function callGroqChat(prompt: string, systemPrompt: string): Promise<string> {
+// ── Fallback helpers (OpenRouter free preferred, then Groq) — both OpenAI-compatible ──
+function getFallbackConfig(): { url: string; model: string; key: string; name: string } | null {
+  const openrouterKey = Deno.env.get("OPENROUTER_API_KEY");
+  if (openrouterKey) return { url: OPENROUTER_URL, model: OPENROUTER_MODEL, key: openrouterKey, name: "openrouter" };
   const groqKey = Deno.env.get("GROQ_API_KEY");
-  if (!groqKey) throw new Error("GROQ_API_KEY missing");
-  const res = await fetch(GROQ_URL, {
+  if (groqKey) return { url: GROQ_URL, model: GROQ_MODEL, key: groqKey, name: "groq" };
+  return null;
+}
+
+async function callFallbackChat(prompt: string, systemPrompt: string): Promise<string> {
+  const cfg = getFallbackConfig();
+  if (!cfg) throw new Error("No fallback key: set OPENROUTER_API_KEY or GROQ_API_KEY");
+  const headers: Record<string, string> = { "Content-Type": "application/json", Authorization: `Bearer ${cfg.key}` };
+  // OpenRouter recommends these but not required
+  if (cfg.name === "openrouter") {
+    headers["HTTP-Referer"] = "https://dress-shop.app";
+    headers["X-Title"] = "Dress Shop AI Stylist";
+  }
+  const res = await fetch(cfg.url, {
     method: "POST",
-    headers: { "Content-Type": "application/json", Authorization: `Bearer ${groqKey}` },
+    headers,
     body: JSON.stringify({
-      model: GROQ_MODEL,
+      model: cfg.model,
       messages: [
         { role: "system", content: systemPrompt },
         { role: "user", content: prompt },
@@ -129,18 +145,22 @@ async function callGroqChat(prompt: string, systemPrompt: string): Promise<strin
   });
   if (!res.ok) {
     const t = await res.text().catch(() => "");
-    throw new Error(`Groq ${res.status}: ${t.slice(0, 400)}`);
+    throw new Error(`${cfg.name} ${res.status}: ${t.slice(0, 400)}`);
   }
   const json = await res.json() as { choices?: Array<{ message?: { content?: string } }> };
   const content = json.choices?.[0]?.message?.content?.trim() ?? "";
-  if (!content) throw new Error("Groq returned empty content");
+  if (!content) throw new Error(`${cfg.name} returned empty content`);
   return content;
 }
 
-async function callGroqIntent(text: string): Promise<ParsedIntent> {
-  const raw = await callGroqChat(text, INTENT_SYSTEM);
+async function callFallbackIntent(text: string): Promise<ParsedIntent> {
+  const raw = await callFallbackChat(text, INTENT_SYSTEM);
   return normalizeGeminiJson(raw, text);
 }
+
+// Back-compat aliases
+const callGroqChat = callFallbackChat;
+const callGroqIntent = callFallbackIntent;
 
 function isQuotaOrAuthError(msg: string): { quota: boolean; auth: boolean } {
   const low = msg.toLowerCase();
@@ -160,14 +180,15 @@ Deno.serve(async (req) => {
   }
 
   const geminiKey = Deno.env.get("GEMINI_API_KEY") ?? Deno.env.get("GOOGLE_API_KEY");
-  const groqKey = Deno.env.get("GROQ_API_KEY");
-  if (!geminiKey && !groqKey) {
-    console.error("[gemini] Missing GEMINI_API_KEY and GROQ_API_KEY");
+  const fallbackCfg = getFallbackConfig();
+  if (!geminiKey && !fallbackCfg) {
+    console.error("[gemini] Missing GEMINI_API_KEY and OPENROUTER_API_KEY/GROQ_API_KEY");
     return jsonResponse(
-      { error: "Server not configured: set GEMINI_API_KEY or GROQ_API_KEY via `supabase secrets set ...`" },
+      { error: "Server not configured: set GEMINI_API_KEY or OPENROUTER_API_KEY via `supabase secrets set ...`" },
       500,
     );
   }
+  const groqKey = fallbackCfg?.key ?? null; // keep variable name for existing branches
 
   let body: Record<string, unknown>;
   try {
@@ -286,14 +307,20 @@ Deno.serve(async (req) => {
         // Fall through to Groq SSE attempt below
       }
     }
-    // Groq streaming fallback (Groq supports OpenAI SSE stream)
+    // Fallback streaming (OpenRouter or Groq, both OpenAI SSE)
     if (groqKey) {
+      const fbCfg = getFallbackConfig()!;
       try {
-        const groqRes = await fetch(GROQ_URL, {
+        const headers: Record<string, string> = { "Content-Type": "application/json", Authorization: `Bearer ${fbCfg.key}` };
+        if (fbCfg.name === "openrouter") {
+          headers["HTTP-Referer"] = "https://dress-shop.app";
+          headers["X-Title"] = "Dress Shop AI Stylist";
+        }
+        const groqRes = await fetch(fbCfg.url, {
           method: "POST",
-          headers: { "Content-Type": "application/json", Authorization: `Bearer ${groqKey}` },
+          headers,
           body: JSON.stringify({
-            model: GROQ_MODEL,
+            model: fbCfg.model,
             messages: [
               { role: "system", content: finalSystem },
               { role: "user", content: combinedInput },
@@ -407,27 +434,28 @@ Deno.serve(async (req) => {
     }
   }
 
-  // Try Groq
+  // Try fallback (OpenRouter or Groq)
   if (groqKey) {
+    const fbCfg = getFallbackConfig()!;
     try {
-      const groqText = await callGroqChat(combinedInput, finalSystem);
+      const groqText = await callFallbackChat(combinedInput, finalSystem);
       const intentForChat = localFallback(promptStr ?? combinedInput);
       return jsonResponse({
         output_text: groqText,
         text: groqText,
         intent: intentForChat,
-        model: `${GROQ_MODEL} (groq-fallback)`,
+        model: `${fbCfg.model} (${fbCfg.name}-fallback)`,
       });
     } catch (gErr) {
-      console.error("[groq] Groq call failed", gErr);
+      console.error(`[${fbCfg.name}] fallback failed`, gErr);
       const gMsg = gErr instanceof Error ? gErr.message : String(gErr);
       const { quota } = isQuotaOrAuthError(gMsg);
       if (quota) {
         const fallbackText = "Our stylist is at capacity for a moment. For now — tell me occasion (wedding/party/office) and style (minimal/elegant) and I'll curate picks.";
         const intentForChat = localFallback(promptStr ?? combinedInput);
-        return jsonResponse({ output_text: fallbackText, text: fallbackText, intent: intentForChat, model: GROQ_MODEL, fallback: true });
+        return jsonResponse({ output_text: fallbackText, text: fallbackText, intent: intentForChat, model: fbCfg.model, fallback: true });
       }
-      return jsonResponse({ error: "AI request failed (Gemini + Groq)", details: gMsg }, 502);
+      return jsonResponse({ error: `AI request failed (Gemini + ${fbCfg.name})`, details: gMsg }, 502);
     }
   }
 
