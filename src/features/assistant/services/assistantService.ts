@@ -49,8 +49,26 @@ export const assistantService = {
     if (error) throw new Error(getErrorMessage(error));
     if (!data) throw new Error("Empty response from AI");
     if (data.error) throw new Error(data.error);
-    const text = data.output_text ?? data.text ?? "";
+    let text = data.output_text ?? data.text ?? "";
     if (!text) throw new Error("AI returned empty text");
+    // Client-side guard: if model leaked JSON intent (e.g. {"occasion":"wedding"...}), sanitize to natural reply
+    const t = text.trim();
+    if (t.startsWith("{") || t.startsWith("```")) {
+      try {
+        const cleaned = t.replace(/^```json\s*/i, "").replace(/^```\s*/, "").replace(/```\s*$/, "").trim();
+        const m = cleaned.match(/\{[\s\S]*?\}/);
+        if (m) {
+          const obj = JSON.parse(m[0]) as Record<string, unknown>;
+          if ("occasion" in obj || "style" in obj || "color" in obj) {
+            const occ = typeof obj.occasion === "string" ? obj.occasion : null;
+            const sty = typeof obj.style === "string" ? obj.style : null;
+            const col = typeof obj.color === "string" ? obj.color : null;
+            const parts = [occ, sty, col].filter(Boolean).join(" ");
+            if (parts) text = `Lovely ${parts} — here are my curated picks for you.`;
+          }
+        }
+      } catch { /* keep raw */ }
+    }
     const intent: ParsedIntent = data.intent ?? { occasion: null, style: null, color: null };
     return { text, intent };
   },
