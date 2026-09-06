@@ -1,15 +1,15 @@
-import { View, Text, StyleSheet, Pressable } from "react-native";
-import { FlashList } from "@shopify/flash-list";
-import { Link, router } from "expo-router";
-import { useAuthStore } from "@/stores/authStore";
-import { useCartQuery, useUpdateCartQuantity, useRemoveFromCart } from "@/features/cart/hooks/useCart";
-import { calculateCartTotals } from "@/features/cart/utils/cartTotals";
-import { CartItemRow } from "@/features/cart/components/CartItemRow";
-import { CartSummary } from "@/features/cart/components/CartSummary";
-import { colors } from "@/design/colors";
-import { spacing, radius } from "@/design/spacing";
 import { Button } from "@/components/ui/Button";
 import { Skeleton } from "@/components/ui/Skeleton";
+import { colors } from "@/design/colors";
+import { radius, spacing } from "@/design/spacing";
+import { CartItemRow } from "@/features/cart/components/CartItemRow";
+import { CartSummary } from "@/features/cart/components/CartSummary";
+import { useCartQuery, useRemoveFromCart, useUpdateCartQuantity } from "@/features/cart/hooks/useCart";
+import { calculateCartTotals } from "@/features/cart/utils/cartTotals";
+import { useAuthStore } from "@/stores/authStore";
+import { FlashList } from "@shopify/flash-list";
+import { Link, router } from "expo-router";
+import { Pressable, StyleSheet, Text, View } from "react-native";
 
 function CartSkeleton() {
   return (
@@ -79,7 +79,7 @@ export default function CartScreen() {
     return (
       <View style={styles.center}>
         <Text style={styles.title}>Your bag is empty.</Text>
-        <Text style={styles.desc}>Add products with your size and color they’ll appear here for checkout.</Text>
+        <Text style={styles.desc}>Add a dress with your size and color — it&apos;ll appear here for checkout.</Text>
         <Link href={"/shop" as any} asChild>
           <Button title="Start shopping" style={{ marginTop: spacing.lg }} />
         </Link>

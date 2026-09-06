@@ -767,6 +767,20 @@ Storage policies must prevent unauthorized modification.
 
 Use database functions when an operation needs atomicity or trusted server-side behavior.
 
+Existing functions:
+
+```text
+is_admin()              -- RLS helper
+add_to_cart()           -- atomic stock check + cart upsert (single round trip)
+handle_new_user()       -- profile creation on signup
+handle_updated_at()     -- updated_at trigger
+ensure_loyalty_account()
+```
+
+`add_to_cart(p_variant_id, p_quantity)` runs as SECURITY INVOKER so cart_items
+RLS stays enforced. It validates the variant (exists, active, in stock), merges
+quantity into any existing cart row, and rejects quantities above stock.
+
 Potential functions:
 
 ```text

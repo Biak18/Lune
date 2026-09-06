@@ -1,11 +1,11 @@
-import { View, Text, StyleSheet, Pressable } from "react-native";
-import { Image } from "expo-image";
-import { Ionicons } from "@expo/vector-icons";
 import { colors } from "@/design/colors";
 import { radius } from "@/design/spacing";
-import { QuantityStepper } from "./QuantityStepper";
+import { Ionicons } from "@expo/vector-icons";
+import { Image } from "expo-image";
+import { Pressable, StyleSheet, Text, View } from "react-native";
 import type { CartItem } from "../services/cartService";
 import { resolveUnitPrice } from "../utils/cartTotals";
+import { QuantityStepper } from "./QuantityStepper";
 
 type Props = {
   item: CartItem;
@@ -19,7 +19,7 @@ export function CartItemRow({ item, onUpdateQuantity, onRemove, updating }: Prop
   const product = variant.product;
   const primary = product?.images?.find((i) => i.is_primary) ?? product?.images?.[0];
   const unitPrice = resolveUnitPrice(item);
-  const lineTotal = unitPrice * item.quantity;
+  const variantLabel = [variant.color, variant.size].filter(Boolean).join(" · ");
   const max = variant.stock_quantity ?? 999;
   const isLow = max > 0 && max <= 3 && item.quantity >= max;
   const isOut = max <= 0;
@@ -36,10 +36,8 @@ export function CartItemRow({ item, onUpdateQuantity, onRemove, updating }: Prop
         <Text style={styles.name} numberOfLines={1}>
           {product?.name ?? "Product"}
         </Text>
-        <Text style={styles.variant}>
-          {variant.color ?? ""} {variant.color && variant.size ? " " : ""} {variant.size ?? ""} SKU {variant.sku}
-        </Text>
-        <Text style={styles.price}>${unitPrice.toFixed(0)} × {item.quantity} = ${lineTotal.toFixed(0)}</Text>
+        {variantLabel ? <Text style={styles.variant}>{variantLabel}</Text> : null}
+        <Text style={styles.price}>${unitPrice.toFixed(0)}</Text>
         {isLow && <Text style={styles.low}>Only {max} in stock</Text>}
         {isOut && <Text style={styles.oos}>Out of stock</Text>}
         <View style={styles.actions}>

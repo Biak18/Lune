@@ -1,23 +1,22 @@
 /* eslint-disable @typescript-eslint/no-unused-vars -- Google auth temporarily disabled */
-import React, { useState } from "react";
-import { View, Text, Pressable, StyleSheet } from "react-native";
-import { Link, router } from "expo-router";
-import { useForm, Controller } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import Animated, { FadeInUp } from "react-native-reanimated";
-import { SafeAreaView } from "react-native-safe-area-context";
-import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
-import { FieldInput } from "@/components/ui/FieldInput";
 import { Button } from "@/components/ui/Button";
+import { FieldInput } from "@/components/ui/FieldInput";
 import { FormError } from "@/components/ui/FormError";
-import { Divider } from "@/components/ui/Divider";
+import { env } from "@/config/env";
+import { colors } from "@/design/colors";
 import { AuthHeader } from "@/features/auth/components/AuthHeader";
 import { DevAccountSwitcher } from "@/features/auth/components/DevAccountSwitcher";
-import { useLoginMutation, useGoogleAuthMutation } from "@/features/auth/hooks/useAuthMutations";
-import { loginSchema, type LoginFormValues } from "@/utils/validation";
+import { useGoogleAuthMutation, useLoginMutation } from "@/features/auth/hooks/useAuthMutations";
 import { getAuthErrorMessage } from "@/utils/errors";
-import { colors } from "@/design/colors";
-import { env } from "@/config/env";
+import { loginSchema, type LoginFormValues } from "@/utils/validation";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Link, router } from "expo-router";
+import { useState } from "react";
+import { Controller, useForm } from "react-hook-form";
+import { Pressable, StyleSheet, Text, View } from "react-native";
+import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
+import Animated, { FadeInUp } from "react-native-reanimated";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function LoginScreen() {
   const [showPassword, setShowPassword] = useState(false);
@@ -117,7 +116,7 @@ export default function LoginScreen() {
             render={({ field: { value, onChange, onBlur } }) => (
               <FieldInput
                 label="Password"
-                placeholder="        "
+                placeholder="Enter your password"
                 secureTextEntry={!showPassword}
                 textContentType="password"
                 autoComplete="password"

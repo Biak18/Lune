@@ -1,9 +1,9 @@
-import { View, Text, ScrollView, StyleSheet, Pressable } from "react-native";
-import { colors } from "@/design/colors";
-import { spacing, radius } from "@/design/spacing";
-import { ProductCard } from "@/features/products/components/ProductCard";
 import { Skeleton } from "@/components/ui/Skeleton";
+import { colors } from "@/design/colors";
+import { radius, spacing } from "@/design/spacing";
+import { ProductCard } from "@/features/products/components/ProductCard";
 import type { ProductWithRelations } from "@/features/products/types";
+import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 
 type Props = {
   title: string;
@@ -78,10 +78,11 @@ const styles = StyleSheet.create({
     alignItems: "flex-start",
   },
   title: {
-    fontSize: 14,
+    fontSize: 11,
     fontWeight: "800",
+    letterSpacing: 1.2,
+    textTransform: "uppercase",
     color: colors.foreground,
-    letterSpacing: -0.2,
   },
   sub: {
     fontSize: 11,

@@ -1,15 +1,15 @@
-import { View, Text, StyleSheet, Pressable } from "react-native";
-import { FlashList } from "@shopify/flash-list";
-import { Link, router } from "expo-router";
-import { useAuthStore } from "@/stores/authStore";
-import { useWishlistQuery } from "@/features/wishlist/hooks/useWishlist";
-import { colors } from "@/design/colors";
-import { spacing, radius } from "@/design/spacing";
 import { Button } from "@/components/ui/Button";
 import { Skeleton } from "@/components/ui/Skeleton";
-import { ProductCard } from "@/features/products/components/ProductCard";
-import * as Haptics from "expo-haptics";
+import { colors } from "@/design/colors";
+import { radius, spacing } from "@/design/spacing";
 import { useAddToCart } from "@/features/cart/hooks/useCart";
+import { ProductCard } from "@/features/products/components/ProductCard";
+import { useWishlistQuery } from "@/features/wishlist/hooks/useWishlist";
+import { useAuthStore } from "@/stores/authStore";
+import { FlashList } from "@shopify/flash-list";
+import * as Haptics from "expo-haptics";
+import { Link, router } from "expo-router";
+import { Pressable, StyleSheet, Text, View } from "react-native";
 
 function WishlistSkeleton() {
   return (
@@ -77,7 +77,7 @@ export default function WishlistScreen() {
       <View style={styles.center}>
         <Text style={styles.title}>Wishlist</Text>
         <Text style={styles.sub}>Your wishlist is empty.</Text>
-        <Text style={styles.desc}>Save styles you love heart any product to keep it here.</Text>
+        <Text style={styles.desc}>Save styles you love — tap the heart on any product to keep it here.</Text>
         <Link href={"/shop" as any} asChild>
           <Button title="Explore products" style={{ marginTop: spacing.lg }} />
         </Link>

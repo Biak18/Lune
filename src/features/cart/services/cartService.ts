@@ -67,40 +67,14 @@ export const cartService = {
   },
 
   async addToCart(variantId: string, quantity = 1): Promise<void> {
-    const { data: userData } = await supabase.auth.getUser();
-    const userId = userData.user?.id;
-    if (!userId) throw new Error("Please sign in to add to bag");
-
-    // Stock validation
-    const { data: variant, error: vErr } = await supabase
-      .from("product_variants")
-      .select("id, stock_quantity, is_active")
-      .eq("id", variantId)
-      .single();
-    if (vErr) throw vErr;
-    if (!variant || variant.is_active === false) throw new Error("This variant is unavailable");
-    if ((variant.stock_quantity ?? 0) <= 0) throw new Error("Out of stock");
-
-    // Check existing cart row for this variant
-    const { data: existing } = await supabase
-      .from("cart_items")
-      .select("id, quantity")
-      .eq("user_id", userId)
-      .eq("variant_id", variantId)
-      .maybeSingle();
-
-    const desiredQty = (existing?.quantity ?? 0) + quantity;
-    if (desiredQty > (variant.stock_quantity ?? 0)) {
-      throw new Error(`Only ${variant.stock_quantity} in stock`);
-    }
-
-    if (existing) {
-      const { error } = await supabase.from("cart_items").update({ quantity: desiredQty }).eq("id", existing.id);
-      if (error) throw error;
-    } else {
-      const { error } = await supabase.from("cart_items").insert({ user_id: userId, variant_id: variantId, quantity });
-      if (error) throw error;
-    }
+    // Single round trip: stock validation + atomic upsert happen server-side.
+    // User identity comes from auth.uid() inside the RPC, so no client-side
+    // getUser() hop is needed.
+    const { error } = await supabase.rpc("add_to_cart", {
+      p_variant_id: variantId,
+      p_quantity: quantity,
+    });
+    if (error) throw error;
   },
 
   async updateQuantity(cartItemId: string, newQuantity: number): Promise<void> {

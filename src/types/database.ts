@@ -666,6 +666,20 @@ export type Database = {
     }
     Functions: {
       is_admin: { Args: never; Returns: boolean }
+      add_to_cart: {
+        Args: {
+          p_quantity?: number
+          p_variant_id: string
+        }
+        Returns: {
+          created_at: string
+          id: string
+          quantity: number
+          updated_at: string
+          user_id: string
+          variant_id: string
+        }
+      }
     }
     Enums: {
       [_ in never]: never

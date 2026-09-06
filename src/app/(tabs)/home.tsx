@@ -1,6 +1,7 @@
 import { Skeleton } from "@/components/ui/Skeleton";
 import { colors } from "@/design/colors";
 import { radius, spacing } from "@/design/spacing";
+import { fontFamily } from "@/design/typography";
 import { NotificationBell } from "@/features/notifications/components/NotificationBell";
 import { ProductCard } from "@/features/products/components/ProductCard";
 import {
@@ -363,11 +364,12 @@ const styles = StyleSheet.create({
     opacity: 0.9,
   },
   heroTitle: {
-    fontSize: 36,
-    lineHeight: 34,
-    fontWeight: "600",
+    fontSize: 42,
+    lineHeight: 39,
+    fontWeight: "500",
     color: colors.paper,
-    letterSpacing: -0.8,
+    letterSpacing: -1.4,
+    fontFamily: fontFamily.display,
   },
   heroSub: {
     fontSize: 12,
@@ -401,10 +403,11 @@ const styles = StyleSheet.create({
     alignItems: "baseline",
   },
   sectionTitle: {
-    fontSize: 15,
-    fontWeight: "700",
+    fontSize: 11,
+    fontWeight: "800",
+    letterSpacing: 1.2,
+    textTransform: "uppercase",
     color: colors.foreground,
-    letterSpacing: -0.2,
   },
   sectionHint: {
     fontSize: 11,

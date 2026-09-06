@@ -1,8 +1,8 @@
 import { colors } from "@/design/colors";
+import { useFavoriteIdsQuery } from "@/features/wishlist/hooks/useWishlist";
 import { Ionicons } from "@expo/vector-icons";
 import { Tabs } from "expo-router";
-import { View, Text, StyleSheet } from "react-native";
-import { useFavoriteIdsQuery } from "@/features/wishlist/hooks/useWishlist";
+import { StyleSheet, Text, View } from "react-native";
 
 function WishlistTabIcon({ focused, color, size }: { focused: boolean; color: any; size: number }) {
   const { data: ids } = useFavoriteIdsQuery();
@@ -59,7 +59,7 @@ export default function TabsLayout() {
           title: "Shop",
           tabBarIcon: ({ focused, color, size }) => (
             <Ionicons
-              name={focused ? "cart" : "cart-outline"}
+              name={focused ? "grid" : "grid-outline"}
               size={size}
               color={color}
             />

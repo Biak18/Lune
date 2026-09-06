@@ -1,5 +1,6 @@
-import { View, Text, StyleSheet } from "react-native";
 import { colors } from "@/design/colors";
+import { fontFamily } from "@/design/typography";
+import { StyleSheet, Text, View } from "react-native";
 
 /**
  * Clay hero with gold circles and abstract dress silhouette.
@@ -86,6 +87,6 @@ const styles = StyleSheet.create({
     fontWeight: "500",
     color: colors.background, // paper
     maxWidth: 170,
-    // fontFamily: "Newsreader_500Medium",
+    fontFamily: fontFamily.display,
   },
 });

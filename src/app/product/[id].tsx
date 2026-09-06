@@ -1,37 +1,49 @@
-import { useLocalSearchParams, router } from "expo-router";
-import { View, Text, ScrollView, Pressable, StyleSheet, ActivityIndicator, useWindowDimensions } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
-import { useState, useMemo, useEffect } from "react";
-import * as Haptics from "expo-haptics";
-import { colors } from "@/design/colors";
-import { spacing } from "@/design/spacing";
-import { useProductQuery } from "@/features/products/hooks/useProducts";
 import { Button } from "@/components/ui/Button";
-import { ProductGallery } from "@/features/products/components/ProductGallery";
+import { Skeleton } from "@/components/ui/Skeleton";
+import { colors } from "@/design/colors";
+import { radius, spacing } from "@/design/spacing";
+import { fontFamily } from "@/design/typography";
+import { useAddToCart } from "@/features/cart/hooks/useCart";
+import { CompleteTheLook } from "@/features/outfit/components/CompleteTheLook";
 import { ColorSelector } from "@/features/products/components/ColorSelector";
+import { ProductGallery } from "@/features/products/components/ProductGallery";
 import { SizeSelector } from "@/features/products/components/SizeSelector";
 import { StockBadge } from "@/features/products/components/StockBadge";
-import { WishlistButton } from "@/features/wishlist/components/WishlistButton";
-import { useAddToCart } from "@/features/cart/hooks/useCart";
+import { useProductQuery } from "@/features/products/hooks/useProducts";
+import {
+    findVariant,
+    getActiveVariants,
+    getUniqueColors,
+    getUniqueSizes,
+    isVariantInStock,
+    resolveVariantPrice,
+    validateVariantSelection,
+    validationMessage,
+} from "@/features/products/utils/variant";
+import { RecommendationCarousel } from "@/features/recommendations/components/RecommendationCarousel";
+import { useOccasionRecommendations, useSimilarProducts } from "@/features/recommendations/hooks/useRecommendations";
 import { RatingStars } from "@/features/reviews/components/RatingStars";
 import { ReviewCard } from "@/features/reviews/components/ReviewCard";
 import { ReviewForm } from "@/features/reviews/components/ReviewForm";
-import { useReviewsQuery, useReviewAvgQuery, useVerifiedPurchaseQuery, useCreateReview, useUpdateReview, useDeleteReview } from "@/features/reviews/hooks/useReviews";
+import { useCreateReview, useDeleteReview, useReviewAvgQuery, useReviewsQuery, useUpdateReview, useVerifiedPurchaseQuery } from "@/features/reviews/hooks/useReviews";
+import { WishlistButton } from "@/features/wishlist/components/WishlistButton";
 import { useAuthStore } from "@/stores/authStore";
-import { CompleteTheLook } from "@/features/outfit/components/CompleteTheLook";
-import { RecommendationCarousel } from "@/features/recommendations/components/RecommendationCarousel";
-import { useSimilarProducts, useOccasionRecommendations } from "@/features/recommendations/hooks/useRecommendations";
 import { useRecentlyViewedStore } from "@/stores/recentlyViewedStore";
-import {
-  getActiveVariants,
-  getUniqueColors,
-  getUniqueSizes,
-  findVariant,
-  resolveVariantPrice,
-  validateVariantSelection,
-  validationMessage,
-  isVariantInStock,
-} from "@/features/products/utils/variant";
+import * as Haptics from "expo-haptics";
+import { router, useLocalSearchParams } from "expo-router";
+import { useEffect, useMemo, useState } from "react";
+import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, useWindowDimensions, View } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+
+/** Quiet detail row used inside the consolidated details card. */
+function DetailRow({ label, text }: { label: string; text: string }) {
+  return (
+    <View style={styles.detailRow}>
+      <Text style={styles.detailLabel}>{label}</Text>
+      <Text style={styles.detailText}>{text}</Text>
+    </View>
+  );
+}
 
 export default function ProductScreen() {
   const params = useLocalSearchParams<{ id: string }>();
@@ -140,8 +152,16 @@ export default function ProductScreen() {
 
   if (isLoading) {
     return (
-      <SafeAreaView style={styles.center} edges={["top"]}>
-        <ActivityIndicator color={colors.foreground} />
+      <SafeAreaView style={styles.root} edges={["top"]}>
+        <View>
+          <Skeleton style={styles.skeletonHero} />
+          <View style={styles.skeletonBody}>
+            <Skeleton style={{ height: 26, width: "72%", borderRadius: 8 }} />
+            <Skeleton style={{ height: 20, width: "38%", borderRadius: 8 }} />
+            <Skeleton style={{ height: 12, width: "52%", borderRadius: 6 }} />
+            <Skeleton style={{ height: 44, borderRadius: 999 }} />
+          </View>
+        </View>
       </SafeAreaView>
     );
   }
@@ -212,7 +232,6 @@ export default function ProductScreen() {
                 {isVerified && <Text style={styles.verifiedHint}>Verified</Text>}
               </View>
             </View>
-            <WishlistButton productId={product.id} size={42} style={{ marginTop: 2 }} />
           </View>
           {product.description ? <Text style={styles.desc}>{product.description}</Text> : null}
         </View>
@@ -337,18 +356,23 @@ export default function ProductScreen() {
           )}
         </View>
 
-        {/* Additional info per PRD 13: size guide / shipping / details */}
+        {/* Details: one quiet card with divider rows */}
         <View style={styles.infoCard}>
-          <Text style={styles.infoTitle}>Size guide</Text>
-          <Text style={styles.infoText}>XS: Bust 32′ S: 34′ M: 36′ L: 38′ XL: 40′ XXL: 42′. Model is 5′9 wearing S.</Text>
-        </View>
-        <View style={styles.infoCard}>
-          <Text style={styles.infoTitle}>Shipping & returns</Text>
-          <Text style={styles.infoText}>Free shipping over $80 Standard 3–5 days Easy 30-day returns. Order snapshot preserves price.</Text>
-        </View>
-        <View style={styles.infoCard}>
-          <Text style={styles.infoTitle}>Product details</Text>
-          <Text style={styles.infoText}>{product.description ?? "Premium fabric Lined Care: hand wash cold. "} Style: {product.style ?? " "} Occasion: {product.occasion ?? " "}</Text>
+          <DetailRow label="Size guide" text={`XS – XXL · Model is 5'9", wearing a S`} />
+          <View style={styles.infoDivider} />
+          <DetailRow label="Shipping & returns" text="Free over $80 · 3–5 days · 30-day returns" />
+          {product.style ? (
+            <>
+              <View style={styles.infoDivider} />
+              <DetailRow label="Style" text={product.style} />
+            </>
+          ) : null}
+          {product.occasion ? (
+            <>
+              <View style={styles.infoDivider} />
+              <DetailRow label="Occasion" text={product.occasion} />
+            </>
+          ) : null}
         </View>
 
         <CompleteTheLook product={product} />
@@ -438,22 +462,13 @@ const styles = StyleSheet.create({
     textDecorationLine: "underline",
     marginTop: 8,
   },
-  back: {
-    alignSelf: "flex-start",
-    paddingVertical: 4,
-  },
-  backText: {
-    fontSize: 12,
-    fontWeight: "800",
-    letterSpacing: 0.6,
-    textTransform: "uppercase",
-    color: colors.foreground,
-  },
   name: {
-    fontSize: 22,
-    fontWeight: "700",
-    letterSpacing: -0.4,
+    fontSize: 24,
+    lineHeight: 27,
+    fontWeight: "500",
+    letterSpacing: -0.5,
     color: colors.foreground,
+    fontFamily: fontFamily.display,
   },
   price: {
     fontSize: 18,
@@ -577,86 +592,44 @@ const styles = StyleSheet.create({
     textTransform: "uppercase",
     color: colors.foreground,
   },
-  heroPillIcon: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: "rgba(255,255,255,0.92)",
-    borderWidth: 1,
-    borderColor: "rgba(42,27,22,0.08)",
-    alignItems: "center",
-    justifyContent: "center",
-    overflow: "hidden",
-  },
   heroWishlist: {
     backgroundColor: "rgba(255,255,255,0.92)",
     borderColor: "rgba(42,27,22,0.08)",
   },
-  heroBottom: {
-    position: "absolute",
-    bottom: 0,
-    left: 0,
-    right: 0,
-    padding: spacing.xl,
-    paddingTop: 32,
-    zIndex: 2,
+  infoCard: {
+    padding: 14,
+    borderRadius: radius.lg,
+    backgroundColor: colors.surface,
+    borderWidth: 1,
+    borderColor: colors.border,
   },
-  heroScrim: {
-    ...StyleSheet.absoluteFill,
-    backgroundColor: "rgba(42,27,22,0.32)",
+  detailRow: {
+    gap: 2,
+    paddingVertical: 10,
   },
-  heroInfo: {
-    gap: 4,
-  },
-  heroCategory: {
+  detailLabel: {
     fontSize: 10,
     fontWeight: "800",
     letterSpacing: 1,
     textTransform: "uppercase",
-    color: colors.paper,
-    opacity: 0.9,
+    color: colors.mutedLight,
   },
-  heroName: {
-    fontSize: 22,
-    fontWeight: "700",
-    letterSpacing: -0.4,
-    color: colors.paper,
-    lineHeight: 24,
-  },
-  heroPrice: {
-    fontSize: 18,
-    fontWeight: "800",
-    color: colors.paper,
-  },
-  heroBasePrice: {
-    fontSize: 13,
-    fontWeight: "500",
-    color: "rgba(255,255,255,0.75)",
-    textDecorationLine: "line-through",
-  },
-  heroRating: {
-    fontSize: 11,
-    fontWeight: "600",
-    color: "rgba(255,255,255,0.85)",
-  },
-  infoCard: {
-    padding: 12,
-    borderRadius: 12,
-    backgroundColor: colors.surface,
-    borderWidth: 1,
-    borderColor: colors.border,
-    gap: 4,
-  },
-  infoTitle: {
-    fontSize: 11,
-    fontWeight: "800",
-    letterSpacing: 0.7,
-    textTransform: "uppercase",
+  detailText: {
+    fontSize: 12,
+    lineHeight: 17,
     color: colors.foreground,
   },
-  infoText: {
-    fontSize: 12,
-    lineHeight: 16,
-    color: colors.muted,
+  infoDivider: {
+    height: StyleSheet.hairlineWidth,
+    backgroundColor: colors.border,
+  },
+  skeletonHero: {
+    width: "100%",
+    aspectRatio: 0.9,
+    borderRadius: 0,
+  },
+  skeletonBody: {
+    padding: spacing.xl,
+    gap: 12,
   },
 });

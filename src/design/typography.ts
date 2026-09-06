@@ -1,6 +1,12 @@
 import { TextStyle } from "react-native";
 import { colors } from "./colors";
 
+/** Editorial serif (Newsreader) loaded in the root layout. */
+export const fontFamily = {
+  display: "Newsreader_500Medium",
+  displayRegular: "Newsreader_400Regular",
+} as const;
+
 export const typography: Record<string, TextStyle> = {
   display: {
     fontSize: 43,
@@ -8,8 +14,7 @@ export const typography: Record<string, TextStyle> = {
     fontWeight: "500",
     letterSpacing: -1.9, // -0.045em
     color: colors.foreground,
-    // Newsreader serif in sample — fallback to system if not loaded
-    fontFamily: "Newsreader_500Medium",
+    fontFamily: fontFamily.display,
   },
   heading: {
     fontSize: 24,

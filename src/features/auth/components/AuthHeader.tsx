@@ -1,6 +1,6 @@
-import React from "react";
-import { View, Text, StyleSheet } from "react-native";
 import { colors } from "@/design/colors";
+import { fontFamily } from "@/design/typography";
+import { StyleSheet, Text, View } from "react-native";
 
 type Props = {
   title: string;
@@ -37,8 +37,7 @@ const styles = StyleSheet.create({
     fontWeight: "500",
     letterSpacing: -1.9,
     color: colors.foreground,
-    // Newsreader fallback
-    // fontFamily: "Newsreader_500Medium",
+    fontFamily: fontFamily.display,
   },
   subtitle: {
     fontSize: 13,

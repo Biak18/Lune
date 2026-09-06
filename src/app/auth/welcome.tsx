@@ -1,11 +1,11 @@
-import { View, Text, Pressable, StyleSheet, Alert } from "react-native";
-import { router } from "expo-router";
-import { Screen } from "@/components/ui/Screen";
 import { Button } from "@/components/ui/Button";
+import { Screen } from "@/components/ui/Screen";
+import { colors } from "@/design/colors";
+import { AuthArt } from "@/features/auth/components/AuthArt";
 import { AuthHeader } from "@/features/auth/components/AuthHeader";
 import { AuthTopBar } from "@/features/auth/components/AuthTopBar";
-import { AuthArt } from "@/features/auth/components/AuthArt";
-import { colors } from "@/design/colors";
+import { router } from "expo-router";
+import { Pressable, StyleSheet, Text, View } from "react-native";
 
 export default function WelcomeScreen() {
   return (
@@ -26,7 +26,7 @@ export default function WelcomeScreen() {
         </View>
 
         <View style={styles.browse}>
-          <Pressable onPress={() => Alert.alert("Browse as guest", "In the full app, this opens the Shop tab.")}>
+          <Pressable onPress={() => router.replace("/(tabs)/shop" as any)} accessibilityRole="button" accessibilityLabel="Browse the shop as guest">
             <Text style={styles.browseText}>
               Continue as guest <Text style={styles.browseArrow}>↗</Text>
             </Text>
