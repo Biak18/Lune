@@ -2,7 +2,11 @@
 import "@supabase/functions-js/edge-runtime.d.ts";
 import { GoogleGenAI } from "npm:@google/genai@2.3.0";
 
-const GEMINI_MODEL = "gemini-2.0-flash";
+// Primary: Gemini (free tier 15 RPM). Fallback: Groq (free 100 req/day, ultra-fast)
+// Keep GEMINI_API_KEY server-side via `supabase secrets set`. Never EXPO_PUBLIC_*.
+const GEMINI_MODEL = "gemini-2.0-flash"; // stable; upgrade to gemini-3.8-flash when available in your project
+const GROQ_MODEL = "llama-3.1-8b-instant"; // Groq free fastest; alt: llama-3.3-70b-versatile
+const GROQ_URL = "https://api.groq.com/openai/v1/chat/completions";
 
 const CORS_HEADERS: Record<string, string> = {
   "Access-Control-Allow-Origin": "*",
@@ -106,6 +110,46 @@ function buildInput(
   return parts.join("\n\n");
 }
 
+// ── Groq fallback helpers (free-tier, OpenAI-compatible) ───────────────────
+async function callGroqChat(prompt: string, systemPrompt: string): Promise<string> {
+  const groqKey = Deno.env.get("GROQ_API_KEY");
+  if (!groqKey) throw new Error("GROQ_API_KEY missing");
+  const res = await fetch(GROQ_URL, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Authorization: `Bearer ${groqKey}` },
+    body: JSON.stringify({
+      model: GROQ_MODEL,
+      messages: [
+        { role: "system", content: systemPrompt },
+        { role: "user", content: prompt },
+      ],
+      temperature: 0.7,
+      max_tokens: 500,
+    }),
+  });
+  if (!res.ok) {
+    const t = await res.text().catch(() => "");
+    throw new Error(`Groq ${res.status}: ${t.slice(0, 400)}`);
+  }
+  const json = await res.json() as { choices?: Array<{ message?: { content?: string } }> };
+  const content = json.choices?.[0]?.message?.content?.trim() ?? "";
+  if (!content) throw new Error("Groq returned empty content");
+  return content;
+}
+
+async function callGroqIntent(text: string): Promise<ParsedIntent> {
+  const raw = await callGroqChat(text, INTENT_SYSTEM);
+  return normalizeGeminiJson(raw, text);
+}
+
+function isQuotaOrAuthError(msg: string): { quota: boolean; auth: boolean } {
+  const low = msg.toLowerCase();
+  return {
+    quota: msg.includes("429") || low.includes("quota") || low.includes("rate") || low.includes("exhausted") || low.includes("too many"),
+    auth: low.includes("api key") || msg.includes("401") || low.includes("unauthorized") || low.includes("invalid api"),
+  };
+}
+
 Deno.serve(async (req) => {
   // CORS preflight
   if (req.method === "OPTIONS") {
@@ -115,12 +159,12 @@ Deno.serve(async (req) => {
     return jsonResponse({ error: "Method not allowed. Use POST." }, 405);
   }
 
-  // Auth is optional (verify_jwt=false), but we still read env for Gemini key
-  const apiKey = Deno.env.get("GEMINI_API_KEY") ?? Deno.env.get("GOOGLE_API_KEY");
-  if (!apiKey) {
-    console.error("[gemini] Missing GEMINI_API_KEY env var");
+  const geminiKey = Deno.env.get("GEMINI_API_KEY") ?? Deno.env.get("GOOGLE_API_KEY");
+  const groqKey = Deno.env.get("GROQ_API_KEY");
+  if (!geminiKey && !groqKey) {
+    console.error("[gemini] Missing GEMINI_API_KEY and GROQ_API_KEY");
     return jsonResponse(
-      { error: "Server not configured: GEMINI_API_KEY missing. Set with: supabase secrets set GEMINI_API_KEY=..." },
+      { error: "Server not configured: set GEMINI_API_KEY or GROQ_API_KEY via `supabase secrets set ...`" },
       500,
     );
   }
@@ -140,28 +184,44 @@ Deno.serve(async (req) => {
     if (!intentText || !intentText.trim()) {
       return jsonResponse({ occasion: null, style: null, color: null });
     }
-    if (!apiKey) {
-      return jsonResponse(localFallback(intentText));
-    }
-    try {
-      const client = new GoogleGenAI({ apiKey });
-      const interaction = await client.interactions.create({
-        model: GEMINI_MODEL,
-        input: intentText,
-        // @ts-ignore
-        system_instruction: INTENT_SYSTEM,
-      });
-      const raw = (interaction as unknown as { output_text?: string }).output_text ?? "";
-      let finalRaw = raw;
-      if (!finalRaw) {
-        const steps = (interaction as unknown as { steps?: Array<{ content?: Array<{ text?: string }> }> }).steps;
-        if (steps) for (const s of steps) for (const c of s.content ?? []) if (c.text) finalRaw += c.text;
+    // Try Gemini first if available
+    if (geminiKey) {
+      try {
+        const client = new GoogleGenAI({ apiKey: geminiKey });
+        const interaction = await client.interactions.create({
+          model: GEMINI_MODEL,
+          input: intentText,
+          // @ts-ignore
+          system_instruction: INTENT_SYSTEM,
+        });
+        const raw = (interaction as unknown as { output_text?: string }).output_text ?? "";
+        let finalRaw = raw;
+        if (!finalRaw) {
+          const steps = (interaction as unknown as { steps?: Array<{ content?: Array<{ text?: string }> }> }).steps;
+          if (steps) for (const s of steps) for (const c of s.content ?? []) if (c.text) finalRaw += c.text;
+        }
+        return jsonResponse(normalizeGeminiJson(finalRaw, intentText));
+      } catch (err) {
+        console.warn("[gemini:intent] Gemini failed, trying Groq", err);
+        if (groqKey) {
+          try {
+            return jsonResponse(await callGroqIntent(intentText));
+          } catch (gErr) {
+            console.warn("[gemini:intent] Groq also failed, local fallback", gErr);
+          }
+        }
+        return jsonResponse(localFallback(intentText));
       }
-      return jsonResponse(normalizeGeminiJson(finalRaw, intentText));
-    } catch (err) {
-      console.warn("[gemini:intent] failed, fallback", err);
-      return jsonResponse(localFallback(intentText));
     }
+    // No Gemini key — try Groq directly
+    if (groqKey) {
+      try {
+        return jsonResponse(await callGroqIntent(intentText));
+      } catch (err) {
+        console.warn("[gemini:intent] Groq failed, local fallback", err);
+      }
+    }
+    return jsonResponse(localFallback(intentText));
   }
 
   // Back-compat: old hello endpoint { name }
@@ -184,94 +244,194 @@ Deno.serve(async (req) => {
     return jsonResponse({ error: "Missing 'input' or 'messages'. Send { input: string } or { messages: [...] }" }, 400);
   }
 
-  const client = new GoogleGenAI({ apiKey });
+  // ── Streaming: try Gemini stream, fallback to Groq non-stream SSE ─────────
+  if (stream) {
+    if (geminiKey) {
+      try {
+        const client = new GoogleGenAI({ apiKey: geminiKey });
+        const streamIter = await client.interactions.create({
+          model: GEMINI_MODEL,
+          input: combinedInput,
+          // @ts-ignore - SDK types allow system_instruction at top-level per docs
+          system_instruction: finalSystem,
+          stream: true,
+        });
 
-  try {
-    if (stream) {
-      // Streaming via Interactions API
-      const streamIter = await client.interactions.create({
+        const encoder = new TextEncoder();
+        const readable = new ReadableStream({
+          async start(controller) {
+            try {
+              for await (const event of streamIter as AsyncIterable<{
+                event_type: string;
+                delta?: { type?: string; text?: string };
+                interaction?: { id?: string; usage?: unknown };
+              }>) {
+                if (event.event_type === "step.delta" && event.delta?.type === "text" && event.delta.text) {
+                  controller.enqueue(encoder.encode(`data: ${JSON.stringify({ delta: event.delta.text })}\n\n`));
+                } else if (event.event_type === "interaction.completed") {
+                  controller.enqueue(encoder.encode(`data: ${JSON.stringify({ done: true })}\n\n`));
+                }
+              }
+              controller.close();
+            } catch (e) {
+              controller.enqueue(encoder.encode(`data: ${JSON.stringify({ error: String(e) })}\n\n`));
+              controller.close();
+            }
+          },
+        });
+
+        return new Response(readable, { headers: sseHeaders() });
+      } catch (err) {
+        console.warn("[gemini] Gemini stream failed, trying Groq", err);
+        // Fall through to Groq SSE attempt below
+      }
+    }
+    // Groq streaming fallback (Groq supports OpenAI SSE stream)
+    if (groqKey) {
+      try {
+        const groqRes = await fetch(GROQ_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json", Authorization: `Bearer ${groqKey}` },
+          body: JSON.stringify({
+            model: GROQ_MODEL,
+            messages: [
+              { role: "system", content: finalSystem },
+              { role: "user", content: combinedInput },
+            ],
+            temperature: 0.7,
+            max_tokens: 500,
+            stream: true,
+          }),
+        });
+        if (groqRes.ok && groqRes.body) {
+          const encoder = new TextEncoder();
+          const decoder = new TextDecoder();
+          const readable = new ReadableStream({
+            async start(controller) {
+              const reader = groqRes.body!.getReader();
+              let buf = "";
+              try {
+                while (true) {
+                  const { done, value } = await reader.read();
+                  if (done) break;
+                  buf += decoder.decode(value, { stream: true });
+                  const lines = buf.split("\n");
+                  buf = lines.pop() ?? "";
+                  for (const line of lines) {
+                    const t = line.trim();
+                    if (!t.startsWith("data:")) continue;
+                    const payload = t.slice(5).trim();
+                    if (payload === "[DONE]") {
+                      controller.enqueue(encoder.encode(`data: ${JSON.stringify({ done: true })}\n\n`));
+                      continue;
+                    }
+                    try {
+                      const j = JSON.parse(payload) as { choices?: Array<{ delta?: { content?: string } }> };
+                      const delta = j.choices?.[0]?.delta?.content;
+                      if (delta) controller.enqueue(encoder.encode(`data: ${JSON.stringify({ delta })}\n\n`));
+                    } catch { /* ignore */ }
+                  }
+                }
+                controller.close();
+              } catch (e) {
+                controller.enqueue(encoder.encode(`data: ${JSON.stringify({ error: String(e) })}\n\n`));
+                controller.close();
+              }
+            },
+          });
+          return new Response(readable, { headers: sseHeaders() });
+        }
+      } catch (gErr) {
+        console.warn("[gemini] Groq stream fallback failed", gErr);
+      }
+    }
+    // Both streams failed — return non-stream fallback as SSE single delta
+    const fallbackText = "Our stylist is at capacity. Tell me occasion (wedding/party/office) and style (minimal/elegant) and I'll curate picks.";
+    const enc = new TextEncoder();
+    return new Response(enc.encode(`data: ${JSON.stringify({ delta: fallbackText })}\n\ndata: ${JSON.stringify({ done: true })}\n\n`), { headers: sseHeaders() });
+  }
+
+  // ── Non-streaming: Gemini → Groq → local fallback ────────────────────────
+  if (geminiKey) {
+    try {
+      const client = new GoogleGenAI({ apiKey: geminiKey });
+      const interaction = await client.interactions.create({
         model: GEMINI_MODEL,
         input: combinedInput,
-        // @ts-ignore - SDK types allow system_instruction at top-level per docs
+        // @ts-ignore
         system_instruction: finalSystem,
-        stream: true,
       });
 
-      const encoder = new TextEncoder();
-      const readable = new ReadableStream({
-        async start(controller) {
-          try {
-            for await (const event of streamIter as AsyncIterable<{
-              event_type: string;
-              delta?: { type?: string; text?: string };
-              interaction?: { id?: string; usage?: unknown };
-            }>) {
-              if (event.event_type === "step.delta" && event.delta?.type === "text" && event.delta.text) {
-                controller.enqueue(encoder.encode(`data: ${JSON.stringify({ delta: event.delta.text })}\n\n`));
-              } else if (event.event_type === "interaction.completed") {
-                controller.enqueue(encoder.encode(`data: ${JSON.stringify({ done: true })}\n\n`));
-              }
+      const output = (interaction as unknown as { output_text?: string }).output_text
+        ?? (interaction as unknown as { id?: string }).id
+        ? (interaction as unknown as { output_text: string }).output_text ?? ""
+        : "";
+
+      let finalText = output;
+      if (!finalText) {
+        const steps = (interaction as unknown as { steps?: Array<{ content?: Array<{ text?: string }> }> }).steps;
+        if (steps) {
+          for (const s of steps) {
+            if (s.content) {
+              for (const c of s.content) if (c.text) finalText += c.text;
             }
-            controller.close();
-          } catch (e) {
-            controller.enqueue(encoder.encode(`data: ${JSON.stringify({ error: String(e) })}\n\n`));
-            controller.close();
-          }
-        },
-      });
-
-      return new Response(readable, { headers: sseHeaders() });
-    }
-
-    // Non-streaming
-    const interaction = await client.interactions.create({
-      model: GEMINI_MODEL,
-      input: combinedInput,
-      // @ts-ignore
-      system_instruction: finalSystem,
-    });
-
-    const output = (interaction as unknown as { output_text?: string }).output_text
-      ?? (interaction as unknown as { id?: string }).id
-      ? (interaction as unknown as { output_text: string }).output_text ?? ""
-      : "";
-
-    // Fallback: try to extract from steps if output_text missing
-    let finalText = output;
-    if (!finalText) {
-      const steps = (interaction as unknown as { steps?: Array<{ content?: Array<{ text?: string }> }> }).steps;
-      if (steps) {
-        for (const s of steps) {
-          if (s.content) {
-            for (const c of s.content) if (c.text) finalText += c.text;
           }
         }
       }
-    }
 
-    if (!finalText) finalText = "I'm here to help you find your perfect dress — tell me the occasion and style you love.";
+      if (!finalText) finalText = "I'm here to help you find your perfect dress — tell me the occasion and style you love.";
 
-    // Include intent in same response so client can do 1 call (saves free-tier quota)
-    const intentForChat = localFallback(promptStr ?? combinedInput);
-    return jsonResponse({
-      output_text: finalText,
-      text: finalText, // alias
-      intent: intentForChat,
-      id: (interaction as unknown as { id?: string }).id ?? undefined,
-      model: GEMINI_MODEL,
-    });
-  } catch (err) {
-    console.error("[gemini] Gemini call failed", err);
-    const msg = err instanceof Error ? err.message : String(err);
-    const isAuth = msg.toLowerCase().includes("api key") || msg.includes("401");
-    const isQuota = msg.includes("429") || msg.toLowerCase().includes("quota");
-    if (isQuota) {
-      // Free-tier 20 req/min exceeded — return graceful fallback instead of 429 so UI stays usable
-      const fallbackText = "Our stylist is at capacity for a moment (free-tier limit). For now — tell me occasion (wedding/party/office) and style (minimal/elegant) and I'll curate picks from our catalog.";
       const intentForChat = localFallback(promptStr ?? combinedInput);
-      return jsonResponse({ output_text: fallbackText, text: fallbackText, intent: intentForChat, model: GEMINI_MODEL, fallback: true });
+      return jsonResponse({
+        output_text: finalText,
+        text: finalText,
+        intent: intentForChat,
+        id: (interaction as unknown as { id?: string }).id ?? undefined,
+        model: GEMINI_MODEL,
+      });
+    } catch (err) {
+      console.error("[gemini] Gemini call failed, trying Groq", err);
+      const msg = err instanceof Error ? err.message : String(err);
+      const { quota, auth } = isQuotaOrAuthError(msg);
+      // If not quota/auth and no Groq, surface error; otherwise try Groq
+      if (!groqKey) {
+        if (quota) {
+          const fallbackText = "Our stylist is at capacity for a moment (free-tier limit). For now — tell me occasion (wedding/party/office) and style (minimal/elegant) and I'll curate picks from our catalog.";
+          const intentForChat = localFallback(promptStr ?? combinedInput);
+          return jsonResponse({ output_text: fallbackText, text: fallbackText, intent: intentForChat, model: GEMINI_MODEL, fallback: true });
+        }
+        const status = auth ? 401 : 502;
+        return jsonResponse({ error: "Gemini request failed", details: msg }, status);
+      }
+      // Fall through to Groq attempt
     }
-    const status = isAuth ? 401 : 502;
-    return jsonResponse({ error: "Gemini request failed", details: msg }, status);
   }
+
+  // Try Groq
+  if (groqKey) {
+    try {
+      const groqText = await callGroqChat(combinedInput, finalSystem);
+      const intentForChat = localFallback(promptStr ?? combinedInput);
+      return jsonResponse({
+        output_text: groqText,
+        text: groqText,
+        intent: intentForChat,
+        model: `${GROQ_MODEL} (groq-fallback)`,
+      });
+    } catch (gErr) {
+      console.error("[groq] Groq call failed", gErr);
+      const gMsg = gErr instanceof Error ? gErr.message : String(gErr);
+      const { quota } = isQuotaOrAuthError(gMsg);
+      if (quota) {
+        const fallbackText = "Our stylist is at capacity for a moment. For now — tell me occasion (wedding/party/office) and style (minimal/elegant) and I'll curate picks.";
+        const intentForChat = localFallback(promptStr ?? combinedInput);
+        return jsonResponse({ output_text: fallbackText, text: fallbackText, intent: intentForChat, model: GROQ_MODEL, fallback: true });
+      }
+      return jsonResponse({ error: "AI request failed (Gemini + Groq)", details: gMsg }, 502);
+    }
+  }
+
+  // No provider available — graceful local fallback (should not happen due to top guard)
+  const fallbackText = "I'm here to help you find your perfect dress — tell me the occasion and style you love.";
+  return jsonResponse({ output_text: fallbackText, text: fallbackText, intent: localFallback(combinedInput), model: "local-fallback", fallback: true });
 });
