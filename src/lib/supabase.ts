@@ -1,11 +1,11 @@
-import "react-native-url-polyfill/auto";
-import { Platform } from "react-native";
-import { polyfillWebCrypto } from "expo-standard-web-crypto";
-import * as Crypto from "expo-crypto";
-import { createClient } from "@supabase/supabase-js";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { env } from "@/config/env";
 import type { Database } from "@/types/database";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { createClient } from "@supabase/supabase-js";
+import * as Crypto from "expo-crypto";
+import { polyfillWebCrypto } from "expo-standard-web-crypto";
+import { Platform } from "react-native";
+import "react-native-url-polyfill/auto";
 
 // Polyfill WebCrypto for Supabase PKCE S256 (Expo Go = JS only, no native rebuild)
 // expo-standard-web-crypto gives getRandomValues; subtle.digest needs expo-crypto
@@ -54,7 +54,7 @@ if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
 // Requests will fail with auth errors which we surface to user.
 // Netlify proxy (EXPO_NETLIFY_API_KEY) takes precedence when set for VPN-blocked regions — keeps original SUPABASE_URL fallback.
 const NETLIFY_PROXY_URL = env.netlifyProxyUrl;
-const url = NETLIFY_PROXY_URL || SUPABASE_URL || "https://placeholder.supabase.co";
+const url = SUPABASE_URL || "https://placeholder.supabase.co";
 const anonKey = SUPABASE_ANON_KEY || "placeholder-anon-key";
 
 export const supabase = createClient<Database>(url, anonKey, {
