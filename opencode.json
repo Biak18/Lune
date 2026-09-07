@@ -1,5 +1,31 @@
 {
   "$schema": "https://opencode.ai/config.json",
+
+  "provider": {
+    "xkiro": {
+      "npm": "@ai-sdk/openai-compatible",
+      "name": "xKiro",
+      "options": {
+        "baseURL": "https://api.xkiro.com/v1",
+        "apiKey": "{env:XKIRO_API_KEY}"
+      },
+      "models": {
+        "qwen/qwen3-coder-plus:free": {
+          "name": "Qwen3 Coder Plus"
+        },
+        "deepseek/deepseek-v4-flash": {
+          "name": "DeepSeek V4 Flash"
+        },
+        "qwen/qwen3-max:free": {
+          "name": "Qwen3 Max"
+        },
+        "mistralai/mistral-large-2512": {
+          "name": "Mistral Large 2512"
+        }
+      }
+    }
+  },
+
   "mcp": {
     "supabase": {
       "type": "remote",

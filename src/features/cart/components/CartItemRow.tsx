@@ -44,11 +44,18 @@ export function CartItemRow({ item, onUpdateQuantity, onRemove, updating }: Prop
           <QuantityStepper
             quantity={item.quantity}
             max={max}
-            disabled={false}
+            disabled={updating}
             onDecrease={() => onUpdateQuantity(item.id, item.quantity - 1)}
             onIncrease={() => onUpdateQuantity(item.id, item.quantity + 1)}
           />
-          <Pressable onPress={() => onRemove(item.id)} hitSlop={6} style={styles.remove} accessibilityRole="button" accessibilityLabel="Remove item">
+          <Pressable
+            onPress={() => onRemove(item.id)}
+            disabled={updating}
+            hitSlop={6}
+            style={[styles.remove, updating && styles.removeDisabled]}
+            accessibilityRole="button"
+            accessibilityLabel="Remove item"
+          >
             <Ionicons name="trash-outline" size={14} color={colors.muted} />
             <Text style={styles.removeText}>Remove</Text>
           </Pressable>
@@ -124,5 +131,8 @@ const styles = StyleSheet.create({
     fontSize: 11,
     fontWeight: "700",
     color: colors.muted,
+  },
+  removeDisabled: {
+    opacity: 0.5,
   },
 });

@@ -2,14 +2,17 @@ import { Button } from "@/components/ui/Button";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { colors } from "@/design/colors";
 import { radius, spacing } from "@/design/spacing";
+import { fontFamily } from "@/design/typography";
 import { useAddToCart } from "@/features/cart/hooks/useCart";
 import { ProductCard } from "@/features/products/components/ProductCard";
 import { useWishlistQuery } from "@/features/wishlist/hooks/useWishlist";
 import { useAuthStore } from "@/stores/authStore";
+import { Ionicons } from "@expo/vector-icons";
 import { FlashList } from "@shopify/flash-list";
 import * as Haptics from "expo-haptics";
 import { Link, router } from "expo-router";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { useEffect, useRef, useState } from "react";
+import { Pressable, RefreshControl, StyleSheet, Text, View } from "react-native";
 
 function WishlistSkeleton() {
   return (
@@ -29,6 +32,15 @@ export default function WishlistScreen() {
   const user = useAuthStore((s) => s.user);
   const { data: products, isLoading, isError, error, refetch, isRefetching } = useWishlistQuery();
   const addToCart = useAddToCart();
+  const [addedId, setAddedId] = useState<string | null>(null);
+  const addedTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(
+    () => () => {
+      if (addedTimer.current) clearTimeout(addedTimer.current);
+    },
+    []
+  );
 
   if (!user) {
     return (
@@ -75,6 +87,9 @@ export default function WishlistScreen() {
   if (list.length === 0) {
     return (
       <View style={styles.center}>
+        <View style={styles.emptyIconWrap}>
+          <Ionicons name="heart-outline" size={24} color={colors.muted} />
+        </View>
         <Text style={styles.title}>Wishlist</Text>
         <Text style={styles.sub}>Your wishlist is empty.</Text>
         <Text style={styles.desc}>Save styles you love — tap the heart on any product to keep it here.</Text>
@@ -98,6 +113,14 @@ export default function WishlistScreen() {
           keyExtractor={(item) => item.id}
           numColumns={2}
           contentContainerStyle={{ padding: spacing.xl, paddingBottom: 32 }}
+          refreshControl={
+            <RefreshControl
+              refreshing={isRefetching}
+              onRefresh={refetch}
+              tintColor={colors.foreground}
+              colors={[colors.foreground]}
+            />
+          }
           renderItem={({ item }) => {
             const firstInStock = item.variants.find((v) => v.is_active && (v.stock_quantity ?? 0) > 0) ?? null;
             const canAdd = !!firstInStock;
@@ -112,19 +135,34 @@ export default function WishlistScreen() {
                       } catch {}
                       return;
                     }
-                    // Instant feedback optimistic cart already updates via useAddToCart
-                    try {
-                      await Haptics.selectionAsync();
-                    } catch {}
-                    addToCart.mutate({ variantId: firstInStock.id, quantity: 1 });
-                    router.push("/(tabs)/cart" as any);
+                    // Stay on the wishlist: optimistic cart + transient "Added" label keep browsing momentum
+                    addToCart.mutate(
+                      { variantId: firstInStock.id, quantity: 1 },
+                      {
+                        onSuccess: async () => {
+                          try {
+                            await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+                          } catch {}
+                          setAddedId(item.id);
+                          if (addedTimer.current) clearTimeout(addedTimer.current);
+                          addedTimer.current = setTimeout(() => setAddedId(null), 2200);
+                        },
+                        onError: async () => {
+                          try {
+                            await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+                          } catch {}
+                        },
+                      }
+                    );
                   }}
                   disabled={!canAdd}
                   style={[styles.addBag, !canAdd && { opacity: 0.5 }]}
                   accessibilityRole="button"
                   accessibilityLabel={`Add ${item.name} to bag`}
                 >
-                  <Text style={styles.addBagText}>{canAdd ? "Move to bag" : "Out of stock"}</Text>
+                  <Text style={styles.addBagText}>
+                    {addedId === item.id ? "Added to bag" : canAdd ? "Move to bag" : "Out of stock"}
+                  </Text>
                 </Pressable>
               </View>
             );
@@ -150,9 +188,10 @@ const styles = StyleSheet.create({
   },
   headerTitle: {
     fontSize: 28,
-    fontWeight: "700",
+    fontWeight: "500",
     letterSpacing: -0.6,
     color: colors.foreground,
+    fontFamily: fontFamily.display,
   },
   count: {
     fontSize: 11,
@@ -169,10 +208,22 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: 8,
   },
+  emptyIconWrap: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: colors.surface,
+    borderWidth: 1,
+    borderColor: colors.border,
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 8,
+  },
   title: {
     fontSize: 28,
-    fontWeight: "700",
+    fontWeight: "500",
     color: colors.foreground,
+    fontFamily: fontFamily.display,
   },
   sub: {
     fontSize: 16,

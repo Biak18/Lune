@@ -1,14 +1,20 @@
-import { View, Text, ScrollView, Pressable, StyleSheet, ActivityIndicator, Alert } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
-import { useLocalSearchParams, router } from "expo-router";
-import { useOrderQuery, useCancelOrder } from "@/features/orders/hooks/useOrders";
-import { OrderTimeline } from "@/features/orders/components/OrderTimeline";
-import { OrderItemsList } from "@/features/orders/components/OrderItemsList";
-import { DeliveryInfo } from "@/features/orders/components/DeliveryInfo";
-import { colors } from "@/design/colors";
-import { spacing, radius } from "@/design/spacing";
 import { Button } from "@/components/ui/Button";
+import { colors } from "@/design/colors";
+import { radius, spacing } from "@/design/spacing";
+import { fontFamily } from "@/design/typography";
+import { DeliveryInfo } from "@/features/orders/components/DeliveryInfo";
+import { OrderItemsList } from "@/features/orders/components/OrderItemsList";
+import { OrderTimeline } from "@/features/orders/components/OrderTimeline";
+import { useCancelOrder, useOrderQuery } from "@/features/orders/hooks/useOrders";
 import * as Haptics from "expo-haptics";
+import { router, useLocalSearchParams } from "expo-router";
+import { ActivityIndicator, Alert, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+
+/** "awaiting_shipment" -> "Awaiting Shipment" */
+function formatStatus(status: string) {
+  return status.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+}
 
 export default function OrderDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -61,7 +67,7 @@ export default function OrderDetailScreen() {
 
         <View style={styles.header}>
           <Text style={styles.heading}>Order #{order.id.slice(0, 8).toUpperCase()}</Text>
-          <Text style={styles.sub}>{new Date(order.created_at).toLocaleString()} Status: {order.status.replace(/_/g, " ")}</Text>
+          <Text style={styles.sub}>{new Date(order.created_at).toLocaleString()} · Status: {formatStatus(order.status)}</Text>
         </View>
 
         <OrderTimeline status={order.status} createdAt={order.created_at} />
@@ -172,9 +178,10 @@ const styles = StyleSheet.create({
   },
   heading: {
     fontSize: 22,
-    fontWeight: "700",
+    fontWeight: "500",
     letterSpacing: -0.4,
     color: colors.foreground,
+    fontFamily: fontFamily.display,
   },
   sub: {
     fontSize: 12,

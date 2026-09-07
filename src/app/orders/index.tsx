@@ -1,14 +1,16 @@
-import { FlashList } from "@shopify/flash-list";
-import { View, Text, StyleSheet, Pressable } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
-import { router } from "expo-router";
-import { useOrdersQuery } from "@/features/orders/hooks/useOrders";
-import { OrderCard } from "@/features/orders/components/OrderCard";
-import { colors } from "@/design/colors";
-import { spacing, radius } from "@/design/spacing";
 import { Button } from "@/components/ui/Button";
 import { Skeleton } from "@/components/ui/Skeleton";
+import { colors } from "@/design/colors";
+import { radius, spacing } from "@/design/spacing";
+import { fontFamily } from "@/design/typography";
+import { OrderCard } from "@/features/orders/components/OrderCard";
+import { useOrdersQuery } from "@/features/orders/hooks/useOrders";
 import { useAuthStore } from "@/stores/authStore";
+import { Ionicons } from "@expo/vector-icons";
+import { FlashList } from "@shopify/flash-list";
+import { router } from "expo-router";
+import { Pressable, RefreshControl, StyleSheet, Text, View } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 function OrdersSkeleton() {
   return (
@@ -63,6 +65,9 @@ export default function OrdersScreen() {
   if (list.length === 0) {
     return (
       <SafeAreaView style={styles.center} edges={["top"]}>
+        <View style={styles.emptyIconWrap}>
+          <Ionicons name="receipt-outline" size={24} color={colors.muted} />
+        </View>
         <Text style={styles.title}>No orders yet</Text>
         <Text style={styles.desc}>Your purchases will appear here with tracking and delivery info.</Text>
         <Button title="Start shopping" onPress={() => router.replace("/(tabs)/shop" as any)} style={{ marginTop: 16 }} />
@@ -85,6 +90,14 @@ export default function OrdersScreen() {
           keyExtractor={(o) => o.id}
             contentContainerStyle={{ padding: spacing.xl, paddingBottom: 32 }}
           ItemSeparatorComponent={() => <View style={{ height: 12 }} />}
+          refreshControl={
+            <RefreshControl
+              refreshing={isRefetching}
+              onRefresh={refetch}
+              tintColor={colors.foreground}
+              colors={[colors.foreground]}
+            />
+          }
           renderItem={({ item }) => <OrderCard order={item} onPress={() => router.push(`/orders/${item.id}` as any)} />}
         />
       </View>
@@ -104,9 +117,10 @@ const styles = StyleSheet.create({
   },
   heading: {
     fontSize: 28,
-    fontWeight: "700",
+    fontWeight: "500",
     letterSpacing: -0.6,
     color: colors.foreground,
+    fontFamily: fontFamily.display,
     marginTop: 4,
   },
   count: {
@@ -123,6 +137,17 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     gap: 8,
+  },
+  emptyIconWrap: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: colors.surface,
+    borderWidth: 1,
+    borderColor: colors.border,
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 8,
   },
   title: {
     fontSize: 20,

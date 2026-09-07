@@ -1,11 +1,12 @@
-import { View, Text, StyleSheet, Pressable } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
-import { useLocalSearchParams, router } from "expo-router";
-import { useOrderQuery } from "@/features/orders/hooks/useOrders";
-import { colors } from "@/design/colors";
-import { spacing, radius } from "@/design/spacing";
 import { Button } from "@/components/ui/Button";
+import { colors } from "@/design/colors";
+import { radius, spacing } from "@/design/spacing";
+import { fontFamily } from "@/design/typography";
+import { useOrderQuery } from "@/features/orders/hooks/useOrders";
 import { Ionicons } from "@expo/vector-icons";
+import { router, useLocalSearchParams } from "expo-router";
+import { Pressable, StyleSheet, Text, View } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function CheckoutSuccessScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -104,9 +105,11 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 22,
-    fontWeight: "700",
+    fontWeight: "500",
+    letterSpacing: -0.4,
     color: colors.foreground,
     textAlign: "center",
+    fontFamily: fontFamily.display,
   },
   desc: {
     fontSize: 13,

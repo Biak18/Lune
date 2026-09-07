@@ -1,16 +1,20 @@
-import { useState } from "react";
-import { View, Text, StyleSheet } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
-import { router } from "expo-router";
 import { colors } from "@/design/colors";
 import { spacing } from "@/design/spacing";
+import { fontFamily } from "@/design/typography";
+import { ProductGrid } from "@/features/products/components/ProductGrid";
 import { SearchInput } from "@/features/products/components/SearchInput";
 import { useProductsInfiniteQuery } from "@/features/products/hooks/useProducts";
-import { ProductGrid } from "@/features/products/components/ProductGrid";
+import { useDebouncedValue } from "@/hooks/useDebouncedValue";
+import { router } from "expo-router";
+import { useState } from "react";
+import { StyleSheet, Text, View } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function SearchScreen() {
   const [q, setQ] = useState("");
-  const query = useProductsInfiniteQuery({ search: q.trim() || undefined }, 10);
+  // Debounce so typing doesn't fire a query per keystroke
+  const debouncedQ = useDebouncedValue(q, 300);
+  const query = useProductsInfiniteQuery({ search: debouncedQ.trim() || undefined }, 10);
   const products = query.data?.pages.flatMap((p) => p.data) ?? [];
   const hasSearched = q.trim().length > 0;
 
@@ -41,6 +45,8 @@ export default function SearchScreen() {
             isError={query.isError}
             errorMessage={query.error ? String((query.error as Error).message) : undefined}
             onRetry={() => query.refetch()}
+            refreshing={query.isRefetching}
+            onRefresh={() => query.refetch()}
             onEndReached={() => {
               if (query.hasNextPage && !query.isFetchingNextPage) query.fetchNextPage();
             }}
@@ -59,8 +65,10 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 28,
-    fontWeight: "700",
+    fontWeight: "500",
+    letterSpacing: -0.6,
     color: colors.foreground,
+    fontFamily: fontFamily.display,
   },
   cancel: {
     fontSize: 13,

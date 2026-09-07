@@ -31,7 +31,7 @@ import { useAuthStore } from "@/stores/authStore";
 import { useRecentlyViewedStore } from "@/stores/recentlyViewedStore";
 import * as Haptics from "expo-haptics";
 import { router, useLocalSearchParams } from "expo-router";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, useWindowDimensions, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -105,6 +105,16 @@ export default function ProductScreen() {
   const ctaDisabled = !isValid || (selectedVariant ? !isVariantInStock(selectedVariant) : true);
   const addToCart = useAddToCart();
 
+  // Transient "added" confirmation keeps the shopper on the page instead of jumping to the bag
+  const [justAdded, setJustAdded] = useState(false);
+  const addedTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(
+    () => () => {
+      if (addedTimer.current) clearTimeout(addedTimer.current);
+    },
+    []
+  );
+
   // Reviews hooks must be before any early returns to keep hook order stable
   const user = useAuthStore((s) => s.user);
   const productIdForReviews = product?.id ?? id ?? "";
@@ -131,6 +141,11 @@ export default function ProductScreen() {
   }, [product?.id, addRecent]);
 
   const handleAddToBag = async () => {
+    // add_to_cart RPC is authenticated-only; route guests to sign in first
+    if (!user) {
+      router.push("/auth/login" as any);
+      return;
+    }
     if (!validation || !validation.ok || !selectedVariant) {
       try {
         await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
@@ -140,7 +155,9 @@ export default function ProductScreen() {
     try {
       await addToCart.mutateAsync({ variantId: selectedVariant.id, quantity: 1 });
       await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-      router.push("/(tabs)/cart" as any);
+      setJustAdded(true);
+      if (addedTimer.current) clearTimeout(addedTimer.current);
+      addedTimer.current = setTimeout(() => setJustAdded(false), 2600);
     } catch (e: any) {
       try {
         await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
@@ -393,13 +410,34 @@ export default function ProductScreen() {
 
       <View style={styles.footer}>
         <View style={{ gap: 6 }}>
+          {selectedVariant && price != null && !justAdded ? (
+            <Text style={styles.footerMeta}>
+              {[selectedVariant.color, selectedVariant.size].filter(Boolean).join(" · ")}
+              {" — $"}
+              {Number(price).toFixed(0)}
+            </Text>
+          ) : null}
           <Button
-            title={addToCart.isPending ? "Adding…" : ctaTitle}
+            title={addToCart.isPending ? "Adding…" : justAdded ? "Added to bag" : ctaTitle}
             disabled={ctaDisabled || addToCart.isPending}
             loading={addToCart.isPending}
             onPress={handleAddToBag}
             accessibilityLabel={ctaTitle}
           />
+          {justAdded && selectedVariant ? (
+            <Pressable
+              onPress={() => router.push("/(tabs)/cart" as any)}
+              hitSlop={8}
+              style={styles.addedRow}
+              accessibilityRole="link"
+              accessibilityLabel="View bag"
+            >
+              <Text style={styles.addedText}>
+                Added — {[selectedVariant.color, selectedVariant.size].filter(Boolean).join(" · ")}
+              </Text>
+              <Text style={styles.addedLink}>View bag</Text>
+            </Pressable>
+          ) : null}
           {addToCart.isError && (
             <Text style={styles.validation}>{String((addToCart.error as Error)?.message ?? "Could not add to bag")}</Text>
           )}
@@ -514,6 +552,30 @@ const styles = StyleSheet.create({
     fontSize: 11,
     color: colors.muted,
     textAlign: "center",
+  },
+  footerMeta: {
+    fontSize: 11,
+    fontWeight: "600",
+    letterSpacing: 0.3,
+    color: colors.muted,
+    textAlign: "center",
+  },
+  addedRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+  },
+  addedText: {
+    fontSize: 12,
+    fontWeight: "600",
+    color: colors.success,
+  },
+  addedLink: {
+    fontSize: 12,
+    fontWeight: "700",
+    color: colors.clayDeep,
+    textDecorationLine: "underline",
   },
   notice: {
     padding: 12,

@@ -1,23 +1,24 @@
-import { useState, useMemo } from "react";
-import { View, Text, Pressable, StyleSheet, ActivityIndicator, Alert, Keyboard } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
-import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
-import { router } from "expo-router";
-import { useAuthStore } from "@/stores/authStore";
-import { useCartQuery } from "@/features/cart/hooks/useCart";
-import { useAddressesQuery, useCreateAddress } from "@/features/addresses/hooks/useAddresses";
-import { useCreateOrder } from "@/features/orders/hooks/useOrders";
-import { calculateCartTotals } from "@/features/cart/utils/cartTotals";
-import { loyaltyService } from "@/features/loyalty/services/loyaltyService";
-import { useQuery } from "@tanstack/react-query";
+import { Button } from "@/components/ui/Button";
+import { colors } from "@/design/colors";
+import { radius, spacing } from "@/design/spacing";
+import { fontFamily } from "@/design/typography";
 import { AddressCard } from "@/features/addresses/components/AddressCard";
 import { AddressForm, type AddressFormValues } from "@/features/addresses/components/AddressForm";
+import { useAddressesQuery, useCreateAddress } from "@/features/addresses/hooks/useAddresses";
 import { CartSummary } from "@/features/cart/components/CartSummary";
-import { colors } from "@/design/colors";
-import { spacing, radius } from "@/design/spacing";
-import { Button } from "@/components/ui/Button";
-import { Image } from "expo-image";
+import { useCartQuery } from "@/features/cart/hooks/useCart";
+import { calculateCartTotals } from "@/features/cart/utils/cartTotals";
+import { loyaltyService } from "@/features/loyalty/services/loyaltyService";
+import { useCreateOrder } from "@/features/orders/hooks/useOrders";
+import { useAuthStore } from "@/stores/authStore";
+import { useQuery } from "@tanstack/react-query";
 import * as Haptics from "expo-haptics";
+import { Image } from "expo-image";
+import { router } from "expo-router";
+import { useMemo, useState } from "react";
+import { ActivityIndicator, Alert, Keyboard, Pressable, StyleSheet, Text, View } from "react-native";
+import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function CheckoutScreen() {
   const user = useAuthStore((s) => s.user);
@@ -183,7 +184,6 @@ export default function CheckoutScreen() {
         </Pressable>
 
         <Text style={styles.heading}>Checkout</Text>
-        <Text style={styles.step}>Shipping Review Pay</Text>
 
         {/* Shipping Address */}
         <View style={styles.section}>
@@ -221,7 +221,12 @@ export default function CheckoutScreen() {
 
         {/* Order Summary */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Order summary {totals.itemCount} items</Text>
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>Order summary</Text>
+            <Text style={styles.sectionCount}>
+              {totals.itemCount} {totals.itemCount === 1 ? "item" : "items"}
+            </Text>
+          </View>
           <View style={{ gap: 10 }}>
             {cartItems.map((it) => {
               const p = it.variant.product;
@@ -251,7 +256,7 @@ export default function CheckoutScreen() {
             </View>
             <View style={{ flex: 1 }}>
               <Text style={styles.paymentTitle}>Pay on delivery</Text>
-              <Text style={styles.paymentDesc}>Cash or UPI on delivery no payment now</Text>
+              <Text style={styles.paymentDesc}>Cash or UPI on delivery — no payment needed now</Text>
             </View>
           </View>
           <Text style={styles.paymentHint}>Order total is verified server side</Text>
@@ -261,7 +266,7 @@ export default function CheckoutScreen() {
         {(pendingAmount > 0 || pendingFreeShip) && (
           <View style={styles.rewardsBanner}>
             <Text style={styles.rewardsText}>
-              Rewards applied {pendingFreeShip ? "Free shipping" : `$${pendingAmount} off`} will be deducted
+              Rewards applied: {pendingFreeShip ? "Free shipping" : `$${pendingAmount} off`} · deducted at checkout
             </Text>
           </View>
         )}
@@ -342,17 +347,10 @@ const styles = StyleSheet.create({
   },
   heading: {
     fontSize: 28,
-    fontWeight: "700",
+    fontWeight: "500",
     letterSpacing: -0.6,
     color: colors.foreground,
-  },
-  step: {
-    fontSize: 11,
-    fontWeight: "800",
-    letterSpacing: 0.7,
-    textTransform: "uppercase",
-    color: colors.muted,
-    marginTop: -12,
+    fontFamily: fontFamily.display,
   },
   section: {
     gap: 10,
@@ -368,6 +366,11 @@ const styles = StyleSheet.create({
     letterSpacing: 0.5,
     textTransform: "uppercase",
     color: colors.foreground,
+  },
+  sectionCount: {
+    fontSize: 11,
+    fontWeight: "600",
+    color: colors.muted,
   },
   addBtn: {
     height: 28,

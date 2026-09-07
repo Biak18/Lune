@@ -1,14 +1,16 @@
 import { Screen } from "@/components/ui/Screen";
 import { colors } from "@/design/colors";
 import { spacing } from "@/design/spacing";
+import { fontFamily } from "@/design/typography";
 import { CategoryChips } from "@/features/products/components/CategoryChips";
 import { FilterSheet } from "@/features/products/components/FilterSheet";
 import { ProductGrid } from "@/features/products/components/ProductGrid";
 import { SearchInput } from "@/features/products/components/SearchInput";
 import {
-  useCategoriesQuery,
-  useProductsInfiniteQuery,
+    useCategoriesQuery,
+    useProductsInfiniteQuery,
 } from "@/features/products/hooks/useProducts";
+import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 import { useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
@@ -40,10 +42,13 @@ export default function ShopScreen() {
 
   const { data: categories, isLoading: catsLoading } = useCategoriesQuery();
 
+  // Debounce so typing doesn't fire a query per keystroke
+  const debouncedSearch = useDebouncedValue(search, 300);
+
   const priceRange = priceToRange(priceFilter);
   const query = useProductsInfiniteQuery(
     {
-      search: search.trim() || undefined,
+      search: debouncedSearch.trim() || undefined,
       categoryId: categoryId ?? undefined,
       style: styleFilter ?? undefined,
       occasion: occasionFilter ?? undefined,
@@ -102,6 +107,9 @@ export default function ShopScreen() {
   const hasActiveFilters =
     !!styleFilter || !!occasionFilter || !!sizeFilter || !!colorFilter || !!priceFilter || inStockOnly || sort !== "recommended";
 
+  const activeFilterCount =
+    [styleFilter, occasionFilter, sizeFilter, colorFilter, priceFilter].filter(Boolean).length + (inStockOnly ? 1 : 0);
+
   return (
     <Screen
       scrollable={false}
@@ -111,8 +119,8 @@ export default function ShopScreen() {
     >
       <View style={styles.header}>
         <Text style={styles.title}>Shop</Text>
-        <Pressable onPress={openFilter} style={styles.filterBtn}>
-          <Text style={styles.filterText}>Filters</Text>
+        <Pressable onPress={openFilter} style={styles.filterBtn} accessibilityRole="button" accessibilityLabel="Open filters">
+          <Text style={styles.filterText}>{activeFilterCount > 0 ? `Filters · ${activeFilterCount}` : "Filters"}</Text>
         </Pressable>
       </View>
 
@@ -154,6 +162,8 @@ export default function ShopScreen() {
           isError={query.isError}
           errorMessage={query.error ? String((query.error as Error).message) : undefined}
           onRetry={() => query.refetch()}
+          refreshing={query.isRefetching}
+          onRefresh={() => query.refetch()}
           onBrowseCollections={() => {
             setSearch("");
             handleClear();
@@ -205,9 +215,10 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 28,
-    fontWeight: "700",
+    fontWeight: "500",
     letterSpacing: -0.6,
     color: colors.foreground,
+    fontFamily: fontFamily.display,
   },
   filterBtn: {
     height: 34,

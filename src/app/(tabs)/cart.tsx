@@ -2,14 +2,16 @@ import { Button } from "@/components/ui/Button";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { colors } from "@/design/colors";
 import { radius, spacing } from "@/design/spacing";
+import { fontFamily } from "@/design/typography";
 import { CartItemRow } from "@/features/cart/components/CartItemRow";
 import { CartSummary } from "@/features/cart/components/CartSummary";
 import { useCartQuery, useRemoveFromCart, useUpdateCartQuantity } from "@/features/cart/hooks/useCart";
 import { calculateCartTotals } from "@/features/cart/utils/cartTotals";
 import { useAuthStore } from "@/stores/authStore";
+import { Ionicons } from "@expo/vector-icons";
 import { FlashList } from "@shopify/flash-list";
 import { Link, router } from "expo-router";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { Pressable, RefreshControl, StyleSheet, Text, View } from "react-native";
 
 function CartSkeleton() {
   return (
@@ -74,10 +76,19 @@ export default function CartScreen() {
 
   const list = items ?? [];
   const totals = calculateCartTotals(list);
+  // Pending state scoped to the row being changed, not the whole list
+  const updatingId = updateQty.isPending
+    ? updateQty.variables?.cartItemId ?? null
+    : remove.isPending
+      ? remove.variables ?? null
+      : null;
 
   if (list.length === 0) {
     return (
       <View style={styles.center}>
+        <View style={styles.emptyIconWrap}>
+          <Ionicons name="bag-outline" size={24} color={colors.muted} />
+        </View>
         <Text style={styles.title}>Your bag is empty.</Text>
         <Text style={styles.desc}>Add a dress with your size and color — it&apos;ll appear here for checkout.</Text>
         <Link href={"/shop" as any} asChild>
@@ -100,10 +111,18 @@ export default function CartScreen() {
           keyExtractor={(it) => it.id}
           contentContainerStyle={{ padding: spacing.xl, paddingBottom: 16 }}
           ItemSeparatorComponent={() => <View style={{ height: 12 }} />}
+          refreshControl={
+            <RefreshControl
+              refreshing={isRefetching}
+              onRefresh={refetch}
+              tintColor={colors.foreground}
+              colors={[colors.foreground]}
+            />
+          }
           renderItem={({ item }) => (
             <CartItemRow
               item={item}
-              updating={updateQty.isPending || remove.isPending}
+              updating={item.id === updatingId}
               onUpdateQuantity={(id, qty) => updateQty.mutate({ cartItemId: id, quantity: qty })}
               onRemove={(id) => remove.mutate(id)}
             />
@@ -149,9 +168,10 @@ const styles = StyleSheet.create({
   },
   headerTitle: {
     fontSize: 28,
-    fontWeight: "700",
+    fontWeight: "500",
     letterSpacing: -0.6,
     color: colors.foreground,
+    fontFamily: fontFamily.display,
   },
   count: {
     fontSize: 11,
@@ -168,10 +188,22 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: 8,
   },
+  emptyIconWrap: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: colors.surface,
+    borderWidth: 1,
+    borderColor: colors.border,
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 8,
+  },
   title: {
     fontSize: 28,
-    fontWeight: "700",
+    fontWeight: "500",
     color: colors.foreground,
+    fontFamily: fontFamily.display,
   },
   sub: {
     fontSize: 16,

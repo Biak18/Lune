@@ -4,11 +4,12 @@ import { spacing } from "@/design/spacing";
 import { FlashList } from "@shopify/flash-list";
 import { router } from "expo-router";
 import {
-  ActivityIndicator,
-  Pressable,
-  StyleSheet,
-  Text,
-  View,
+    ActivityIndicator,
+    Pressable,
+    RefreshControl,
+    StyleSheet,
+    Text,
+    View,
 } from "react-native";
 import type { ProductWithRelations } from "../types";
 import { ProductCard } from "./ProductCard";
@@ -22,6 +23,8 @@ type Props = {
   onEndReached?: () => void;
   isFetchingNextPage?: boolean;
   onBrowseCollections?: () => void;
+  refreshing?: boolean;
+  onRefresh?: () => void;
 };
 
 export function ProductGrid({
@@ -33,6 +36,8 @@ export function ProductGrid({
   onEndReached,
   isFetchingNextPage,
   onBrowseCollections,
+  refreshing,
+  onRefresh,
 }: Props) {
   if (isLoading) {
     return (
@@ -108,6 +113,16 @@ export function ProductGrid({
       contentContainerStyle={{ paddingBottom: spacing["3xl"] }}
       onEndReached={onEndReached}
       onEndReachedThreshold={0.4}
+      refreshControl={
+        onRefresh ? (
+          <RefreshControl
+            refreshing={!!refreshing}
+            onRefresh={onRefresh}
+            tintColor={colors.foreground}
+            colors={[colors.foreground]}
+          />
+        ) : undefined
+      }
       renderItem={({ item }) => (
         <View style={{ flex: 1, padding: spacing.lg / 2 }}>
           <ProductCard product={item} />

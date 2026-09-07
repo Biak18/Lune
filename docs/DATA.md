@@ -780,6 +780,8 @@ ensure_loyalty_account()
 `add_to_cart(p_variant_id, p_quantity)` runs as SECURITY INVOKER so cart_items
 RLS stays enforced. It validates the variant (exists, active, in stock), merges
 quantity into any existing cart row, and rejects quantities above stock.
+Execute is granted to `authenticated` and `service_role` only (revoked from
+`public` and `anon`), so the client routes guests to sign-in before calling it.
 
 Potential functions:
 
