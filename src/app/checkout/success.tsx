@@ -1,9 +1,10 @@
 import { Button } from "@/components/ui/Button";
+import { LottieAnimation } from "@/components/ui/LottieAnimation";
 import { colors } from "@/design/colors";
 import { radius, spacing } from "@/design/spacing";
 import { fontFamily } from "@/design/typography";
 import { useOrderQuery } from "@/features/orders/hooks/useOrders";
-import { Ionicons } from "@expo/vector-icons";
+import { formatStatus } from "@/features/orders/utils/formatStatus";
 import { router, useLocalSearchParams } from "expo-router";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -16,7 +17,7 @@ export default function CheckoutSuccessScreen() {
   if (isLoading) {
     return (
       <SafeAreaView style={styles.center} edges={["top"]}>
-        <Text style={styles.title}>Order confirmed!</Text>
+        <Text style={styles.title}>Order confirmed</Text>
         <Text style={styles.desc}>We are preparing your order…</Text>
       </SafeAreaView>
     );
@@ -26,8 +27,10 @@ export default function CheckoutSuccessScreen() {
     return (
       <SafeAreaView style={styles.center} edges={["top"]}>
         <Text style={styles.title}>Order placed</Text>
-        <Text style={styles.desc}>Your order was created successfully.</Text>
-        <Text style={styles.orderId}>{orderId}</Text>
+        <Text style={styles.desc}>
+          Your order was created. You can find it in your orders.
+        </Text>
+        <Text style={styles.orderNo}>Order Nº {orderId}</Text>
         <Button title="View orders" onPress={() => router.replace("/orders" as any)} style={{ marginTop: 16 }} />
         <Pressable onPress={() => router.replace("/(tabs)/shop" as any)} style={{ marginTop: 12 }}>
           <Text style={styles.link}>Continue shopping</Text>
@@ -36,34 +39,49 @@ export default function CheckoutSuccessScreen() {
     );
   }
 
+  const shortId = order.id.replace(/-/g, "").slice(0, 8).toUpperCase();
+
   return (
     <SafeAreaView style={styles.root} edges={["top"]}>
-      <View style={styles.card}>
-        <View style={styles.iconWrap}>
-          <Ionicons name="checkmark" size={28} color={colors.surface} />
-        </View>
-        <Text style={styles.title}>Order confirmed</Text>
-        <Text style={styles.desc}>Your order has been placed. You will receive shipping updates soon.</Text>
-        <View style={styles.summary}>
-          <Text style={styles.summaryLabel}>Order ID</Text>
-          <Text style={styles.orderId}>{order.id}</Text>
-          <View style={styles.divider} />
+      <View style={styles.content}>
+        <LottieAnimation
+          source={require("@/assets/lottie/order-seal.json")}
+          style={styles.seal}
+        />
+        <Text style={styles.eyebrow}>Order Nº {shortId}</Text>
+        <Text style={styles.title}>
+          Order <Text style={styles.titleAccent}>confirmed</Text>
+        </Text>
+        <Text style={styles.desc}>
+          We&apos;ve started preparing your order. You&apos;ll receive shipping
+          updates soon.
+        </Text>
+
+        <View style={styles.receipt}>
           <View style={styles.row}>
             <Text style={styles.label}>Status</Text>
-            <Text style={styles.value}>{order.status}</Text>
+            <View style={styles.leader} />
+            <Text style={styles.value}>{formatStatus(order.status)}</Text>
           </View>
           <View style={styles.row}>
             <Text style={styles.label}>Total</Text>
+            <View style={styles.leader} />
             <Text style={styles.value}>${Number(order.total).toFixed(2)}</Text>
           </View>
           <View style={styles.row}>
             <Text style={styles.label}>Items</Text>
+            <View style={styles.leader} />
             <Text style={styles.value}>{order.items?.length ?? 0}</Text>
           </View>
         </View>
-        <View style={{ gap: 10, marginTop: 16, width: "100%" }}>
+
+        <View style={styles.actions}>
           <Button title="View order" onPress={() => router.replace(`/orders/${order.id}` as any)} />
-          <Button title="Continue shopping" variant="secondary" onPress={() => router.replace("/(tabs)/shop" as any)} />
+          <Button
+            title="Continue shopping"
+            variant="secondary"
+            onPress={() => router.replace("/(tabs)/shop" as any)}
+          />
         </View>
       </View>
     </SafeAreaView>
@@ -75,7 +93,12 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.background,
     padding: spacing.xl,
+  },
+  content: {
+    flex: 1,
+    alignItems: "center",
     justifyContent: "center",
+    gap: 6,
   },
   center: {
     flex: 1,
@@ -85,66 +108,66 @@ const styles = StyleSheet.create({
     padding: spacing.xl,
     gap: 8,
   },
-  card: {
-    padding: 20,
-    borderRadius: radius.lg,
-    backgroundColor: colors.surface,
-    borderWidth: 1,
-    borderColor: colors.border,
-    alignItems: "center",
-    gap: 8,
-  },
-  iconWrap: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: colors.success,
-    alignItems: "center",
-    justifyContent: "center",
+  seal: {
+    width: 240,
+    height: 240,
     marginBottom: 4,
   },
+  eyebrow: {
+    fontSize: 10,
+    fontWeight: "800",
+    letterSpacing: 1.6,
+    textTransform: "uppercase",
+    color: colors.clay,
+  },
   title: {
-    fontSize: 22,
+    fontSize: 30,
+    lineHeight: 36,
     fontWeight: "500",
-    letterSpacing: -0.4,
+    letterSpacing: -0.6,
     color: colors.foreground,
-    textAlign: "center",
     fontFamily: fontFamily.display,
+    textAlign: "center",
+  },
+  titleAccent: {
+    fontFamily: fontFamily.displayItalic,
+    fontWeight: "400",
+    color: colors.clayDeep,
   },
   desc: {
     fontSize: 13,
     color: colors.muted,
     textAlign: "center",
     lineHeight: 18,
+    maxWidth: 280,
   },
-  summary: {
-    width: "100%",
-    marginTop: 12,
-    padding: 14,
-    borderRadius: 12,
-    backgroundColor: colors.surfaceMuted,
-    gap: 6,
-  },
-  summaryLabel: {
-    fontSize: 10,
-    fontWeight: "800",
-    letterSpacing: 0.6,
-    textTransform: "uppercase",
-    color: colors.muted,
-  },
-  orderId: {
+  orderNo: {
     fontSize: 11,
     fontWeight: "600",
     color: colors.foreground,
   },
-  divider: {
-    height: 1,
-    backgroundColor: colors.border,
-    marginVertical: 6,
+  receipt: {
+    width: "100%",
+    marginTop: 20,
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    borderRadius: radius.md,
+    backgroundColor: colors.surface,
+    borderWidth: 1,
+    borderColor: colors.border,
+    gap: 10,
   },
   row: {
     flexDirection: "row",
-    justifyContent: "space-between",
+    alignItems: "flex-end",
+  },
+  leader: {
+    flex: 1,
+    borderBottomWidth: 1,
+    borderStyle: "dashed",
+    borderColor: colors.borderStrong,
+    marginHorizontal: 8,
+    marginBottom: 3,
   },
   label: {
     fontSize: 12,
@@ -154,6 +177,11 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: "700",
     color: colors.foreground,
+  },
+  actions: {
+    width: "100%",
+    gap: 10,
+    marginTop: 16,
   },
   link: {
     fontSize: 13,

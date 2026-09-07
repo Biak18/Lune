@@ -1,9 +1,10 @@
-import { View, Text, Pressable, StyleSheet } from "react-native";
-import { Image } from "expo-image";
-import { Link } from "expo-router";
+import { PressableScale } from "@/components/ui/PressableScale";
 import { colors } from "@/design/colors";
 import { radius } from "@/design/spacing";
 import { WishlistButton } from "@/features/wishlist/components/WishlistButton";
+import { Image } from "expo-image";
+import { Link } from "expo-router";
+import { StyleSheet, Text, View } from "react-native";
 import type { ProductWithRelations } from "../types";
 
 type Props = {
@@ -17,7 +18,12 @@ export function ProductCard({ product, onPress }: Props) {
 
   return (
     <Link href={`/product/${product.id}` as any} asChild>
-      <Pressable style={styles.card} onPress={onPress} accessibilityLabel={product.name}>
+      <PressableScale
+        style={styles.card}
+        onPress={onPress}
+        pressedScale={0.985}
+        accessibilityLabel={product.name}
+      >
         <View style={styles.imageWrap}>
           <Image
             source={{ uri: primary?.image_url ?? "https://picsum.photos/400/500" }}
@@ -39,7 +45,7 @@ export function ProductCard({ product, onPress }: Props) {
           </Text>
           <Text style={styles.price}>${Number(price).toFixed(0)}</Text>
         </View>
-      </Pressable>
+      </PressableScale>
     </Link>
   );
 }

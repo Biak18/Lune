@@ -1,7 +1,11 @@
 import { OfflineBanner } from "@/components/OfflineBanner";
 import { AuthProvider } from "@/providers/AuthProvider";
 import { QueryProvider } from "@/providers/QueryProvider";
-import { Newsreader_400Regular, Newsreader_500Medium } from "@expo-google-fonts/newsreader";
+import {
+    Newsreader_400Regular,
+    Newsreader_400Regular_Italic,
+    Newsreader_500Medium,
+} from "@expo-google-fonts/newsreader";
 import { useFonts } from "expo-font";
 import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
@@ -17,6 +21,7 @@ SplashScreen.preventAutoHideAsync().catch(() => {});
 export default function RootLayout() {
   const [fontsLoaded, fontError] = useFonts({
     Newsreader_400Regular,
+    Newsreader_400Regular_Italic,
     Newsreader_500Medium,
   });
 

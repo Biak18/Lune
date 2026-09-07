@@ -1,4 +1,5 @@
 import { Button } from "@/components/ui/Button";
+import { LottieAnimation } from "@/components/ui/LottieAnimation";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { colors } from "@/design/colors";
 import { radius, spacing } from "@/design/spacing";
@@ -8,7 +9,6 @@ import { CartSummary } from "@/features/cart/components/CartSummary";
 import { useCartQuery, useRemoveFromCart, useUpdateCartQuantity } from "@/features/cart/hooks/useCart";
 import { calculateCartTotals } from "@/features/cart/utils/cartTotals";
 import { useAuthStore } from "@/stores/authStore";
-import { Ionicons } from "@expo/vector-icons";
 import { FlashList } from "@shopify/flash-list";
 import { Link, router } from "expo-router";
 import { Pressable, RefreshControl, StyleSheet, Text, View } from "react-native";
@@ -86,11 +86,16 @@ export default function CartScreen() {
   if (list.length === 0) {
     return (
       <View style={styles.center}>
-        <View style={styles.emptyIconWrap}>
-          <Ionicons name="bag-outline" size={24} color={colors.muted} />
-        </View>
+        <LottieAnimation
+          source={require("@/assets/lottie/hanger-sway.json")}
+          loop
+          style={styles.emptyArt}
+        />
         <Text style={styles.title}>Your bag is empty.</Text>
-        <Text style={styles.desc}>Add a dress with your size and color — it&apos;ll appear here for checkout.</Text>
+        <Text style={styles.desc}>
+          Add a dress with your size and color — it&apos;ll appear here for
+          checkout.
+        </Text>
         <Link href={"/shop" as any} asChild>
           <Button title="Start shopping" style={{ marginTop: spacing.lg }} />
         </Link>
@@ -188,16 +193,10 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: 8,
   },
-  emptyIconWrap: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
-    backgroundColor: colors.surface,
-    borderWidth: 1,
-    borderColor: colors.border,
-    alignItems: "center",
-    justifyContent: "center",
-    marginBottom: 8,
+  emptyArt: {
+    width: 150,
+    height: 150,
+    marginBottom: -12,
   },
   title: {
     fontSize: 28,

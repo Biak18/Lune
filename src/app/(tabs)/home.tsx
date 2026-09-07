@@ -1,3 +1,4 @@
+import { LottieAnimation } from "@/components/ui/LottieAnimation";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { colors } from "@/design/colors";
 import { radius, spacing } from "@/design/spacing";
@@ -5,8 +6,8 @@ import { fontFamily } from "@/design/typography";
 import { NotificationBell } from "@/features/notifications/components/NotificationBell";
 import { ProductCard } from "@/features/products/components/ProductCard";
 import {
-  useCategoriesQuery,
-  useProductsQuery,
+    useCategoriesQuery,
+    useProductsQuery,
 } from "@/features/products/hooks/useProducts";
 import { RecommendationCarousel } from "@/features/recommendations/components/RecommendationCarousel";
 import { useRecentlyViewedProducts } from "@/features/recommendations/hooks/useRecommendations";
@@ -56,19 +57,18 @@ export default function HomeScreen() {
         </View>
       </View>
 
-      {/* Hero immersive editorial */}
+      {/* Hero editorial atelier sketch, no photo dependency */}
       <View style={styles.hero}>
-        <Image
-          source={{ uri: "https://picsum.photos/seed/hero-dress/800/900" }}
-          style={StyleSheet.absoluteFill}
-          contentFit="cover"
-          priority="high"
-          cachePolicy="memory-disk"
+        <LottieAnimation
+          source={require("@/assets/lottie/dress-sketch.json")}
+          style={styles.heroSketch}
         />
-        <View style={styles.heroOverlay} />
         <View style={styles.heroText}>
-          <Text style={styles.heroEyebrow}>New Collection</Text>
-          <Text style={styles.heroTitle}>Effortless{"\n"}elegance</Text>
+          <Text style={styles.heroEyebrow}>The new collection</Text>
+          <Text style={styles.heroTitle}>
+            Effortless{"\n"}
+            <Text style={styles.heroTitleAccent}>elegance</Text>
+          </Text>
           <Text style={styles.heroSub}>Made to move with you</Text>
           <Pressable
             style={styles.heroBtn}
@@ -340,14 +340,19 @@ const styles = StyleSheet.create({
     color: colors.foreground,
   },
   hero: {
-    height: 420,
-    borderRadius: 24,
+    height: 440,
+    borderRadius: radius.xl,
     overflow: "hidden",
-    backgroundColor: colors.surfaceMuted,
+    backgroundColor: colors.cream,
+    borderWidth: 1,
+    borderColor: colors.line,
   },
-  heroOverlay: {
-    ...StyleSheet.absoluteFill,
-    backgroundColor: "rgba(42,27,22,0.14)",
+  heroSketch: {
+    position: "absolute",
+    top: 12,
+    right: -6,
+    width: 250,
+    height: 250,
   },
   heroText: {
     flex: 1,
@@ -360,21 +365,24 @@ const styles = StyleSheet.create({
     fontWeight: "800",
     letterSpacing: 1.6,
     textTransform: "uppercase",
-    color: colors.paper,
-    opacity: 0.9,
+    color: colors.clay,
   },
   heroTitle: {
     fontSize: 42,
     lineHeight: 39,
     fontWeight: "500",
-    color: colors.paper,
+    color: colors.foreground,
     letterSpacing: -1.4,
     fontFamily: fontFamily.display,
   },
+  heroTitleAccent: {
+    fontFamily: fontFamily.displayItalic,
+    fontWeight: "400",
+    color: colors.clayDeep,
+  },
   heroSub: {
     fontSize: 12,
-    color: colors.paper,
-    opacity: 0.85,
+    color: colors.muted,
     lineHeight: 16,
   },
   heroBtn: {

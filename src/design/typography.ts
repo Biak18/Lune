@@ -5,6 +5,7 @@ import { colors } from "./colors";
 export const fontFamily = {
   display: "Newsreader_500Medium",
   displayRegular: "Newsreader_400Regular",
+  displayItalic: "Newsreader_400Regular_Italic",
 } as const;
 
 export const typography: Record<string, TextStyle> = {

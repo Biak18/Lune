@@ -1,14 +1,14 @@
-import React from "react";
-import {
-  Pressable,
-  Text,
-  StyleSheet,
-  ActivityIndicator,
-  ViewStyle,
-  TextStyle,
-} from "react-native";
 import { colors } from "@/design/colors";
 import { radius } from "@/design/spacing";
+import { useState } from "react";
+import {
+    ActivityIndicator,
+    StyleSheet,
+    Text,
+    TextStyle,
+    ViewStyle,
+} from "react-native";
+import { PressableScale } from "./PressableScale";
 
 type Variant = "primary" | "secondary" | "ghost";
 
@@ -34,14 +34,18 @@ export function Button({
   accessibilityLabel,
 }: ButtonProps) {
   const isDisabled = disabled || loading;
+  const [pressed, setPressed] = useState(false);
   return (
-    <Pressable
+    <PressableScale
       onPress={onPress}
+      pressedScale={0.98}
       disabled={isDisabled}
       accessibilityRole="button"
       accessibilityLabel={accessibilityLabel ?? title}
       accessibilityState={{ disabled: isDisabled, busy: loading }}
-      style={({ pressed }) => [
+      onPressIn={() => setPressed(true)}
+      onPressOut={() => setPressed(false)}
+      style={[
         styles.base,
         variant === "primary" && styles.primary,
         variant === "secondary" && styles.secondary,
@@ -70,7 +74,7 @@ export function Button({
           {title}
         </Text>
       )}
-    </Pressable>
+    </PressableScale>
   );
 }
 

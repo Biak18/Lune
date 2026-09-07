@@ -54,3 +54,4 @@ example
 # opencode / claude local
 .agents/
 .claude/
+.qoder/

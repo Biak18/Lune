@@ -6,15 +6,11 @@ import { DeliveryInfo } from "@/features/orders/components/DeliveryInfo";
 import { OrderItemsList } from "@/features/orders/components/OrderItemsList";
 import { OrderTimeline } from "@/features/orders/components/OrderTimeline";
 import { useCancelOrder, useOrderQuery } from "@/features/orders/hooks/useOrders";
+import { formatStatus } from "@/features/orders/utils/formatStatus";
 import * as Haptics from "expo-haptics";
 import { router, useLocalSearchParams } from "expo-router";
 import { ActivityIndicator, Alert, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-
-/** "awaiting_shipment" -> "Awaiting Shipment" */
-function formatStatus(status: string) {
-  return status.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
-}
 
 export default function OrderDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();

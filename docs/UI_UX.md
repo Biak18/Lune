@@ -512,6 +512,32 @@ Avoid:
 - Distracting transitions
 - Animation that delays interaction
 
+## Motion language — "The Atelier"
+
+The brand motion system is hand-drawn line art in the ink/clay/gold palette,
+produced by `scripts/generate-lottie.mjs` (never hand-edit the JSON in
+`assets/lottie/` — regenerate instead):
+
+```text
+assets/lottie/dress-sketch.json   Home hero — sketch draws on, then settles with a soft sway
+assets/lottie/order-seal.json     Checkout success — ribbon bow, drawn checkmark, gold sparkles
+assets/lottie/hanger-sway.json    Empty bag — hanger swaying in a seamless loop
+```
+
+Rules:
+
+- Draw-on moments play once and end at rest; only ambient loops (empty-state
+  sway) repeat, and they must loop seamlessly.
+- All Lottie playback goes through `src/components/ui/LottieAnimation` (native
+  implementation) with the web fallback returning null.
+- Respect the OS reduce-motion setting: `LottieAnimation` shows the final
+  frame, `PressableScale` and `Skeleton` disable their motion via
+  `ReduceMotion.System`.
+- Press feedback uses `src/components/ui/PressableScale` (soft spring scale,
+  0.97–0.985) instead of ad-hoc opacity changes.
+- Skeletons pulse gently (opacity 0.55–0.9) via `src/components/ui/Skeleton`;
+  they are never static.
+
 ---
 
 # 26. Responsive Design
