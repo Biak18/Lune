@@ -65,4 +65,5 @@ begin
 end;
 $$;
 
-grant execute on function public.add_to_cart(uuid, integer) to authenticated, anon;
+revoke all on function public.add_to_cart(uuid, integer) from public, anon;
+grant execute on function public.add_to_cart(uuid, integer) to authenticated, service_role;
