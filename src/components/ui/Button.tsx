@@ -1,13 +1,25 @@
 import { colors } from "@/design/colors";
 import { radius } from "@/design/spacing";
-import { useState } from "react";
+import { Ionicons } from "@expo/vector-icons";
+import { useEffect, useState } from "react";
 import {
-    ActivityIndicator,
-    StyleSheet,
-    Text,
-    TextStyle,
-    ViewStyle,
+  StyleSheet,
+  Text,
+  TextStyle,
+  View,
+  ViewStyle,
 } from "react-native";
+import Animated, {
+  cancelAnimation,
+  Easing,
+  interpolate,
+  ReduceMotion,
+  useAnimatedStyle,
+  useReducedMotion,
+  useSharedValue,
+  withRepeat,
+  withTiming,
+} from "react-native-reanimated";
 import { PressableScale } from "./PressableScale";
 
 type Variant = "primary" | "secondary" | "ghost";
@@ -57,9 +69,7 @@ export function Button({
       ]}
     >
       {loading ? (
-        <ActivityIndicator
-          color={variant === "primary" ? colors.primaryForeground : colors.foreground}
-        />
+        <BagRunner variant={variant} />
       ) : (
         <Text
           style={[
@@ -75,6 +85,60 @@ export function Button({
         </Text>
       )}
     </PressableScale>
+  );
+}
+
+// Loading state: a bag glides start-to-end across the button — your order is on
+// its way. With Reduce Motion on, it rests as a calm, static bag instead.
+const TRAVEL_MS = 900;
+
+function BagRunner({ variant }: { variant: Variant }) {
+  const [width, setWidth] = useState(0);
+  const t = useSharedValue(0);
+  const reducedMotion = useReducedMotion();
+
+  useEffect(() => {
+    if (reducedMotion) return;
+    t.set(
+      withRepeat(
+        withTiming(1, {
+          duration: TRAVEL_MS,
+          easing: Easing.inOut(Easing.quad),
+          reduceMotion: ReduceMotion.System,
+        }),
+        -1,
+        false
+      )
+    );
+    return () => {
+      cancelAnimation(t);
+    };
+  }, [reducedMotion, t]);
+
+  const amplitude = Math.max(0, width / 2 - 26);
+  const animated = useAnimatedStyle(() => {
+    if (reducedMotion) {
+      return { transform: [{ translateX: 0 }], opacity: 1 };
+    }
+    return {
+      transform: [{ translateX: (t.value * 2 - 1) * amplitude }],
+      opacity: interpolate(t.value, [0, 0.12, 0.88, 1], [0, 1, 1, 0]),
+    };
+  });
+
+  return (
+    <View
+      onLayout={(e) => setWidth(e.nativeEvent.layout.width)}
+      style={styles.runnerSlot}
+    >
+      <Animated.View style={animated}>
+        <Ionicons
+          name="cart-outline"
+          size={18}
+          color={variant === "primary" ? colors.primaryForeground : colors.foreground}
+        />
+      </Animated.View>
+    </View>
   );
 }
 
@@ -128,4 +192,9 @@ const styles = StyleSheet.create({
     color: colors.foreground,
   },
   textDisabled: {},
+  runnerSlot: {
+    width: "100%",
+    alignItems: "center",
+    justifyContent: "center",
+  } as unknown as ViewStyle,
 });

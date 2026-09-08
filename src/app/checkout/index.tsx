@@ -286,7 +286,7 @@ export default function CheckoutScreen() {
       <View style={styles.footer}>
         <View style={{ gap: 6 }}>
           <Button
-            title={createOrder.isPending ? "Placing order" : `Place order $${totals.total.toFixed(2)}`}
+            title={`Place order $${totals.total.toFixed(2)}`}
             onPress={handlePlaceOrder}
             disabled={!selectedAddress || !cartItems.length || createOrder.isPending}
             loading={createOrder.isPending}

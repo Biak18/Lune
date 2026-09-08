@@ -540,7 +540,15 @@ Rules:
 - Tab switches shift directionally (`animation: "shift"` in `(tabs)/_layout`)
   and content settles in via `src/components/ui/Reveal`, which replays its
   staggered fade-and-rise on every tab focus — navigation always has a visible
-  beat, and it snaps to rest under Reduce Motion.
+  beat, and it snaps to rest under Reduce Motion. Auth sign-in/sign-up screens
+  use the same Reveal stagger per form block (content that mounts mid-focus,
+  like the register success note, stays a plain View — Reveal only animates on
+  focus, so late mounts would stay invisible).
+- Loading buttons (`src/components/ui/Button`) replace the title with a bag
+  icon gliding start-to-end across the button (900 ms loop, ease-in-out) —
+  "your order is on its way" — instead of a centered spinner. Under Reduce
+  Motion the bag rests centered and static. Auth forms do not stagger in;
+  they render statically (the FadeInUp cascade was removed deliberately).
 
 ---
 
