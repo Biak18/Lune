@@ -1,3 +1,4 @@
+import { Reveal } from "@/components/ui/Reveal";
 import { Screen } from "@/components/ui/Screen";
 import { colors } from "@/design/colors";
 import { spacing } from "@/design/spacing";
@@ -124,7 +125,8 @@ export default function ShopScreen() {
         </Pressable>
       </View>
 
-      <View
+      <Reveal
+        index={0}
         style={{ paddingHorizontal: spacing.xl, gap: 12, paddingBottom: 12 }}
       >
         <SearchInput
@@ -153,9 +155,9 @@ export default function ShopScreen() {
             </Pressable>
           </View>
         )}
-      </View>
+      </Reveal>
 
-      <View style={styles.listWrap}>
+      <Reveal index={1} style={styles.listWrap}>
         <ProductGrid
           products={products}
           isLoading={query.isLoading}
@@ -174,7 +176,7 @@ export default function ShopScreen() {
           }}
           isFetchingNextPage={query.isFetchingNextPage}
         />
-      </View>
+      </Reveal>
 
       <FilterSheet
         visible={filterVisible}

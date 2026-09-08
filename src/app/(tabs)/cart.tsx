@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/Button";
 import { LottieAnimation } from "@/components/ui/LottieAnimation";
+import { Reveal } from "@/components/ui/Reveal";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { colors } from "@/design/colors";
 import { radius, spacing } from "@/design/spacing";
@@ -105,12 +106,12 @@ export default function CartScreen() {
 
   return (
     <View style={styles.root}>
-      <View style={styles.header}>
+      <Reveal index={0} style={styles.header}>
         <Text style={styles.headerTitle}>Your bag</Text>
         <Text style={styles.count}>{totals.itemCount} {totals.itemCount === 1 ? "item" : "items"}</Text>
-      </View>
+      </Reveal>
 
-      <View style={{ flex: 1 }}>
+      <Reveal index={1} style={{ flex: 1 }}>
         <FlashList
           data={list}
           keyExtractor={(it) => it.id}
@@ -153,7 +154,7 @@ export default function CartScreen() {
             </View>
           }
          showsVerticalScrollIndicator={false} showsHorizontalScrollIndicator={false} />
-      </View>
+      </Reveal>
     </View>
   );
 }

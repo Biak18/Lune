@@ -537,6 +537,10 @@ Rules:
   0.97–0.985) instead of ad-hoc opacity changes.
 - Skeletons pulse gently (opacity 0.55–0.9) via `src/components/ui/Skeleton`;
   they are never static.
+- Tab switches shift directionally (`animation: "shift"` in `(tabs)/_layout`)
+  and content settles in via `src/components/ui/Reveal`, which replays its
+  staggered fade-and-rise on every tab focus — navigation always has a visible
+  beat, and it snaps to rest under Reduce Motion.
 
 ---
 

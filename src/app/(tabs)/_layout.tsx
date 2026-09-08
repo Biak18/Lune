@@ -24,6 +24,8 @@ export default function TabsLayout() {
     <Tabs
       screenOptions={{
         headerShown: false,
+        // Directional shift between tabs so the switch actually reads (Reanimated-powered)
+        animation: "shift",
         tabBarActiveTintColor: colors.foreground,
         tabBarInactiveTintColor: colors.muted,
         tabBarStyle: {
