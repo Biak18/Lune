@@ -35,9 +35,14 @@ export const colors = {
   // Semantic
   error: "#C0392B",
   errorBackground: "#FDF0EF",
+  errorBorder: "#F5C6C2",
   success: "#2E7D32",
   successBackground: "#EAF6EC",
+  successBorder: "#A3D9B1",
   warning: "#B7791F",
+  warningBackground: "#FFF8E1",
+  warningBorder: "#FFE082",
+  warningText: "#7A5C00",
   overlay: "rgba(42,27,22,0.4)",
 } as const;
 

@@ -1,10 +1,11 @@
-import { useLocalSearchParams, router } from "expo-router";
-import { View, Text, Pressable, StyleSheet } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
 import { colors } from "@/design/colors";
 import { spacing } from "@/design/spacing";
-import { useCategoriesQuery, useProductsInfiniteQuery } from "@/features/products/hooks/useProducts";
+import { fontFamily } from "@/design/typography";
 import { ProductGrid } from "@/features/products/components/ProductGrid";
+import { useCategoriesQuery, useProductsInfiniteQuery } from "@/features/products/hooks/useProducts";
+import { router, useLocalSearchParams } from "expo-router";
+import { Pressable, StyleSheet, Text, View } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function CategoryScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -15,7 +16,7 @@ export default function CategoryScreen() {
 
   return (
     <SafeAreaView style={styles.root} edges={["top"]}>
-      <Pressable onPress={() => router.back()} style={[styles.back, { marginTop: 4 }]} hitSlop={8}>
+      <Pressable onPress={() => router.back()} style={[styles.back, { marginTop: 4 }]} hitSlop={8} accessibilityRole="button" accessibilityLabel="Go back">
         <Text style={styles.backText}>← Back</Text>
       </Pressable>
       <Text style={styles.title}>{category?.name ?? "Category"}</Text>
@@ -27,6 +28,8 @@ export default function CategoryScreen() {
           isError={query.isError}
           errorMessage={query.error ? String((query.error as Error).message) : undefined}
           onRetry={() => query.refetch()}
+          refreshing={query.isRefetching}
+          onRefresh={() => query.refetch()}
           onEndReached={() => {
             if (query.hasNextPage && !query.isFetchingNextPage) query.fetchNextPage();
           }}
@@ -57,9 +60,10 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 28,
-    fontWeight: "700",
+    fontWeight: "500",
+    letterSpacing: -0.6,
     color: colors.foreground,
-    letterSpacing: -0.4,
+    fontFamily: fontFamily.display,
   },
   desc: {
     fontSize: 13,

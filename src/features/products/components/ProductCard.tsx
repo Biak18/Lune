@@ -4,6 +4,7 @@ import { radius } from "@/design/spacing";
 import { WishlistButton } from "@/features/wishlist/components/WishlistButton";
 import { Image } from "expo-image";
 import { Link } from "expo-router";
+import { memo } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import type { ProductWithRelations } from "../types";
 
@@ -12,7 +13,7 @@ type Props = {
   onPress?: () => void;
 };
 
-export function ProductCard({ product, onPress }: Props) {
+export const ProductCard = memo(function ProductCard({ product, onPress }: Props) {
   const primary = product.images.find((i) => i.is_primary) ?? product.images[0];
   const price = product.base_price;
 
@@ -26,14 +27,12 @@ export function ProductCard({ product, onPress }: Props) {
       >
         <View style={styles.imageWrap}>
           <Image
-            source={{ uri: primary?.image_url ?? "https://picsum.photos/400/500" }}
+            source={primary ? { uri: primary.image_url } : undefined}
             style={styles.image}
             contentFit="cover"
             transition={220}
             cachePolicy="memory-disk"
             priority="high"
-            placeholder={{ uri: primary?.image_url ?? undefined }}
-            placeholderContentFit="cover"
           />
           <View style={styles.wish} pointerEvents="box-none">
             <WishlistButton productId={product.id} />
@@ -48,7 +47,7 @@ export function ProductCard({ product, onPress }: Props) {
       </PressableScale>
     </Link>
   );
-}
+});
 
 const styles = StyleSheet.create({
   card: {

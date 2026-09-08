@@ -2,6 +2,7 @@ import { colors } from "@/design/colors";
 import { radius } from "@/design/spacing";
 import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
+import { memo } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import type { CartItem } from "../services/cartService";
 import { resolveUnitPrice } from "../utils/cartTotals";
@@ -14,7 +15,7 @@ type Props = {
   updating?: boolean;
 };
 
-export function CartItemRow({ item, onUpdateQuantity, onRemove, updating }: Props) {
+export const CartItemRow = memo(function CartItemRow({ item, onUpdateQuantity, onRemove, updating }: Props) {
   const variant = item.variant;
   const product = variant.product;
   const primary = product?.images?.find((i) => i.is_primary) ?? product?.images?.[0];
@@ -27,7 +28,7 @@ export function CartItemRow({ item, onUpdateQuantity, onRemove, updating }: Prop
   return (
     <View style={styles.row}>
       <Image
-        source={{ uri: primary?.image_url ?? "https://picsum.photos/300/400" }}
+        source={primary ? { uri: primary.image_url } : undefined}
         style={styles.image}
         contentFit="cover"
         cachePolicy="memory-disk"
@@ -63,7 +64,7 @@ export function CartItemRow({ item, onUpdateQuantity, onRemove, updating }: Prop
       </View>
     </View>
   );
-}
+});
 
 const styles = StyleSheet.create({
   row: {

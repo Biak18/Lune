@@ -12,6 +12,7 @@ import { calculateCartTotals } from "@/features/cart/utils/cartTotals";
 import { useAuthStore } from "@/stores/authStore";
 import { FlashList } from "@shopify/flash-list";
 import { Link, router } from "expo-router";
+import { useCallback } from "react";
 import { Pressable, RefreshControl, StyleSheet, Text, View } from "react-native";
 
 function CartSkeleton() {
@@ -37,6 +38,15 @@ export default function CartScreen() {
   const { data: items, isLoading, isError, error, refetch, isRefetching } = useCartQuery();
   const updateQty = useUpdateCartQuantity();
   const remove = useRemoveFromCart();
+  // mutate is referentially stable in TanStack Query — destructure it so the
+  // memoized CartItemRow rows can skip re-renders
+  const { mutate: mutateUpdateQty } = updateQty;
+  const { mutate: mutateRemove } = remove;
+  const handleUpdateQty = useCallback(
+    (id: string, qty: number) => mutateUpdateQty({ cartItemId: id, quantity: qty }),
+    [mutateUpdateQty]
+  );
+  const handleRemove = useCallback((id: string) => mutateRemove(id), [mutateRemove]);
 
   if (!user) {
     return (
@@ -129,8 +139,8 @@ export default function CartScreen() {
             <CartItemRow
               item={item}
               updating={item.id === updatingId}
-              onUpdateQuantity={(id, qty) => updateQty.mutate({ cartItemId: id, quantity: qty })}
-              onRemove={(id) => remove.mutate(id)}
+              onUpdateQuantity={handleUpdateQty}
+              onRemove={handleRemove}
             />
           )}
           ListFooterComponent={

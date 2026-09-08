@@ -1,9 +1,9 @@
-import { View, Text, Pressable, StyleSheet, ActivityIndicator } from "react-native";
 import { colors } from "@/design/colors";
 import { radius } from "@/design/spacing";
-import { useRedeem, useLoyaltyPending } from "../hooks/useLoyalty";
 import * as Haptics from "expo-haptics";
 import { useState } from "react";
+import { ActivityIndicator, Pressable, StyleSheet, Text, View } from "react-native";
+import { useLoyaltyPending, useRedeem } from "../hooks/useLoyalty";
 
 type Reward = { points: number; title: string; desc: string };
 
@@ -79,13 +79,13 @@ const styles = StyleSheet.create({
   },
   pts: { fontSize: 10, fontWeight: "800", letterSpacing: 0.6, textTransform: "uppercase", color: colors.clay },
   rewardTitle: { fontSize: 12, fontWeight: "700", color: colors.foreground, textAlign: "center" },
-  rewardDesc: { fontSize: 10, color: colors.mutedLight, textAlign: "center" },
+  rewardDesc: { fontSize: 10, color: colors.muted, textAlign: "center" },
   btn: { marginTop: 4, paddingHorizontal: 12, height: 28, borderRadius: 999, backgroundColor: colors.foreground, alignItems: "center", justifyContent: "center", minWidth: 64 },
   btnDisabled: { backgroundColor: colors.surfaceMuted, borderWidth: 1, borderColor: colors.border },
   btnLoading: { opacity: 0.85 },
   btnText: { fontSize: 10, fontWeight: "800", color: colors.surface, letterSpacing: 0.5 },
   error: { fontSize: 11, color: colors.error, textAlign: "center" },
-  pendingBanner: { padding: 8, borderRadius: radius.lg, backgroundColor: colors.successBackground, borderWidth: 1, borderColor: "#A3D9B1", alignItems: "center" },
+  pendingBanner: { padding: 8, borderRadius: radius.lg, backgroundColor: colors.successBackground, borderWidth: 1, borderColor: colors.successBorder, alignItems: "center" },
   pendingText: { fontSize: 10, fontWeight: "700", color: colors.success, textAlign: "center" },
   success: { fontSize: 10, fontWeight: "600", color: colors.success, textAlign: "center" },
 });

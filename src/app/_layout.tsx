@@ -1,4 +1,5 @@
 import { OfflineBanner } from "@/components/OfflineBanner";
+import { colors } from "@/design/colors";
 import { AuthProvider } from "@/providers/AuthProvider";
 import { QueryProvider } from "@/providers/QueryProvider";
 import {
@@ -46,7 +47,7 @@ export default function RootLayout() {
               <Stack
                 screenOptions={{
                   headerShown: false,
-                  contentStyle: { backgroundColor: "#FAF4EC" },
+                  contentStyle: { backgroundColor: colors.background },
                   animation: "slide_from_right",
                   animationDuration: 280,
                   gestureEnabled: true,

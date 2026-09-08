@@ -3,6 +3,7 @@ import type { Tables } from "@/types/database";
 
 export type Notification = Tables<"notifications">;
 export type NotificationPrefs = Tables<"notification_preferences">;
+export type NotificationPrefsPatch = Partial<Omit<NotificationPrefs, "user_id" | "updated_at">>;
 
 export const notificationService = {
   async list(): Promise<Notification[]> {
@@ -78,7 +79,7 @@ export const notificationService = {
     return data as NotificationPrefs;
   },
 
-  async updatePrefs(patch: Partial<Omit<NotificationPrefs, "user_id" | "updated_at">>): Promise<NotificationPrefs> {
+  async updatePrefs(patch: NotificationPrefsPatch): Promise<NotificationPrefs> {
     const { data: userData } = await supabase.auth.getUser();
     const userId = userData.user?.id;
     if (!userId) throw new Error("Please sign in");

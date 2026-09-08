@@ -1,7 +1,6 @@
-import React from "react";
-import { View, Text, StyleSheet } from "react-native";
 import { colors } from "@/design/colors";
 import { spacing } from "@/design/spacing";
+import { StyleSheet, Text, View } from "react-native";
 
 export function FormError({ message }: { message?: string | null }) {
   if (!message) return null;
@@ -16,7 +15,7 @@ const styles = StyleSheet.create({
   container: {
     backgroundColor: colors.errorBackground,
     borderWidth: 1,
-    borderColor: "#F5C6C2",
+    borderColor: colors.errorBorder,
     borderRadius: 12,
     padding: spacing.lg,
   },

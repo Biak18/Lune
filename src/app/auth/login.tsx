@@ -255,15 +255,15 @@ const styles = StyleSheet.create({
     textDecorationLine: "underline",
   },
   envWarning: {
-    backgroundColor: "#FFF8E1",
+    backgroundColor: colors.warningBackground,
     borderWidth: 1,
-    borderColor: "#FFE082",
+    borderColor: colors.warningBorder,
     borderRadius: 12,
     padding: 12,
   },
   envWarningText: {
     fontSize: 13,
     lineHeight: 18,
-    color: "#7A5C00",
+    color: colors.warningText,
   },
 });

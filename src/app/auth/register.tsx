@@ -1,23 +1,22 @@
 /* eslint-disable @typescript-eslint/no-unused-vars -- Google auth temporarily disabled */
-import React, { useState } from "react";
-import { View, Text, Pressable, StyleSheet } from "react-native";
-import { Link, router } from "expo-router";
-import { useForm, Controller, useWatch } from "react-hook-form";
+import { Button } from "@/components/ui/Button";
+import { FieldInput } from "@/components/ui/FieldInput";
+import { FormError } from "@/components/ui/FormError";
+import { PasswordRequirements } from "@/components/ui/PasswordRequirements";
+import { env } from "@/config/env";
+import { colors } from "@/design/colors";
+import { AuthHeader } from "@/features/auth/components/AuthHeader";
+import { useGoogleAuthMutation, useRegisterMutation } from "@/features/auth/hooks/useAuthMutations";
+import { getAuthErrorMessage } from "@/utils/errors";
+import { registerSchema, type RegisterFormValues } from "@/utils/validation";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { Link, router } from "expo-router";
+import { useState } from "react";
+import { Controller, useForm, useWatch } from "react-hook-form";
+import { Pressable, StyleSheet, Text, View } from "react-native";
+import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import Animated, { FadeInUp } from "react-native-reanimated";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
-import { FieldInput } from "@/components/ui/FieldInput";
-import { PasswordRequirements } from "@/components/ui/PasswordRequirements";
-import { Button } from "@/components/ui/Button";
-import { FormError } from "@/components/ui/FormError";
-import { Divider } from "@/components/ui/Divider";
-import { AuthHeader } from "@/features/auth/components/AuthHeader";
-import { useRegisterMutation, useGoogleAuthMutation } from "@/features/auth/hooks/useAuthMutations";
-import { registerSchema, type RegisterFormValues } from "@/utils/validation";
-import { getAuthErrorMessage } from "@/utils/errors";
-import { colors } from "@/design/colors";
-import { env } from "@/config/env";
 
 export default function RegisterScreen() {
   const [showPassword, setShowPassword] = useState(false);
@@ -289,7 +288,7 @@ const styles = StyleSheet.create({
   successBox: {
     backgroundColor: colors.successBackground,
     borderWidth: 1,
-    borderColor: "#A3D9B1",
+    borderColor: colors.successBorder,
     borderRadius: 12,
     padding: 12,
   },
@@ -299,15 +298,15 @@ const styles = StyleSheet.create({
     color: colors.success,
   },
   envWarning: {
-    backgroundColor: "#FFF8E1",
+    backgroundColor: colors.warningBackground,
     borderWidth: 1,
-    borderColor: "#FFE082",
+    borderColor: colors.warningBorder,
     borderRadius: 12,
     padding: 12,
   },
   envWarningText: {
     fontSize: 13,
     lineHeight: 18,
-    color: "#7A5C00",
+    color: colors.warningText,
   },
 });

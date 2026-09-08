@@ -1,3 +1,4 @@
+import { colors } from "@/design/colors";
 import { Stack } from "expo-router";
 
 export default function AuthLayout() {
@@ -6,7 +7,7 @@ export default function AuthLayout() {
       screenOptions={{
         headerShown: false,
         animation: "slide_from_right",
-        contentStyle: { backgroundColor: "#FAF4EC" },
+        contentStyle: { backgroundColor: colors.background },
       }}
     >
       <Stack.Screen name="welcome" />

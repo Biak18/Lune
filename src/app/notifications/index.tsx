@@ -1,15 +1,16 @@
-import { FlashList } from "@shopify/flash-list";
-import { View, Text, Pressable, StyleSheet, Switch, ActivityIndicator, RefreshControl } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
-import { router } from "expo-router";
-import { useAuthStore } from "@/stores/authStore";
-import { useNotificationsQuery, useMarkRead, useMarkAllRead, useNotificationPrefsQuery, useUpdatePrefs } from "@/features/notifications/hooks/useNotifications";
-import { colors } from "@/design/colors";
-import { spacing, radius } from "@/design/spacing";
 import { Button } from "@/components/ui/Button";
 import { Skeleton } from "@/components/ui/Skeleton";
+import { colors } from "@/design/colors";
+import { radius, spacing } from "@/design/spacing";
+import { useMarkAllRead, useMarkRead, useNotificationPrefsQuery, useNotificationsQuery, useUpdatePrefs } from "@/features/notifications/hooks/useNotifications";
+import type { NotificationPrefsPatch } from "@/features/notifications/services/notificationService";
+import { useAuthStore } from "@/stores/authStore";
 import { Ionicons } from "@expo/vector-icons";
+import { FlashList } from "@shopify/flash-list";
 import * as Haptics from "expo-haptics";
+import { router } from "expo-router";
+import { ActivityIndicator, Pressable, RefreshControl, StyleSheet, Switch, Text, View } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 function relativeTime(iso: string) {
   const diff = Date.now() - new Date(iso).getTime();
@@ -48,7 +49,7 @@ function NotifSkeleton() {
 
 export default function NotificationsScreen() {
   const user = useAuthStore((s) => s.user);
-  const { data: notifs, isLoading, isError, error, refetch } = useNotificationsQuery();
+  const { data: notifs, isLoading, isError, error, refetch, isRefetching } = useNotificationsQuery();
   const { data: prefs } = useNotificationPrefsQuery();
   const markRead = useMarkRead();
   const markAll = useMarkAllRead();
@@ -99,7 +100,7 @@ export default function NotificationsScreen() {
         </Pressable>
         <Text style={styles.heading}>Notifications</Text>
         <View style={styles.headerRow}>
-          <Text style={styles.count}>{list.length} total {unread} unread</Text>
+          <Text style={styles.count}>{list.length} total · {unread} unread</Text>
           <Pressable
             onPress={async () => {
               if (unread === 0) return;
@@ -131,9 +132,10 @@ export default function NotificationsScreen() {
                 </View>
                 <Switch
                   value={row.value}
-                  onValueChange={(v) => updatePrefs.mutate({ [row.key]: v } as any)}
+                  onValueChange={(v) => updatePrefs.mutate({ [row.key]: v } as NotificationPrefsPatch)}
                   trackColor={{ true: colors.foreground, false: colors.border }}
                   thumbColor={colors.surface}
+                  accessibilityLabel={row.label}
                 />
               </View>
             ))}
@@ -157,7 +159,7 @@ export default function NotificationsScreen() {
             keyExtractor={(n) => n.id}
               contentContainerStyle={{ padding: spacing.xl, paddingBottom: 32 }}
             ItemSeparatorComponent={() => <View style={{ height: 10 }} />}
-            refreshControl={<RefreshControl refreshing={isLoading} onRefresh={() => refetch()} tintColor={colors.foreground} />}
+            refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={() => refetch()} tintColor={colors.foreground} />}
             renderItem={({ item }) => {
               const meta = typeMeta(item.type);
               return (
@@ -167,7 +169,7 @@ export default function NotificationsScreen() {
                       try { await Haptics.selectionAsync(); } catch {}
                       markRead.mutate(item.id);
                     }
-                    const oid = (item.data as any)?.order_id;
+                    const oid = (item.data as { order_id?: string } | null)?.order_id;
                     if (oid) router.push(`/orders/${oid}` as any);
                   }}
                   style={[styles.notifCard, !item.is_read && styles.unreadCard]}
@@ -187,7 +189,7 @@ export default function NotificationsScreen() {
                       <Text style={styles.notifDate}>{relativeTime(item.created_at)}</Text>
                     </View>
                   </View>
-                  {markRead.isPending ? <ActivityIndicator size="small" color={colors.muted} /> : !item.is_read ? <Ionicons name="ellipse" size={8} color={colors.clay} /> : <Ionicons name="checkmark" size={14} color={colors.mutedLight} />}
+                  {markRead.isPending && markRead.variables === item.id ? <ActivityIndicator size="small" color={colors.muted} /> : !item.is_read ? <Ionicons name="ellipse" size={8} color={colors.clay} /> : <Ionicons name="checkmark" size={14} color={colors.muted} />}
                 </Pressable>
               );
             }}
@@ -358,14 +360,14 @@ const styles = StyleSheet.create({
   },
   notifDate: {
     fontSize: 11,
-    color: colors.mutedLight,
+    color: colors.muted,
   },
   notifType: {
     fontSize: 10,
     fontWeight: "700",
     letterSpacing: 0.5,
     textTransform: "uppercase",
-    color: colors.mutedLight,
+    color: colors.muted,
   },
   emptyTitle: {
     fontSize: 16,

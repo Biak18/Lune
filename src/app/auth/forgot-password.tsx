@@ -1,20 +1,20 @@
-import React, { useState } from "react";
-import { View, Text, Pressable, StyleSheet } from "react-native";
-import { Link } from "expo-router";
-import { useForm, Controller } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import Animated, { FadeInUp } from "react-native-reanimated";
-import { SafeAreaView } from "react-native-safe-area-context";
-import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
-import { FieldInput } from "@/components/ui/FieldInput";
 import { Button } from "@/components/ui/Button";
+import { FieldInput } from "@/components/ui/FieldInput";
 import { FormError } from "@/components/ui/FormError";
+import { env } from "@/config/env";
+import { colors } from "@/design/colors";
 import { AuthHeader } from "@/features/auth/components/AuthHeader";
 import { useResetPasswordMutation } from "@/features/auth/hooks/useAuthMutations";
-import { forgotPasswordSchema, type ForgotPasswordFormValues } from "@/utils/validation";
 import { getAuthErrorMessage } from "@/utils/errors";
-import { colors } from "@/design/colors";
-import { env } from "@/config/env";
+import { forgotPasswordSchema, type ForgotPasswordFormValues } from "@/utils/validation";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Link } from "expo-router";
+import { useState } from "react";
+import { Controller, useForm } from "react-hook-form";
+import { Pressable, StyleSheet, Text, View } from "react-native";
+import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
+import Animated, { FadeInUp } from "react-native-reanimated";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function ForgotPasswordScreen() {
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
@@ -166,7 +166,7 @@ const styles = StyleSheet.create({
   successBox: {
     backgroundColor: colors.successBackground,
     borderWidth: 1,
-    borderColor: "#A3D9B1",
+    borderColor: colors.successBorder,
     borderRadius: 12,
     padding: 12,
   },
@@ -176,15 +176,15 @@ const styles = StyleSheet.create({
     color: colors.success,
   },
   envWarning: {
-    backgroundColor: "#FFF8E1",
+    backgroundColor: colors.warningBackground,
     borderWidth: 1,
-    borderColor: "#FFE082",
+    borderColor: colors.warningBorder,
     borderRadius: 12,
     padding: 12,
   },
   envWarningText: {
     fontSize: 13,
     lineHeight: 18,
-    color: "#7A5C00",
+    color: colors.warningText,
   },
 });

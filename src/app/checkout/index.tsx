@@ -234,7 +234,7 @@ export default function CheckoutScreen() {
               const unit = it.variant.price != null ? Number(it.variant.price) : Number(p?.base_price ?? 0);
               return (
                 <View key={it.id} style={styles.summaryRow}>
-                  <Image source={{ uri: primary?.image_url ?? "https://picsum.photos/300/400" }} style={styles.summaryImg} contentFit="cover" />
+                  <Image source={primary ? { uri: primary.image_url } : undefined} style={styles.summaryImg} contentFit="cover" />
                   <View style={{ flex: 1, gap: 2 }}>
                     <Text style={styles.summaryName} numberOfLines={1}>{p?.name ?? "Product"}</Text>
                     <Text style={styles.summaryVariant}>{[it.variant.color, it.variant.size].filter(Boolean).join(" ")} x{it.quantity}</Text>
@@ -500,7 +500,7 @@ const styles = StyleSheet.create({
     borderRadius: radius.lg,
     backgroundColor: colors.successBackground,
     borderWidth: 1,
-    borderColor: "#A3D9B1",
+    borderColor: colors.successBorder,
     alignItems: "center",
   },
   rewardsText: {
