@@ -14,6 +14,8 @@ type Props = {
   loop?: boolean;
   style?: StyleProp<ViewStyle>;
   onAnimationFinish?: () => void;
+  /** Recolor solid paints by layer keypath, e.g. per-button-variant strokes. */
+  colorFilters?: { keypath: string; color: string }[];
 };
 
 /**
@@ -26,6 +28,7 @@ export function LottieAnimation({
   loop = false,
   style,
   onAnimationFinish,
+  colorFilters,
 }: Props) {
   const [reduceMotion, setReduceMotion] = useState(false);
 
@@ -56,6 +59,7 @@ export function LottieAnimation({
       progress={reduceMotion ? 1 : undefined}
       style={style}
       onAnimationFinish={onAnimationFinish}
+      colorFilters={colorFilters}
       cacheComposition
     />
   );

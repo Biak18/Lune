@@ -1,25 +1,10 @@
 import { colors } from "@/design/colors";
 import { radius } from "@/design/spacing";
 import { Ionicons } from "@expo/vector-icons";
-import { useEffect, useState } from "react";
-import {
-  StyleSheet,
-  Text,
-  TextStyle,
-  View,
-  ViewStyle,
-} from "react-native";
-import Animated, {
-  cancelAnimation,
-  Easing,
-  interpolate,
-  ReduceMotion,
-  useAnimatedStyle,
-  useReducedMotion,
-  useSharedValue,
-  withRepeat,
-  withTiming,
-} from "react-native-reanimated";
+import { useState } from "react";
+import { StyleSheet, Text, TextStyle, ViewStyle } from "react-native";
+import { useReducedMotion } from "react-native-reanimated";
+import { LottieAnimation } from "./LottieAnimation";
 import { PressableScale } from "./PressableScale";
 
 type Variant = "primary" | "secondary" | "ghost";
@@ -47,6 +32,7 @@ export function Button({
 }: ButtonProps) {
   const isDisabled = disabled || loading;
   const [pressed, setPressed] = useState(false);
+  const reducedMotion = useReducedMotion();
   return (
     <PressableScale
       onPress={onPress}
@@ -69,7 +55,7 @@ export function Button({
       ]}
     >
       {loading ? (
-        <BagRunner variant={variant} />
+        <CartLoader variant={variant} reducedMotion={reducedMotion} />
       ) : (
         <Text
           style={[
@@ -88,57 +74,42 @@ export function Button({
   );
 }
 
-// Loading state: a bag glides start-to-end across the button — your order is on
-// its way. With Reduce Motion on, it rests as a calm, static bag instead.
-const TRAVEL_MS = 900;
+// Loading state: a line-art cart glides start-to-end with a rolling bob and
+// fading speed streaks — "your order is on its way". Under Reduce Motion it
+// rests as a calm, static cart.
+const CART_LOADER = require("@/assets/lottie/cart-glide.json") as number;
 
-function BagRunner({ variant }: { variant: Variant }) {
-  const [width, setWidth] = useState(0);
-  const t = useSharedValue(0);
-  const reducedMotion = useReducedMotion();
-
-  useEffect(() => {
-    if (reducedMotion) return;
-    t.set(
-      withRepeat(
-        withTiming(1, {
-          duration: TRAVEL_MS,
-          easing: Easing.inOut(Easing.quad),
-          reduceMotion: ReduceMotion.System,
-        }),
-        -1,
-        false
-      )
+function CartLoader({
+  variant,
+  reducedMotion,
+}: {
+  variant: Variant;
+  reducedMotion: boolean;
+}) {
+  if (reducedMotion) {
+    return (
+      <Ionicons
+        name="cart-outline"
+        size={18}
+        color={variant === "primary" ? colors.primaryForeground : colors.foreground}
+      />
     );
-    return () => {
-      cancelAnimation(t);
-    };
-  }, [reducedMotion, t]);
-
-  const amplitude = Math.max(0, width / 2 - 26);
-  const animated = useAnimatedStyle(() => {
-    if (reducedMotion) {
-      return { transform: [{ translateX: 0 }], opacity: 1 };
-    }
-    return {
-      transform: [{ translateX: (t.value * 2 - 1) * amplitude }],
-      opacity: interpolate(t.value, [0, 0.12, 0.88, 1], [0, 1, 1, 0]),
-    };
-  });
-
+  }
   return (
-    <View
-      onLayout={(e) => setWidth(e.nativeEvent.layout.width)}
-      style={styles.runnerSlot}
-    >
-      <Animated.View style={animated}>
-        <Ionicons
-          name="cart-outline"
-          size={18}
-          color={variant === "primary" ? colors.primaryForeground : colors.foreground}
-        />
-      </Animated.View>
-    </View>
+    <LottieAnimation
+      source={CART_LOADER}
+      loop
+      style={styles.loader}
+      colorFilters={
+        variant === "primary"
+          ? undefined
+          : [
+              { keypath: "cart.body", color: colors.foreground },
+              { keypath: "cart.streak-a", color: colors.foreground },
+              { keypath: "cart.streak-b", color: colors.foreground },
+            ]
+      }
+    />
   );
 }
 
@@ -192,9 +163,8 @@ const styles = StyleSheet.create({
     color: colors.foreground,
   },
   textDisabled: {},
-  runnerSlot: {
-    width: "100%",
-    alignItems: "center",
-    justifyContent: "center",
-  } as unknown as ViewStyle,
+  loader: {
+    width: 132,
+    height: 32,
+  },
 });

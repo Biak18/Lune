@@ -1,0 +1,450 @@
+{
+  "version": 3,
+  "durationMs": 1200,
+  "timeline": {},
+  "nodes": [
+    {
+      "key": "cart",
+      "kind": "group",
+      "position": [
+        66,
+        16
+      ]
+    },
+    {
+      "key": "cart.body",
+      "kind": "shape-layer",
+      "objects": [
+        {
+          "key": "cart.frame",
+          "geometries": [
+            {
+              "key": "cart.frame.path",
+              "type": "path",
+              "path": {
+                "type": "commands",
+                "commands": [
+                  {
+                    "op": "M",
+                    "to": [
+                      -10,
+                      -11
+                    ]
+                  },
+                  {
+                    "op": "L",
+                    "to": [
+                      -8,
+                      -7
+                    ]
+                  },
+                  {
+                    "op": "L",
+                    "to": [
+                      9,
+                      -7
+                    ]
+                  },
+                  {
+                    "op": "L",
+                    "to": [
+                      6.5,
+                      2
+                    ]
+                  },
+                  {
+                    "op": "L",
+                    "to": [
+                      -5.5,
+                      2
+                    ]
+                  },
+                  {
+                    "op": "L",
+                    "to": [
+                      -8,
+                      -7
+                    ]
+                  }
+                ]
+              }
+            }
+          ],
+          "stroke": {
+            "key": "cart.frame.stroke",
+            "color": "#FAF4EC",
+            "width": 1.8,
+            "cap": "round",
+            "join": "round"
+          }
+        },
+        {
+          "key": "cart.wheel-l",
+          "geometries": [
+            {
+              "key": "cart.wheel-l.path",
+              "type": "path",
+              "path": {
+                "type": "commands",
+                "commands": [
+                  {
+                    "op": "M",
+                    "to": [
+                      -0.75,
+                      6.5
+                    ]
+                  },
+                  {
+                    "op": "A",
+                    "radius": [
+                      2.75,
+                      2.75
+                    ],
+                    "rotation": 0,
+                    "largeArc": false,
+                    "sweep": true,
+                    "to": [
+                      -6.25,
+                      6.5
+                    ]
+                  },
+                  {
+                    "op": "A",
+                    "radius": [
+                      2.75,
+                      2.75
+                    ],
+                    "rotation": 0,
+                    "largeArc": false,
+                    "sweep": true,
+                    "to": [
+                      -0.75,
+                      6.5
+                    ]
+                  },
+                  {
+                    "op": "Z"
+                  }
+                ]
+              }
+            }
+          ],
+          "stroke": {
+            "key": "cart.wheel-l.stroke",
+            "color": "#FAF4EC",
+            "width": 1.6,
+            "cap": "round",
+            "join": "round"
+          }
+        },
+        {
+          "key": "cart.wheel-r",
+          "geometries": [
+            {
+              "key": "cart.wheel-r.path",
+              "type": "path",
+              "path": {
+                "type": "commands",
+                "commands": [
+                  {
+                    "op": "M",
+                    "to": [
+                      7.75,
+                      6.5
+                    ]
+                  },
+                  {
+                    "op": "A",
+                    "radius": [
+                      2.75,
+                      2.75
+                    ],
+                    "rotation": 0,
+                    "largeArc": false,
+                    "sweep": true,
+                    "to": [
+                      2.25,
+                      6.5
+                    ]
+                  },
+                  {
+                    "op": "A",
+                    "radius": [
+                      2.75,
+                      2.75
+                    ],
+                    "rotation": 0,
+                    "largeArc": false,
+                    "sweep": true,
+                    "to": [
+                      7.75,
+                      6.5
+                    ]
+                  },
+                  {
+                    "op": "Z"
+                  }
+                ]
+              }
+            }
+          ],
+          "stroke": {
+            "key": "cart.wheel-r.stroke",
+            "color": "#FAF4EC",
+            "width": 1.6,
+            "cap": "round",
+            "join": "round"
+          }
+        }
+      ],
+      "parent": "cart"
+    },
+    {
+      "key": "cart.streak-a",
+      "kind": "shape-layer",
+      "objects": [
+        {
+          "key": "cart.streak-a.line",
+          "geometries": [
+            {
+              "key": "cart.streak-a.path",
+              "type": "path",
+              "path": {
+                "type": "commands",
+                "commands": [
+                  {
+                    "op": "M",
+                    "to": [
+                      -15,
+                      -2
+                    ]
+                  },
+                  {
+                    "op": "L",
+                    "to": [
+                      -10,
+                      -2
+                    ]
+                  }
+                ]
+              }
+            }
+          ],
+          "stroke": {
+            "key": "cart.streak-a.stroke",
+            "color": "#FAF4EC",
+            "width": 1.4,
+            "cap": "round",
+            "join": "round"
+          }
+        }
+      ],
+      "parent": "cart"
+    },
+    {
+      "key": "cart.streak-b",
+      "kind": "shape-layer",
+      "objects": [
+        {
+          "key": "cart.streak-b.line",
+          "geometries": [
+            {
+              "key": "cart.streak-b.path",
+              "type": "path",
+              "path": {
+                "type": "commands",
+                "commands": [
+                  {
+                    "op": "M",
+                    "to": [
+                      -19,
+                      2
+                    ]
+                  },
+                  {
+                    "op": "L",
+                    "to": [
+                      -13,
+                      2
+                    ]
+                  }
+                ]
+              }
+            }
+          ],
+          "stroke": {
+            "key": "cart.streak-b.stroke",
+            "color": "#FAF4EC",
+            "width": 1.4,
+            "cap": "round",
+            "join": "round"
+          }
+        }
+      ],
+      "parent": "cart"
+    }
+  ],
+  "layouts": [],
+  "tracks": [
+    {
+      "key": "cart.travel",
+      "target": "cart",
+      "property": "transform.position",
+      "segments": [
+        {
+          "type": "tween",
+          "durationMs": 1000,
+          "from": [
+            14,
+            16
+          ],
+          "to": [
+            118,
+            16
+          ],
+          "easing": "ease-in-out"
+        },
+        {
+          "type": "tween",
+          "durationMs": 200,
+          "to": [
+            14,
+            16
+          ],
+          "easing": "linear"
+        }
+      ]
+    },
+    {
+      "key": "cart.fade",
+      "target": "cart",
+      "property": "transform.opacity",
+      "segments": [
+        {
+          "type": "tween",
+          "durationMs": 120,
+          "from": 0,
+          "to": 100,
+          "easing": "ease-out"
+        },
+        {
+          "type": "hold",
+          "durationMs": 760,
+          "value": 100
+        },
+        {
+          "type": "tween",
+          "durationMs": 120,
+          "to": 0,
+          "easing": "ease-in"
+        },
+        {
+          "type": "hold",
+          "durationMs": 200,
+          "value": 0
+        }
+      ]
+    },
+    {
+      "key": "cart.bob",
+      "target": "cart.body",
+      "property": "transform.position",
+      "segments": [
+        {
+          "type": "repeat",
+          "count": 2,
+          "mode": "alternate",
+          "segment": {
+            "durationMs": 250,
+            "from": [
+              0,
+              0
+            ],
+            "to": [
+              0,
+              1.5
+            ],
+            "easing": "ease-in-out"
+          }
+        }
+      ]
+    },
+    {
+      "key": "cart.streak-a.flicker",
+      "target": "cart.streak-a",
+      "property": "transform.opacity",
+      "segments": [
+        {
+          "type": "hold",
+          "durationMs": 140,
+          "value": 0
+        },
+        {
+          "type": "tween",
+          "durationMs": 130,
+          "to": 85,
+          "easing": "ease-out"
+        },
+        {
+          "type": "tween",
+          "durationMs": 130,
+          "to": 0,
+          "easing": "ease-in"
+        },
+        {
+          "type": "hold",
+          "durationMs": 800,
+          "value": 0
+        }
+      ]
+    },
+    {
+      "key": "cart.streak-b.flicker",
+      "target": "cart.streak-b",
+      "property": "transform.opacity",
+      "segments": [
+        {
+          "type": "hold",
+          "durationMs": 240,
+          "value": 0
+        },
+        {
+          "type": "tween",
+          "durationMs": 130,
+          "to": 70,
+          "easing": "ease-out"
+        },
+        {
+          "type": "tween",
+          "durationMs": 130,
+          "to": 0,
+          "easing": "ease-in"
+        },
+        {
+          "type": "hold",
+          "durationMs": 700,
+          "value": 0
+        }
+      ]
+    }
+  ],
+  "generators": [],
+  "recipes": [],
+  "markers": [],
+  "slots": {},
+  "source": {
+    "key": "cart-glide",
+    "mode": "replace"
+  },
+  "loop": {
+    "fromMs": 0,
+    "toMs": 1200,
+    "seam": "match",
+    "targets": [
+      "cart",
+      "cart.body",
+      "cart.streak-a",
+      "cart.streak-b"
+    ]
+  }
+}

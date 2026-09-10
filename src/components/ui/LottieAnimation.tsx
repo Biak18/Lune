@@ -5,6 +5,8 @@ type Props = {
   loop?: boolean;
   style?: StyleProp<ViewStyle>;
   onAnimationFinish?: () => void;
+  /** Accepted for parity with the native implementation; ignored on web. */
+  colorFilters?: { keypath: string; color: string }[];
 };
 
 /**
