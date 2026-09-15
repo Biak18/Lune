@@ -1,6 +1,6 @@
+import type { CartItem } from "@/features/cart/services/cartService";
 import { api } from "@/lib/api";
 import type { Tables } from "@/types/database";
-import type { CartItem } from "@/features/cart/services/cartService";
 
 export type Order = Tables<"orders">;
 export type OrderItem = Tables<"order_items">;
