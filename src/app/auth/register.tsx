@@ -10,7 +10,7 @@ import { useGoogleAuthMutation, useRegisterMutation } from "@/features/auth/hook
 import { getAuthErrorMessage } from "@/utils/errors";
 import { registerSchema, type RegisterFormValues } from "@/utils/validation";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Link, router } from "expo-router";
+import { router } from "expo-router";
 import { useState } from "react";
 import { Controller, useForm, useWatch } from "react-hook-form";
 import { Pressable, StyleSheet, Text, View } from "react-native";
@@ -225,11 +225,9 @@ export default function RegisterScreen() {
 
         <Animated.View entering={FadeInUp.delay(560).duration(420).springify()} style={styles.footer}>
           <Text style={styles.footerText}>Already have an account?</Text>
-          <Link href="/auth/login" asChild>
-            <Pressable>
-              <Text style={styles.link}>Sign in</Text>
-            </Pressable>
-          </Link>
+          <Pressable onPress={() => router.push("/auth/login" as any)}>
+            <Text style={styles.link}>Sign in</Text>
+          </Pressable>
         </Animated.View>
         </View>
       </KeyboardAwareScrollView>

@@ -9,7 +9,7 @@ import { useLoginMutation } from "@/features/auth/hooks/useAuthMutations";
 import { getAuthErrorMessage } from "@/utils/errors";
 import { loginSchema, type LoginFormValues } from "@/utils/validation";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Link, router } from "expo-router";
+import { router } from "expo-router";
 import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { Pressable, StyleSheet, Text, View } from "react-native";
@@ -159,11 +159,12 @@ export default function LoginScreen() {
           <Animated.View
             entering={FadeInUp.delay(260).duration(420).springify()}
           >
-            <Link href="/auth/forgot-password" asChild>
-              <Pressable style={styles.forgotLink}>
-                <Text style={styles.forgotText}>Forgot password?</Text>
-              </Pressable>
-            </Link>
+            <Pressable
+              style={styles.forgotLink}
+              onPress={() => router.push("/auth/forgot-password" as any)}
+            >
+              <Text style={styles.forgotText}>Forgot password?</Text>
+            </Pressable>
           </Animated.View>
 
           <Animated.View
@@ -200,11 +201,9 @@ export default function LoginScreen() {
             style={styles.footer}
           >
             <Text style={styles.footerText}>Don&apos;t have an account?</Text>
-            <Link href="/auth/register" asChild>
-              <Pressable>
-                <Text style={styles.link}>Create account</Text>
-              </Pressable>
-            </Link>
+            <Pressable onPress={() => router.push("/auth/register" as any)}>
+              <Text style={styles.link}>Create account</Text>
+            </Pressable>
           </Animated.View>
 
           {__DEV__ ? (

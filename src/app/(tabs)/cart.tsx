@@ -11,7 +11,7 @@ import { useCartQuery, useRemoveFromCart, useUpdateCartQuantity } from "@/featur
 import { calculateCartTotals } from "@/features/cart/utils/cartTotals";
 import { useAuthStore } from "@/stores/authStore";
 import { FlashList } from "@shopify/flash-list";
-import { Link, router } from "expo-router";
+import { router } from "expo-router";
 import { useCallback } from "react";
 import { Pressable, RefreshControl, StyleSheet, Text, View } from "react-native";
 
@@ -54,9 +54,11 @@ export default function CartScreen() {
         <Text style={styles.title}>Your bag</Text>
         <Text style={styles.sub}>Sign in to view your bag</Text>
         <Text style={styles.desc}>Your selected size and color are saved once you are signed in.</Text>
-        <Link href={"/auth/login" as any} asChild>
-          <Button title="Sign in" style={{ marginTop: spacing.lg }} />
-        </Link>
+        <Button
+          title="Sign in"
+          onPress={() => router.push("/auth/login" as any)}
+          style={{ marginTop: spacing.lg }}
+        />
         <Pressable onPress={() => router.push("/shop" as any)} style={{ marginTop: 12 }}>
           <Text style={styles.link}>Continue shopping</Text>
         </Pressable>
@@ -107,9 +109,11 @@ export default function CartScreen() {
           Add a dress with your size and color — it&apos;ll appear here for
           checkout.
         </Text>
-        <Link href={"/shop" as any} asChild>
-          <Button title="Start shopping" style={{ marginTop: spacing.lg }} />
-        </Link>
+        <Button
+          title="Start shopping"
+          onPress={() => router.push("/shop" as any)}
+          style={{ marginTop: spacing.lg }}
+        />
       </View>
     );
   }

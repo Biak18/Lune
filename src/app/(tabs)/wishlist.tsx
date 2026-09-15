@@ -11,7 +11,7 @@ import { useAuthStore } from "@/stores/authStore";
 import { Ionicons } from "@expo/vector-icons";
 import { FlashList } from "@shopify/flash-list";
 import * as Haptics from "expo-haptics";
-import { Link, router } from "expo-router";
+import { router } from "expo-router";
 import { useEffect, useRef, useState } from "react";
 import { Pressable, RefreshControl, StyleSheet, Text, View } from "react-native";
 
@@ -49,9 +49,11 @@ export default function WishlistScreen() {
         <Text style={styles.title}>Wishlist</Text>
         <Text style={styles.sub}>Sign in to save your favorites</Text>
         <Text style={styles.desc}>Create a wishlist that follows you across sessions.</Text>
-        <Link href={"/auth/login" as any} asChild>
-          <Button title="Sign in" style={{ marginTop: spacing.lg }} />
-        </Link>
+        <Button
+          title="Sign in"
+          onPress={() => router.push("/auth/login" as any)}
+          style={{ marginTop: spacing.lg }}
+        />
         <Pressable onPress={() => router.push("/shop" as any)} style={{ marginTop: 12 }}>
           <Text style={styles.link}>Continue browsing</Text>
         </Pressable>
@@ -94,9 +96,11 @@ export default function WishlistScreen() {
         <Text style={styles.title}>Wishlist</Text>
         <Text style={styles.sub}>Your wishlist is empty.</Text>
         <Text style={styles.desc}>Save styles you love — tap the heart on any product to keep it here.</Text>
-        <Link href={"/shop" as any} asChild>
-          <Button title="Explore products" style={{ marginTop: spacing.lg }} />
-        </Link>
+        <Button
+          title="Explore products"
+          onPress={() => router.push("/shop" as any)}
+          style={{ marginTop: spacing.lg }}
+        />
       </View>
     );
   }

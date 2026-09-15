@@ -13,7 +13,7 @@ import { RecommendationCarousel } from "@/features/recommendations/components/Re
 import { useRecentlyViewedProducts } from "@/features/recommendations/hooks/useRecommendations";
 import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
-import { Link, router } from "expo-router";
+import { router } from "expo-router";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 
 export default function HomeScreen() {
@@ -83,11 +83,9 @@ export default function HomeScreen() {
       <View style={styles.section}>
         <View style={styles.sectionHeader}>
           <Text style={styles.sectionTitle}>Shop by category</Text>
-          <Link href="/shop" asChild>
-            <Pressable hitSlop={8}>
-              <Text style={styles.seeAll}>See all</Text>
-            </Pressable>
-          </Link>
+          <Pressable hitSlop={8} onPress={() => router.push("/shop" as any)}>
+            <Text style={styles.seeAll}>See all</Text>
+          </Pressable>
         </View>
         {catsLoading ? (
           <View style={{ flexDirection: "row", gap: 14 }}>
@@ -106,26 +104,29 @@ export default function HomeScreen() {
             showsVerticalScrollIndicator={false}
           >
             {categories?.map((c) => (
-              <Link key={c.id} href={`/category/${c.id}` as any} asChild>
-                <Pressable style={styles.catTile} accessibilityLabel={c.name}>
-                  <View style={styles.catImageWrap}>
-                    <Image
-                      source={{
-                        uri:
-                          c.image_url ??
-                          "https://picsum.photos/seed/cat/200/200",
-                      }}
-                      style={styles.catImage}
-                      contentFit="cover"
-                      transition={200}
-                      cachePolicy="memory-disk"
-                    />
-                  </View>
-                  <Text style={styles.catName} numberOfLines={1}>
-                    {c.name}
-                  </Text>
-                </Pressable>
-              </Link>
+              <Pressable
+                key={c.id}
+                style={styles.catTile}
+                accessibilityLabel={c.name}
+                onPress={() => router.push(`/category/${c.id}` as any)}
+              >
+                <View style={styles.catImageWrap}>
+                  <Image
+                    source={{
+                      uri:
+                        c.image_url ??
+                        "https://picsum.photos/seed/cat/200/200",
+                    }}
+                    style={styles.catImage}
+                    contentFit="cover"
+                    transition={200}
+                    cachePolicy="memory-disk"
+                  />
+                </View>
+                <Text style={styles.catName} numberOfLines={1}>
+                  {c.name}
+                </Text>
+              </Pressable>
             ))}
           </ScrollView>
         )}

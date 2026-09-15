@@ -3,7 +3,7 @@ import { colors } from "@/design/colors";
 import { radius } from "@/design/spacing";
 import { WishlistButton } from "@/features/wishlist/components/WishlistButton";
 import { Image } from "expo-image";
-import { Link } from "expo-router";
+import { router } from "expo-router";
 import { memo } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import type { ProductWithRelations } from "../types";
@@ -18,34 +18,35 @@ export const ProductCard = memo(function ProductCard({ product, onPress }: Props
   const price = product.base_price;
 
   return (
-    <Link href={`/product/${product.id}` as any} asChild>
-      <PressableScale
-        style={styles.card}
-        onPress={onPress}
-        pressedScale={0.985}
-        accessibilityLabel={product.name}
-      >
-        <View style={styles.imageWrap}>
-          <Image
-            source={primary ? { uri: primary.image_url } : undefined}
-            style={styles.image}
-            contentFit="cover"
-            transition={220}
-            cachePolicy="memory-disk"
-            priority="high"
-          />
-          <View style={styles.wish} pointerEvents="box-none">
-            <WishlistButton productId={product.id} />
-          </View>
+    <PressableScale
+      style={styles.card}
+      onPress={() => {
+        onPress?.();
+        router.push(`/product/${product.id}` as any);
+      }}
+      pressedScale={0.985}
+      accessibilityLabel={product.name}
+    >
+      <View style={styles.imageWrap}>
+        <Image
+          source={primary ? { uri: primary.image_url } : undefined}
+          style={styles.image}
+          contentFit="cover"
+          transition={220}
+          cachePolicy="memory-disk"
+          priority="high"
+        />
+        <View style={styles.wish} pointerEvents="box-none">
+          <WishlistButton productId={product.id} />
         </View>
-        <View style={styles.meta}>
-          <Text style={styles.name} numberOfLines={1}>
-            {product.name}
-          </Text>
-          <Text style={styles.price}>${Number(price).toFixed(0)}</Text>
-        </View>
-      </PressableScale>
-    </Link>
+      </View>
+      <View style={styles.meta}>
+        <Text style={styles.name} numberOfLines={1}>
+          {product.name}
+        </Text>
+        <Text style={styles.price}>${Number(price).toFixed(0)}</Text>
+      </View>
+    </PressableScale>
   );
 });
 

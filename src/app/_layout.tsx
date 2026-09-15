@@ -1,5 +1,6 @@
 import { OfflineBanner } from "@/components/OfflineBanner";
 import { colors } from "@/design/colors";
+import { installNavigationGuard } from "@/lib/navigationGuard";
 import { AuthProvider } from "@/providers/AuthProvider";
 import { QueryProvider } from "@/providers/QueryProvider";
 import {
@@ -18,6 +19,9 @@ import { SafeAreaProvider } from "react-native-safe-area-context";
 
 // Keep the splash visible until the editorial serif is ready.
 SplashScreen.preventAutoHideAsync().catch(() => {});
+
+// Drop accidental double-tap navigations app-wide (installed once).
+installNavigationGuard();
 
 export default function RootLayout() {
   const [fontsLoaded, fontError] = useFonts({

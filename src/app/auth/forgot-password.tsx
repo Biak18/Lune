@@ -8,7 +8,7 @@ import { useResetPasswordMutation } from "@/features/auth/hooks/useAuthMutations
 import { getAuthErrorMessage } from "@/utils/errors";
 import { forgotPasswordSchema, type ForgotPasswordFormValues } from "@/utils/validation";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Link } from "expo-router";
+import { router } from "expo-router";
 import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { Pressable, StyleSheet, Text, View } from "react-native";
@@ -116,11 +116,9 @@ export default function ForgotPasswordScreen() {
 
         <Animated.View entering={FadeInUp.delay(260).duration(420).springify()} style={styles.footer}>
           <Text style={styles.footerText}>Remember your password?</Text>
-          <Link href="/auth/login" asChild>
-            <Pressable>
-              <Text style={styles.link}>Back to sign in</Text>
-            </Pressable>
-          </Link>
+          <Pressable onPress={() => router.push("/auth/login" as any)}>
+            <Text style={styles.link}>Back to sign in</Text>
+          </Pressable>
         </Animated.View>
         </View>
       </KeyboardAwareScrollView>

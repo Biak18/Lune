@@ -2,7 +2,7 @@ import { colors } from "@/design/colors";
 import { radius, spacing } from "@/design/spacing";
 import { WishlistButton } from "@/features/wishlist/components/WishlistButton";
 import { Image } from "expo-image";
-import { Link } from "expo-router";
+import { router } from "expo-router";
 import { Dimensions, Pressable, StyleSheet, Text, View } from "react-native";
 import type { SharedValue } from "react-native-reanimated";
 import Animated, {
@@ -115,10 +115,10 @@ function CarouselItem({
     <Animated.View
       style={[{ width: CARD_WIDTH, height: CARD_TOTAL_HEIGHT }, outerStyle]}
     >
-      <Link href={`/product/${product.id}` as any} asChild>
         <Pressable
           style={styles.faceContainer}
           accessibilityLabel={product.name}
+          onPress={() => router.push(`/product/${product.id}` as any)}
         >
           <Animated.View style={[styles.face, frontStyle]}>
             <View style={styles.imageWrap}>
@@ -155,7 +155,6 @@ function CarouselItem({
             ) : null}
           </Animated.View>
         </Pressable>
-      </Link>
     </Animated.View>
   );
 }

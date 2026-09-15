@@ -5,7 +5,7 @@ import { useAddToCart } from "@/features/cart/hooks/useCart";
 import type { ProductWithRelations } from "@/features/products/types";
 import * as Haptics from "expo-haptics";
 import { Image } from "expo-image";
-import { Link, router } from "expo-router";
+import { router } from "expo-router";
 import { useState } from "react";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { useCompleteTheLook } from "../hooks/useCompleteTheLook";
@@ -135,25 +135,27 @@ export function CompleteTheLook({ product }: Props) {
         {items.map((p) => {
           const img = p.images.find((i) => i.is_primary) ?? p.images[0];
           return (
-            <Link key={p.id} href={`/product/${p.id}` as any} asChild>
-              <Pressable style={styles.tile}>
-                <Image
-                  source={{
-                    uri: img?.image_url ?? "https://picsum.photos/300/400",
-                  }}
-                  style={styles.tileImg}
-                  contentFit="cover"
-                  transition={200}
-                  cachePolicy="memory-disk"
-                />
-                <Text style={styles.tileName} numberOfLines={1}>
-                  {p.name}
-                </Text>
-                <Text style={styles.tilePrice}>
-                  ${Number(p.base_price).toFixed(0)}
-                </Text>
-              </Pressable>
-            </Link>
+            <Pressable
+              key={p.id}
+              style={styles.tile}
+              onPress={() => router.push(`/product/${p.id}` as any)}
+            >
+              <Image
+                source={{
+                  uri: img?.image_url ?? "https://picsum.photos/300/400",
+                }}
+                style={styles.tileImg}
+                contentFit="cover"
+                transition={200}
+                cachePolicy="memory-disk"
+              />
+              <Text style={styles.tileName} numberOfLines={1}>
+                {p.name}
+              </Text>
+              <Text style={styles.tilePrice}>
+                ${Number(p.base_price).toFixed(0)}
+              </Text>
+            </Pressable>
           );
         })}
       </ScrollView>
