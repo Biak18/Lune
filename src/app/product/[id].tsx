@@ -421,6 +421,7 @@ export default function ProductScreen() {
             title={addToCart.isPending ? "Adding…" : justAdded ? "Added to bag" : ctaTitle}
             disabled={ctaDisabled || addToCart.isPending}
             loading={addToCart.isPending}
+            loadingIndicator="cart"
             onPress={handleAddToBag}
             accessibilityLabel={ctaTitle}
           />

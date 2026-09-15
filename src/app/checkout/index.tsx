@@ -290,6 +290,7 @@ export default function CheckoutScreen() {
             onPress={handlePlaceOrder}
             disabled={!selectedAddress || !cartItems.length || createOrder.isPending}
             loading={createOrder.isPending}
+            loadingIndicator="cart"
           />
           {createOrder.isError && <Text style={styles.error}>{String((createOrder.error as Error)?.message ?? "Failed")}</Text>}
           {!selectedAddress && <Text style={styles.footerHint}>Select a shipping address to continue</Text>}

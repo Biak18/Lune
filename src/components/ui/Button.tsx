@@ -2,18 +2,30 @@ import { colors } from "@/design/colors";
 import { radius } from "@/design/spacing";
 import { Ionicons } from "@expo/vector-icons";
 import { useState } from "react";
-import { StyleSheet, Text, TextStyle, ViewStyle } from "react-native";
+import {
+  ActivityIndicator,
+  StyleSheet,
+  Text,
+  TextStyle,
+  ViewStyle,
+} from "react-native";
 import { useReducedMotion } from "react-native-reanimated";
 import { LottieAnimation } from "./LottieAnimation";
 import { PressableScale } from "./PressableScale";
 
 type Variant = "primary" | "secondary" | "ghost";
 
+// Loading indicator style. The cart-glide animation is celebratory and
+// reserved for bag/order moments (add to bag, place order). Everything else
+// (auth, forms, cancel, retry) uses the neutral spinner.
+type LoadingIndicator = "spinner" | "cart";
+
 type ButtonProps = {
   title: string;
   onPress?: () => void;
   variant?: Variant;
   loading?: boolean;
+  loadingIndicator?: LoadingIndicator;
   disabled?: boolean;
   style?: ViewStyle;
   textStyle?: TextStyle;
@@ -25,6 +37,7 @@ export function Button({
   onPress,
   variant = "primary",
   loading = false,
+  loadingIndicator = "spinner",
   disabled = false,
   style,
   textStyle,
@@ -55,7 +68,18 @@ export function Button({
       ]}
     >
       {loading ? (
-        <CartLoader variant={variant} reducedMotion={reducedMotion} />
+        loadingIndicator === "cart" ? (
+          <CartLoader variant={variant} reducedMotion={reducedMotion} />
+        ) : (
+          <ActivityIndicator
+            size="small"
+            color={
+              variant === "primary"
+                ? colors.primaryForeground
+                : colors.foreground
+            }
+          />
+        )
       ) : (
         <Text
           style={[

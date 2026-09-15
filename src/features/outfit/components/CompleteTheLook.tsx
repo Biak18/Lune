@@ -167,6 +167,7 @@ export function CompleteTheLook({ product }: Props) {
           title={addingAll ? "Adding…" : "Add complete outfit"}
           onPress={handleAddOutfit}
           loading={addingAll}
+          loadingIndicator="cart"
           disabled={addingAll}
           style={{ flex: 1, marginLeft: 12 }}
         />
