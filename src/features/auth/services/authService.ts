@@ -1,169 +1,157 @@
-import { Platform } from "react-native";
-import * as Linking from "expo-linking";
-import * as WebBrowser from "expo-web-browser";
-import { supabase } from "@/lib/supabase";
+import { api, clearAccessToken, normalizeAuthPayload } from "@/lib/api";
+import { authStorage } from "@/lib/authStorage";
+import { useAuthStore } from "@/stores/authStore";
+
 import type {
+  AuthProfileDto,
+  AuthResultDto,
   LoginPayload,
   RegisterPayload,
-  ResetPasswordPayload,
 } from "../types";
 
-// Required for WebBrowser auth session to complete correctly on iOS/Android
-WebBrowser.maybeCompleteAuthSession();
+export type RegisterResultDto = {
+  accessToken: string | null;
+  refreshToken: string | null;
+  expiresIn: number;
+  emailConfirmationRequired: boolean;
+};
+
+function normalizeRegister(raw: any): RegisterResultDto {
+  return {
+    accessToken: raw?.accessToken ?? raw?.AccessToken ?? null,
+    refreshToken: raw?.refreshToken ?? raw?.RefreshToken ?? null,
+    expiresIn: raw?.expiresIn ?? raw?.ExpiresIn ?? 0,
+    emailConfirmationRequired:
+      raw?.emailConfirmationRequired ??
+      raw?.EmailConfirmationRequired ??
+      false,
+  };
+}
+
+function normalizeProfile(raw: any): AuthProfileDto {
+  return {
+    id: String(raw?.id ?? raw?.Id ?? ""),
+    fullName: raw?.fullName ?? raw?.FullName ?? null,
+    avatarUrl: raw?.avatarUrl ?? raw?.AvatarUrl ?? null,
+    role: raw?.role ?? raw?.Role ?? "customer",
+    email: raw?.email ?? raw?.Email ?? null,
+    createdAt: raw?.createdAt ?? raw?.CreatedAt ?? "",
+    updatedAt: raw?.updatedAt ?? raw?.UpdatedAt ?? "",
+  };
+}
 
 export const authService = {
-  async signIn({ email, password }: LoginPayload) {
-    const { data, error } = await supabase.auth.signInWithPassword({
+  async signIn({ email, password }: LoginPayload): Promise<AuthResultDto> {
+    const raw = await api.post<unknown>("/auth/login", {
       email: email.trim().toLowerCase(),
       password,
     });
-    if (error) throw error;
-    return data;
-  },
 
-  async signUp({ email, password, fullName }: RegisterPayload) {
-    const { data, error } = await supabase.auth.signUp({
-      email: email.trim().toLowerCase(),
-      password,
-      options: {
-        data: {
-          full_name: fullName?.trim() || null,
-        },
-      },
+    const data = normalizeAuthPayload(raw);
+
+    if (!data.accessToken || !data.refreshToken) {
+      throw new Error("Sign in failed — server returned an empty token.");
+    }
+
+    await authStorage.saveTokens(data.accessToken, data.refreshToken);
+
+    useAuthStore.getState().setTokens({
+      accessToken: data.accessToken,
+      refreshToken: data.refreshToken,
+      expiresIn: data.expiresIn,
     });
-    if (error) throw error;
 
-    // Attempt to create profile row if user was created.
-    // This is safe to fail if RLS or trigger already handles it.
-    // Profiles table expects id = auth.users.id
-    if (data.user) {
-      const { error: profileError } = await supabase.from("profiles").upsert(
-        {
-          id: data.user.id,
-          full_name: fullName?.trim() || null,
-          role: "customer",
-        },
-        { onConflict: "id" },
-      );
-      // Silently ignore profile errors if table not yet created (Phase 1 migration pending)
-      if (profileError && __DEV__) {
-        console.warn(
-          "[authService] profile upsert warning:",
-          profileError.message,
-        );
-      }
+    // Best-effort profile hydration; login still succeeds without it.
+    try {
+      await authService.getCurrentProfile();
+    } catch {
+      // ignore — profile loads on next app start
     }
 
     return data;
+  },
+
+  async signUp({
+    email,
+    password,
+    fullName,
+  }: RegisterPayload): Promise<RegisterResultDto> {
+    const raw = await api.post<unknown>("/auth/register", {
+      email: email.trim().toLowerCase(),
+      password,
+      fullName: fullName?.trim() || null,
+    });
+
+    const result = normalizeRegister(raw);
+
+    // Direct sign-in when the backend issued a session.
+    if (!result.emailConfirmationRequired && result.accessToken && result.refreshToken) {
+      await authStorage.saveTokens(result.accessToken, result.refreshToken);
+
+      useAuthStore.getState().setTokens({
+        accessToken: result.accessToken,
+        refreshToken: result.refreshToken,
+        expiresIn: result.expiresIn || 3600,
+      });
+
+      try {
+        await authService.getCurrentProfile();
+      } catch {
+        // ignore
+      }
+    }
+
+    return result;
+  },
+
+  async requestPasswordReset(email: string): Promise<void> {
+    // Always 204 — never reveals whether the account exists.
+    await api.post("/auth/forgot-password", {
+      email: email.trim().toLowerCase(),
+    });
+  },
+
+  async getCurrentProfile(): Promise<AuthProfileDto> {
+    const raw = await api.get<unknown>("/api/profiles/me");
+    const profile = normalizeProfile(raw);
+    useAuthStore.getState().setUser({
+      id: profile.id,
+      fullName: profile.fullName,
+      avatarUrl: profile.avatarUrl,
+      role: profile.role,
+      email: profile.email,
+      createdAt: profile.createdAt,
+      updatedAt: profile.updatedAt,
+    });
+    return profile;
+  },
+
+  async restoreSession(): Promise<boolean> {
+    const { accessToken, refreshToken } = await authStorage.getTokens();
+    if (!accessToken || !refreshToken) {
+      return false;
+    }
+    useAuthStore.getState().setTokens({
+      accessToken,
+      refreshToken,
+      expiresIn: 3600,
+    });
+    try {
+      await authService.getCurrentProfile();
+    } catch {
+      // Token may be expired — leave tokens in place;
+      // the next 401 will trigger refresh via apiFetch.
+    }
+    return true;
   },
 
   async signOut() {
-    const { error } = await supabase.auth.signOut();
-    if (error) throw error;
-  },
-
-  async resetPassword({ email }: ResetPasswordPayload) {
-    // No redirect URL needed for MVP; Supabase will send email with recovery link.
-    // For Expo, you could add redirectTo via Linking.createURL if handling deep links.
-    const { data, error } = await supabase.auth.resetPasswordForEmail(
-      email.trim().toLowerCase(),
-    );
-    if (error) throw error;
-    return data;
-  },
-
-  async getSession() {
-    const { data, error } = await supabase.auth.getSession();
-    if (error) throw error;
-    return data.session;
-  },
-
-  async getUser() {
-    const { data, error } = await supabase.auth.getUser();
-    if (error) throw error;
-    return data.user;
-  },
-
-  /**
-   * Initiate Google OAuth via Supabase.
-   * - Web: Supabase redirects the browser (default implicit/pkce flow).
-   // - Native (Expo): uses WebBrowser.openAuthSessionAsync + PKCE code exchange.
-   * Requires Supabase Auth > Providers > Google enabled and redirect URL whitelisted:
-   *   Site URL + `dressshop://` (scheme from app.json) or Expo proxy when using Expo Go.
-   */
-  async signInWithGoogle() {
-    // Web: let Supabase handle redirect directly
-    if (Platform.OS === "web") {
-      // Use current origin so Supabase redirects back to where Expo Web is running
-      // (http://localhost:8081) instead of default Site URL http://localhost:3000.
-      const redirectTo =
-        typeof window !== "undefined" ? window.location.origin : undefined;
-      const { data, error } = await supabase.auth.signInWithOAuth({
-        provider: "google",
-        options: {
-          redirectTo,
-        },
-      });
-      if (error) throw error;
-      return data;
+    try {
+      await api.post("/auth/logout");
+    } catch {
+      // Server revoke is best-effort — local sign-out always proceeds.
+    } finally {
+      await clearAccessToken();
     }
-
-    // Native: PKCE flow via WebBrowser
-    const redirectTo = Linking.createURL("/"); // → dressshop:/// or exp:// with proxy
-    const { data, error } = await supabase.auth.signInWithOAuth({
-      provider: "google",
-      options: {
-        redirectTo,
-        skipBrowserRedirect: true,
-      },
-    });
-    if (error) throw error;
-    if (!data?.url) throw new Error("Google sign-in failed to return URL");
-
-    const result = await WebBrowser.openAuthSessionAsync(data.url, redirectTo);
-    if (result.type === "dismiss" || result.type === "cancel") {
-      throw new Error("Google sign-in was cancelled");
-    }
-    if (result.type !== "success" || !result.url) {
-      throw new Error("Google sign-in failed");
-    }
-
-    // PKCE: URL contains `code` query param
-    const url = new URL(result.url);
-    const code = url.searchParams.get("code");
-
-    // Older implicit flow may return tokens in hash fragment; handle as fallback
-    if (code) {
-      const { data: exchangeData, error: exchangeError } =
-        await supabase.auth.exchangeCodeForSession(code);
-      if (exchangeError) throw exchangeError;
-      return exchangeData;
-    }
-
-    // Fallback: extract tokens from fragment if present (e.g. #access_token=...)
-    const fragment = result.url.split("#")[1];
-    if (fragment) {
-      const params = new URLSearchParams(fragment);
-      const access_token = params.get("access_token");
-      const refresh_token = params.get("refresh_token");
-      if (access_token && refresh_token) {
-        const { data: sessionData, error: sessionError } =
-          await supabase.auth.setSession({
-            access_token,
-            refresh_token,
-          });
-        if (sessionError) throw sessionError;
-        return sessionData;
-      }
-    }
-
-    // If no code/tokens, rely on onAuthStateChange having fired via deep link;
-    // fetch current session as final check
-    const {
-      data: { session },
-    } = await supabase.auth.getSession();
-    if (!session)
-      throw new Error("Google sign-in completed but no session found");
-    return { session } as unknown as typeof data;
   },
 };

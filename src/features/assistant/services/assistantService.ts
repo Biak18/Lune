@@ -40,6 +40,24 @@ export const assistantService = {
     input: string,
     messages?: ChatMessage[],
   ): Promise<{ text: string; intent: ParsedIntent }> {
+    // Prefer the .NET proxy (works where direct Supabase is blocked).
+    // Falls back to the Supabase Edge Function when the backend is
+    // unconfigured or the user is signed out.
+    try {
+      const { api } = await import("@/lib/api");
+      const res = await api.post<{ text: string }>(
+        "/api/assistant/chat",
+        {
+          input,
+          messages: messages?.map((m) => ({ role: m.role, content: m.content })),
+        },
+      );
+      const text = res?.text?.trim() ?? "";
+      if (!text) throw new Error("AI returned empty text");
+      return { text, intent: { occasion: null, style: null, color: null } };
+    } catch (e) {
+      if (__DEV__) console.warn("[assistant] .NET chat failed, trying Supabase", e);
+    }
     const { data, error } = await supabase.functions.invoke<GeminiChatResponse>("gemini", {
       body: {
         input,
@@ -91,6 +109,22 @@ export const assistantService = {
     messages: ChatMessage[] | undefined,
     onDelta: (delta: string) => void,
   ): Promise<string> {
+    // Prefer .NET (non-streaming, single callback) where direct
+    // Supabase is unreachable. Falls back to Supabase SSE below.
+    try {
+      const { api } = await import("@/lib/api");
+      const res = await api.post<{ text: string }>(
+        "/api/assistant/chat",
+        { input, messages },
+      );
+      const full = res?.text?.trim() ?? "";
+      if (full) {
+        onDelta(full);
+        return full;
+      }
+    } catch (e) {
+      if (__DEV__) console.warn("[assistant] .NET stream failed, trying Supabase", e);
+    }
     // Use direct fetch for SSE so we can read stream with anon key
     const url = `${process.env.EXPO_PUBLIC_SUPABASE_URL}/functions/v1/gemini`;
     const anonKey = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY;

@@ -10,20 +10,22 @@ export const wishlistKeys = {
 
 export function useWishlistQuery() {
   const userId = useAuthStore((s) => s.user?.id);
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   return useQuery({
     queryKey: wishlistKeys.list(userId),
     queryFn: () => wishlistService.getWishlist(),
-    enabled: !!userId,
+    enabled: isAuthenticated,
     staleTime: 1000 * 60 * 2,
   });
 }
 
 export function useFavoriteIdsQuery() {
   const userId = useAuthStore((s) => s.user?.id);
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   return useQuery({
     queryKey: wishlistKeys.ids(userId),
     queryFn: () => wishlistService.getFavoriteIds(),
-    enabled: !!userId,
+    enabled: isAuthenticated,
     staleTime: 1000 * 60 * 2,
   });
 }

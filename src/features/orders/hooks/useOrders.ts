@@ -11,10 +11,11 @@ export const orderKeys = {
 
 export function useOrdersQuery() {
   const userId = useAuthStore((s) => s.user?.id);
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   return useQuery({
     queryKey: orderKeys.list(userId),
     queryFn: () => orderService.getOrders(),
-    enabled: !!userId,
+    enabled: isAuthenticated,
     staleTime: 1000 * 30,
   });
 }

@@ -2,7 +2,7 @@ import { colors } from "@/design/colors";
 import { radius, spacing } from "@/design/spacing";
 import { AdminGuard } from "@/features/admin/components/AdminGuard";
 import { adminService } from "@/features/admin/services/adminService";
-import { supabase } from "@/lib/supabase";
+import { productService } from "@/features/products/services/productService";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import * as Haptics from "expo-haptics";
 import { router } from "expo-router";
@@ -38,15 +38,15 @@ export default function AdminProductsScreen() {
   const { data, isLoading, isError, error, refetch } = useQuery({
     queryKey: ["admin", "products-list"],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("products")
-        .select(
-          "id, name, slug, is_active, base_price, category:categories(name)",
-        )
-        .order("created_at", { ascending: false })
-        .limit(50);
-      if (error) throw error;
-      return data ?? [];
+      const res = await productService.getProducts({ page: 0, pageSize: 50 });
+      return res.data.map((p: any) => ({
+        id: p.id,
+        name: p.name,
+        slug: p.slug,
+        is_active: p.is_active,
+        base_price: p.base_price,
+        category: p.category ? { name: p.category.name } : null,
+      }));
     },
   });
 

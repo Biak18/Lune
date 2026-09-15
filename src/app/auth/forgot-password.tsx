@@ -44,7 +44,7 @@ export default function ForgotPasswordScreen() {
   };
 
   const formError = reset.isError ? getAuthErrorMessage(reset.error) : null;
-  const isEnvMissing = !env.isSupabaseConfigured();
+  const isEnvMissing = !env.isApiConfigured();
 
   return (
     <SafeAreaView style={styles.safe} edges={["top", "bottom"]}>
@@ -68,8 +68,8 @@ export default function ForgotPasswordScreen() {
           <Animated.View entering={FadeInUp.delay(80).duration(420).springify()}>
             <View style={styles.envWarning}>
               <Text style={styles.envWarningText}>
-                Supabase is not configured. Add EXPO_PUBLIC_SUPABASE_URL and
-                EXPO_PUBLIC_SUPABASE_ANON_KEY to your .env to enable this feature.
+                API is not configured. Add EXPO_PUBLIC_API_URL to your .env to
+                enable this feature.
               </Text>
             </View>
           </Animated.View>

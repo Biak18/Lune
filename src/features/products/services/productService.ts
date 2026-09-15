@@ -1,237 +1,215 @@
-import { supabase } from "@/lib/supabase";
-import type { PaginatedProducts, ProductsQueryParams, ProductWithRelations } from "../types";
+import { api } from "@/lib/api";
+import type {
+  PaginatedProducts,
+  ProductsQueryParams,
+  ProductWithRelations,
+} from "../types";
+
+/**
+ * Raw DTOs from DressShop.Api (camelCase).
+ * GET /api/products, GET /api/products/{id}, GET /api/products/slug/{slug}
+ * GET /api/categories
+ */
+type ApiCategory = {
+  id: string;
+  name: string;
+  slug: string;
+  description?: string | null;
+  imageUrl?: string | null;
+  sortOrder?: number | null;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+};
+
+type ApiImage = {
+  id: string;
+  productId: string;
+  imageUrl: string;
+  altText?: string | null;
+  sortOrder: number;
+  isPrimary: boolean;
+};
+
+type ApiVariant = {
+  id: string;
+  productId: string;
+  sku: string;
+  color?: string | null;
+  size?: string | null;
+  price?: number | null;
+  stockQuantity: number;
+  isActive: boolean;
+};
+
+type ApiProduct = {
+  id: string;
+  name: string;
+  slug: string;
+  basePrice: number;
+  categoryId?: string | null;
+  category?: ApiCategory | null;
+  categoryName?: string | null;
+  description?: string | null;
+  style?: string | null;
+  occasion?: string | null;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+  images: ApiImage[];
+  variants: ApiVariant[];
+};
+
+type ApiPaginated = {
+  data: ApiProduct[];
+  count: number;
+  page: number;
+  pageSize: number;
+};
 
 const DEFAULT_PAGE_SIZE = 10;
 
-export const productService = {
-  async getCategories() {
-    const { data, error } = await supabase
-      .from("categories")
-      .select("*")
-      .eq("is_active", true)
-      .order("sort_order", { ascending: true })
-      .order("name");
-    if (error) throw error;
-    return data ?? [];
-  },
+function mapCategory(c: ApiCategory | null | undefined): any {
+  if (!c) return null;
+  return {
+    id: c.id,
+    name: c.name,
+    slug: c.slug,
+    description: c.description ?? null,
+    image_url: c.imageUrl ?? null,
+    sort_order: c.sortOrder ?? 0,
+    is_active: c.isActive,
+    created_at: c.createdAt,
+    updated_at: c.updatedAt,
+  };
+}
 
-  async getProducts(params: ProductsQueryParams = {}): Promise<PaginatedProducts> {
-    const page = params.page ?? 0;
-    const pageSize = params.pageSize ?? DEFAULT_PAGE_SIZE;
-    const from = page * pageSize;
-    const to = from + pageSize - 1;
-
-    let query = supabase
-      .from("products")
-      .select(
-        `
-        *,
-        category:categories(*),
-        images:product_images(*),
-        variants:product_variants(*)
-      `,
-        { count: "exact" }
-      )
-      .eq("is_active", params.isActive ?? true);
-
-    if (params.categoryId) query = query.eq("category_id", params.categoryId);
-    if (params.categorySlug) {
-      const { data: cat } = await supabase
-        .from("categories")
-        .select("id")
-        .eq("slug", params.categorySlug)
-        .maybeSingle();
-      if (cat?.id) query = query.eq("category_id", cat.id);
-      else
-        return {
-          data: [],
-          count: 0,
-          page,
-          pageSize,
-        };
-    }
-    // Search: name/description/style/occasion/slug + category name
-    let searchIds: string[] | null = null;
-    if (params.search) {
-      const raw = params.search.trim();
-      if (raw) {
-        const s = raw.replace(/%/g, "\\%").replace(/,/g, " ");
-        const orFilter = `name.ilike.%${s}%,description.ilike.%${s}%,style.ilike.%${s}%,occasion.ilike.%${s}%,slug.ilike.%${s}%`;
-        const { data: catMatches } = await supabase.from("categories").select("id").ilike("name", `%${s}%`);
-        const catIds = (catMatches ?? []).map((c: any) => c.id);
-        const { data: orMatched } = await supabase.from("products").select("id").or(orFilter).eq("is_active", params.isActive ?? true).limit(200);
-        const orIds = (orMatched ?? []).map((p: any) => p.id);
-        let byCatIds: string[] = [];
-        if (catIds.length) {
-          const { data: byCat } = await supabase.from("products").select("id").in("category_id", catIds).eq("is_active", params.isActive ?? true).limit(200);
-          byCatIds = (byCat ?? []).map((p: any) => p.id);
+function mapProduct(p: ApiProduct): ProductWithRelations {
+  const category = p.category
+    ? mapCategory(p.category)
+    : p.categoryName
+      ? {
+          id: p.categoryId ?? "",
+          name: p.categoryName,
+          slug: "",
+          description: null,
+          image_url: null,
+          sort_order: 0,
+          is_active: true,
+          created_at: p.createdAt,
+          updated_at: p.updatedAt,
         }
-        const union = [...new Set([...orIds, ...byCatIds])];
-        searchIds = union;
-        if (searchIds.length === 0) {
-          return { data: [], count: 0, page, pageSize };
-        }
-      }
-    }
-    if (params.style) query = query.eq("style", params.style);
-    if (params.occasion) query = query.eq("occasion", params.occasion);
-    if (params.minPrice != null) query = query.gte("base_price", params.minPrice);
-    if (params.maxPrice != null) query = query.lte("base_price", params.maxPrice);
-
-    // Variant-level filters (color/size/inStock) → resolve product_ids via product_variants
-    let variantIds: string[] | null = null;
-    const needsVariantFilter = !!params.color || !!params.size || !!params.inStock;
-    if (needsVariantFilter) {
-      let vQuery = supabase.from("product_variants").select("product_id").eq("is_active", true);
-      if (params.color) vQuery = vQuery.eq("color", params.color);
-      if (params.size) vQuery = vQuery.eq("size", params.size);
-      if (params.inStock) vQuery = vQuery.gt("stock_quantity", 0);
-      const { data: vData, error: vErr } = await vQuery.limit(500);
-      if (vErr) throw vErr;
-      const ids = [...new Set((vData ?? []).map((r: any) => r.product_id))];
-      variantIds = ids;
-      if (variantIds.length === 0) {
-        return { data: [], count: 0, page, pageSize };
-      }
-    }
-
-    // Apply id intersections (search + variant) — intersect so all criteria satisfied
-    if (searchIds !== null && variantIds !== null) {
-      const setV = new Set(variantIds);
-      const intersect = searchIds.filter((id) => setV.has(id));
-      if (intersect.length === 0) return { data: [], count: 0, page, pageSize };
-      query = query.in("id", intersect);
-    } else if (searchIds !== null) {
-      query = query.in("id", searchIds);
-    } else if (variantIds !== null) {
-      query = query.in("id", variantIds);
-    }
-
-    // Sorting — top_rated handled separately via review aggregation below
-    const isTopRated = params.sort === "top_rated";
-    if (!isTopRated) {
-      switch (params.sort) {
-        case "newest":
-          query = query.order("created_at", { ascending: false });
-          break;
-        case "price_asc":
-          query = query.order("base_price", { ascending: true });
-          break;
-        case "price_desc":
-          query = query.order("base_price", { ascending: false });
-          break;
-        default:
-          query = query.order("created_at", { ascending: false });
-          break;
-      }
-    }
-
-    if (isTopRated) {
-      // Compute avg rating per product from reviews, then paginate ordered ids
-      const { data: reviewRows } = await supabase.from("reviews").select("product_id, rating");
-      const avgMap = new Map<string, { sum: number; cnt: number }>();
-      for (const r of (reviewRows ?? []) as any[]) {
-        const cur = avgMap.get(r.product_id) ?? { sum: 0, cnt: 0 };
-        cur.sum += r.rating;
-        cur.cnt += 1;
-        avgMap.set(r.product_id, cur);
-      }
-      // Fetch candidate product ids matching filters (without pagination) to sort, then slice
-      // To respect search/variant filters already narrowed via `in`, we run the query without range to get ids sorted
-      const { data: candidates, error: candErr } = await query.limit(200);
-      if (candErr) throw candErr;
-      const candidateIds = ((candidates as any[]) ?? []).map((p: any) => p.id);
-      // Sort candidate ids by avg desc, then fill unsorted (no reviews) at end by created_at desc already approximated
-      const sortedIds = [...candidateIds].sort((a, b) => {
-        const avA = avgMap.get(a);
-        const avB = avgMap.get(b);
-        const avgA = avA ? avA.sum / avA.cnt : 0;
-        const avgB = avB ? avB.sum / avB.cnt : 0;
-        if (avgA !== avgB) return avgB - avgA;
-        return 0;
-      });
-      const pagedIds = sortedIds.slice(from, from + pageSize);
-      if (pagedIds.length === 0) return { data: [], count: candidateIds.length, page, pageSize };
-      const { data, error } = await supabase
-        .from("products")
-        .select(`*, category:categories(*), images:product_images(*), variants:product_variants(*)`)
-        .in("id", pagedIds);
-      if (error) throw error;
-      const byId = new Map(((data as any[]) ?? []).map((p: any) => [p.id, p]));
-      const ordered = pagedIds.map((id) => byId.get(id)).filter(Boolean) as ProductWithRelations[];
-      const normalized = ordered.map((p) => ({
-        ...p,
-        images: [...(p.images ?? [])].sort((a, b) => {
-          if (a.is_primary !== b.is_primary) return a.is_primary ? -1 : 1;
-          return (a.sort_order ?? 0) - (b.sort_order ?? 0);
-        }),
-      }));
-      return { data: normalized, count: candidateIds.length, page, pageSize };
-    }
-
-    query = query.range(from, to);
-
-    const { data, error, count } = await query;
-    if (error) throw error;
-
-    const normalized = (data as unknown as ProductWithRelations[]).map((p) => ({
-      ...p,
-      images: [...(p.images ?? [])].sort((a, b) => {
+      : null;
+  return {
+    id: p.id,
+    name: p.name,
+    slug: p.slug,
+    base_price: p.basePrice,
+    category_id: p.categoryId ?? null,
+    description: p.description ?? null,
+    style: p.style ?? null,
+    occasion: p.occasion ?? null,
+    is_active: p.isActive,
+    created_at: p.createdAt,
+    updated_at: p.updatedAt,
+    category,
+    images: (p.images ?? [])
+      .map((i) => ({
+        id: i.id,
+        product_id: i.productId,
+        image_url: i.imageUrl,
+        alt_text: i.altText ?? null,
+        sort_order: i.sortOrder,
+        is_primary: i.isPrimary,
+        created_at: p.createdAt,
+      }))
+      .sort((a, b) => {
         if (a.is_primary !== b.is_primary) return a.is_primary ? -1 : 1;
         return (a.sort_order ?? 0) - (b.sort_order ?? 0);
       }),
-    }));
+    variants: (p.variants ?? []).map((v) => ({
+      id: v.id,
+      product_id: v.productId,
+      sku: v.sku,
+      color: v.color ?? null,
+      size: v.size ?? null,
+      price: v.price ?? null,
+      stock_quantity: v.stockQuantity,
+      is_active: v.isActive,
+      created_at: p.createdAt,
+      updated_at: p.updatedAt,
+    })),
+  } as unknown as ProductWithRelations;
+}
 
-    return { data: normalized, count, page, pageSize };
+export const productService = {
+  async getCategories() {
+    const data = await api.get<ApiCategory[]>("/api/categories");
+    return (data ?? []).map(mapCategory);
+  },
+
+  async getProducts(
+    params: ProductsQueryParams = {},
+  ): Promise<PaginatedProducts> {
+    const page = params.page ?? 0;
+    const pageSize = params.pageSize ?? DEFAULT_PAGE_SIZE;
+    const res = await api.get<ApiPaginated>("/api/products", {
+      page,
+      pageSize,
+      isActive: params.isActive ?? true,
+      categoryId: params.categoryId,
+      categorySlug: params.categorySlug,
+      search: params.search,
+      style: params.style,
+      occasion: params.occasion,
+      minPrice: params.minPrice,
+      maxPrice: params.maxPrice,
+      color: params.color,
+      size: params.size,
+      inStock: params.inStock,
+      sort:
+        params.sort === "recommended" ? undefined : params.sort,
+      ids: params.ids,
+    });
+    return {
+      data: (res.data ?? []).map(mapProduct),
+      count: res.count ?? 0,
+      page: res.page ?? page,
+      pageSize: res.pageSize ?? pageSize,
+    };
   },
 
   async getProductById(id: string): Promise<ProductWithRelations | null> {
-    const { data, error } = await supabase
-      .from("products")
-      .select(
-        `
-        *,
-        category:categories(*),
-        images:product_images(*),
-        variants:product_variants(*)
-      `
-      )
-      .eq("id", id)
-      .single();
-    if (error) {
-      if (error.code === "PGRST116") return null;
-      throw error;
+    try {
+      const res = await api.get<ApiProduct>(`/api/products/${id}`);
+      return mapProduct(res);
+    } catch (e) {
+      if (
+        e instanceof Error &&
+        (e.message.toLowerCase().includes("not found") ||
+          e.message.includes("404"))
+      ) {
+        return null;
+      }
+      throw e;
     }
-    const p = data as unknown as ProductWithRelations;
-    p.images = [...(p.images ?? [])].sort((a, b) => {
-      if (a.is_primary !== b.is_primary) return a.is_primary ? -1 : 1;
-      return (a.sort_order ?? 0) - (b.sort_order ?? 0);
-    });
-    return p;
   },
 
   async getProductBySlug(slug: string): Promise<ProductWithRelations | null> {
-    const { data, error } = await supabase
-      .from("products")
-      .select(
-        `
-        *,
-        category:categories(*),
-        images:product_images(*),
-        variants:product_variants(*)
-      `
-      )
-      .eq("slug", slug)
-      .single();
-    if (error) {
-      if (error.code === "PGRST116") return null;
-      throw error;
+    try {
+      const res = await api.get<ApiProduct>(
+        `/api/products/slug/${encodeURIComponent(slug)}`,
+      );
+      return mapProduct(res);
+    } catch (e) {
+      if (
+        e instanceof Error &&
+        (e.message.toLowerCase().includes("not found") ||
+          e.message.includes("404"))
+      ) {
+        return null;
+      }
+      throw e;
     }
-    const p = data as unknown as ProductWithRelations;
-    p.images = [...(p.images ?? [])].sort((a, b) => {
-      if (a.is_primary !== b.is_primary) return a.is_primary ? -1 : 1;
-      return (a.sort_order ?? 0) - (b.sort_order ?? 0);
-    });
-    return p;
   },
 };

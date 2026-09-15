@@ -1,76 +1,106 @@
-import { supabase } from "@/lib/supabase";
+import { api } from "@/lib/api";
+
+type ApiStats = {
+  products: number;
+  orders: number;
+  lowStock: number;
+  categories: number;
+  customers: number;
+};
 
 export const adminService = {
   async getStats() {
-    const [products, orders, variantsLow, categories, users] = await Promise.all([
-      supabase.from("products").select("id", { count: "exact", head: true }),
-      supabase.from("orders").select("id", { count: "exact", head: true }),
-      supabase.from("product_variants").select("id", { count: "exact", head: true }).lte("stock_quantity", 3),
-      supabase.from("categories").select("id", { count: "exact", head: true }),
-      supabase.from("profiles").select("id", { count: "exact", head: true }),
-    ]);
+    const s = await api.get<ApiStats>("/api/admin/stats");
     return {
-      products: products.count ?? 0,
-      orders: orders.count ?? 0,
-      lowStock: variantsLow.count ?? 0,
-      categories: categories.count ?? 0,
-      customers: users.count ?? 0,
+      products: s.products ?? 0,
+      orders: s.orders ?? 0,
+      lowStock: s.lowStock ?? 0,
+      categories: s.categories ?? 0,
+      customers: s.customers ?? 0,
     };
   },
 
   async getAllOrders() {
-    const { data, error } = await supabase.from("orders").select("*").order("created_at", { ascending: false }).limit(50);
-    if (error) throw error;
-    return data ?? [];
+    const data = await api.get<any[]>("/api/admin/orders", { limit: 50 });
+    return (data ?? []).map((o) => ({
+      id: o.id,
+      status: o.status,
+      subtotal: o.subtotal,
+      shipping_amount: o.shippingAmount,
+      discount_amount: o.discountAmount,
+      total: o.total,
+      created_at: o.createdAt,
+      updated_at: o.updatedAt,
+      items: o.items ?? [],
+    }));
   },
 
   async getLowStock() {
-    const { data, error } = await supabase
-      .from("product_variants")
-      .select("id, sku, color, size, stock_quantity, product:products(name, slug)")
-      .lte("stock_quantity", 3)
-      .order("stock_quantity", { ascending: true })
-      .limit(20);
-    if (error) throw error;
-    return data ?? [];
+    const data = await api.get<any[]>("/api/admin/low-stock", {
+      threshold: 3,
+      limit: 20,
+    });
+    return (data ?? []).map((v) => ({
+      id: v.id,
+      sku: v.sku,
+      color: v.color,
+      size: v.size,
+      stock_quantity: v.stockQuantity,
+      product: v.product
+        ? { name: v.product.name, slug: v.product.slug }
+        : null,
+    }));
   },
 
   async toggleProductActive(id: string, isActive: boolean) {
-    const { error } = await supabase.from("products").update({ is_active: isActive } as any).eq("id", id);
-    if (error) throw error;
+    await api.patch(`/api/admin/products/${id}/active`, { isActive });
   },
 
   async updateVariantStock(variantId: string, quantity: number) {
     if (quantity < 0) throw new Error("Stock cannot be negative");
-    const { error } = await supabase.from("product_variants").update({ stock_quantity: quantity } as any).eq("id", variantId);
-    if (error) throw error;
+    await api.patch(`/api/admin/variants/${variantId}/stock`, { quantity });
   },
 
   async updateOrderStatus(id: string, status: string) {
-    const { error } = await supabase.from("orders").update({ status } as any).eq("id", id);
-    if (error) throw error;
+    await api.patch(`/api/admin/orders/${id}/status`, { status });
   },
 
   async getCategoriesAdmin() {
-    const { data, error } = await supabase.from("categories").select("*").order("sort_order", { ascending: true }).order("name");
-    if (error) throw error;
-    return data ?? [];
+    const data = await api.get<any[]>("/api/admin/categories");
+    return (data ?? []).map((c) => ({
+      id: c.id,
+      name: c.name,
+      slug: c.slug,
+      description: c.description ?? null,
+      is_active: c.isActive,
+      sort_order: c.sortOrder ?? 0,
+    }));
   },
 
   async createCategory(payload: { name: string; slug: string; description?: string | null; is_active?: boolean }) {
-    const { data, error } = await supabase.from("categories").insert(payload as any).select().single();
-    if (error) throw error;
+    const data = await api.post<any>("/api/admin/categories", {
+      name: payload.name,
+      slug: payload.slug,
+      description: payload.description ?? null,
+      isActive: payload.is_active ?? true,
+      sortOrder: 0,
+    });
     return data;
   },
 
   async updateCategory(id: string, patch: Partial<{ name: string; slug: string; description: string | null; is_active: boolean; sort_order: number }>) {
-    const { data, error } = await supabase.from("categories").update(patch as any).eq("id", id).select().single();
-    if (error) throw error;
+    const p = patch as Record<string, any>;
+    const data = await api.put<any>(`/api/admin/categories/${id}`, {
+      name: p.name,
+      slug: p.slug,
+      description: p.description ?? null,
+      isActive: p.is_active,
+      sortOrder: p.sort_order ?? 0,
+    });
     return data;
   },
 
   async deleteCategory(id: string) {
-    const { error } = await supabase.from("categories").delete().eq("id", id);
-    if (error) throw error;
+    await api.delete(`/api/admin/categories/${id}`);
   },
 };

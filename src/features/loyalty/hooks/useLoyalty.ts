@@ -11,20 +11,22 @@ export const loyaltyKeys = {
 
 export function useLoyaltyAccount() {
   const userId = useAuthStore((s) => s.user?.id);
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   return useQuery({
     queryKey: loyaltyKeys.account(userId),
     queryFn: () => loyaltyService.getAccount(),
-    enabled: !!userId,
+    enabled: isAuthenticated,
     staleTime: 1000 * 30,
   });
 }
 
 export function useLoyaltyTx() {
   const userId = useAuthStore((s) => s.user?.id);
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   return useQuery({
     queryKey: loyaltyKeys.tx(userId),
     queryFn: () => loyaltyService.getTransactions(),
-    enabled: !!userId,
+    enabled: isAuthenticated,
     staleTime: 1000 * 30,
   });
 }
@@ -44,10 +46,11 @@ export function useRedeem() {
 
 export function useLoyaltyPending() {
   const userId = useAuthStore((s) => s.user?.id);
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   return useQuery({
     queryKey: loyaltyKeys.pending(userId),
     queryFn: () => loyaltyService.getPendingDiscount(),
-    enabled: !!userId,
+    enabled: isAuthenticated,
     staleTime: 1000 * 10,
   });
 }

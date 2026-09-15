@@ -1,176 +1,135 @@
-import { supabase } from "@/lib/supabase";
+import { api } from "@/lib/api";
 import type { Tables } from "@/types/database";
 import type { CartItem } from "@/features/cart/services/cartService";
-import { calculateCartTotals, resolveUnitPrice } from "@/features/cart/utils/cartTotals";
 
 export type Order = Tables<"orders">;
 export type OrderItem = Tables<"order_items">;
 
+type ApiOrderItem = {
+  id: string;
+  productId?: string | null;
+  variantId?: string | null;
+  productName: string;
+  variantDescription?: string | null;
+  unitPrice: number;
+  quantity: number;
+  lineTotal: number;
+};
+
+type ApiOrder = {
+  id: string;
+  status: string;
+  subtotal: number;
+  shippingAmount: number;
+  discountAmount: number;
+  total: number;
+  shippingAddress?: string | null;
+  createdAt: string;
+  updatedAt: string;
+  items: ApiOrderItem[];
+};
+
+function parseAddress(value: unknown): Record<string, any> {
+  if (!value) return {};
+  if (typeof value === "object") return value as Record<string, any>;
+  if (typeof value === "string") {
+    try {
+      return JSON.parse(value);
+    } catch {
+      return { raw: value };
+    }
+  }
+  return {};
+}
+
+function mapOrder(o: ApiOrder): Order & { items?: OrderItem[] } {
+  return {
+    id: o.id,
+    user_id: "",
+    status: o.status,
+    subtotal: o.subtotal,
+    shipping_amount: o.shippingAmount,
+    discount_amount: o.discountAmount,
+    total: o.total,
+    shipping_address: parseAddress(o.shippingAddress),
+    created_at: o.createdAt,
+    updated_at: o.updatedAt,
+    items: (o.items ?? []).map((i) => ({
+      id: i.id,
+      order_id: o.id,
+      product_id: i.productId ?? null,
+      variant_id: i.variantId ?? null,
+      product_name: i.productName,
+      variant_description: i.variantDescription ?? null,
+      unit_price: i.unitPrice,
+      quantity: i.quantity,
+    })),
+  } as unknown as Order & { items: OrderItem[] };
+}
+
 export const orderService = {
   async getOrders(): Promise<Order[]> {
-    const { data: userData } = await supabase.auth.getUser();
-    const userId = userData.user?.id;
-    if (!userId) return [];
-    const { data, error } = await supabase.from("orders").select("*").eq("user_id", userId).order("created_at", { ascending: false });
-    if (error) throw error;
-    return data ?? [];
+    try {
+      const data = await api.get<ApiOrder[]>("/api/orders");
+      return (data ?? []).map((o) => mapOrder(o) as Order);
+    } catch (e) {
+      if (e instanceof Error && e.message.includes("401")) return [];
+      throw e;
+    }
   },
 
   async getOrder(id: string): Promise<(Order & { items: OrderItem[] }) | null> {
-    const { data: order, error } = await supabase.from("orders").select("*").eq("id", id).single();
-    if (error) {
-      if (error.code === "PGRST116") return null;
-      throw error;
+    try {
+      const order = await api.get<ApiOrder>(`/api/orders/${id}`);
+      return mapOrder(order) as Order & { items: OrderItem[] };
+    } catch (e) {
+      if (
+        e instanceof Error &&
+        (e.message.toLowerCase().includes("not found") ||
+          e.message.includes("404"))
+      ) {
+        return null;
+      }
+      throw e;
     }
-    const { data: items, error: itErr } = await supabase.from("order_items").select("*").eq("order_id", id);
-    if (itErr) throw itErr;
-    return { ...order, items: items ?? [] } as any;
   },
 
   async cancelOrder(orderId: string): Promise<Order> {
-    const { data: userData } = await supabase.auth.getUser();
-    const userId = userData.user?.id;
-    if (!userId) throw new Error("Please sign in");
-    const { data: order, error } = await supabase.from("orders").select("*").eq("id", orderId).eq("user_id", userId).maybeSingle();
-    if (error) throw error;
-    if (!order) throw new Error("Order not found — it may have been removed or you don't have access.");
-    const cancellable = ["pending", "confirmed"].includes(order.status);
-    if (!cancellable) throw new Error(`Cannot cancel order in "${order.status}" status — only pending/confirmed can be cancelled.`);
-    const { data: updated, error: upErr } = await supabase
-      .from("orders")
-      .update({ status: "cancelled" })
-      .eq("id", orderId)
-      .eq("user_id", userId)
-      .select()
-      .maybeSingle();
-    if (upErr) throw upErr;
-    if (!updated) throw new Error("Cancel failed — order update returned 0 rows. Check RLS or if status already changed.");
-    // Restore stock via definer function (works even without variant update RLS)
-    try {
-      const { data: items } = await supabase.from("order_items").select("variant_id, quantity").eq("order_id", orderId);
-      for (const it of (items ?? []) as any[]) {
-        if (!it.variant_id) continue;
-        const { error: rpcErr } = await (supabase as any).rpc("restore_variant_stock", { variant_uuid: it.variant_id, delta: it.quantity });
-        if (rpcErr) {
-          // fallback to direct update (may fail due to RLS but not critical)
-          const { data: v } = await supabase.from("product_variants").select("stock_quantity").eq("id", it.variant_id).maybeSingle();
-          if (v) await supabase.from("product_variants").update({ stock_quantity: (v.stock_quantity ?? 0) + it.quantity }).eq("id", it.variant_id);
-        }
-      }
-    } catch {}
-    return updated as Order;
+    const order = await api.post<ApiOrder>(`/api/orders/${orderId}/cancel`);
+    return mapOrder(order) as Order;
   },
 
   /**
-   * Trusted order creation: validates stock, resolves live prices, snapshots address.
-   * Cart items are passed from client (already fetched), but price/stock are re-validated server-side via reads.
+   * Server-trusted creation: backend resolves live prices, validates stock,
+   * snapshots items, clears cart. Client only sends variant+quantity.
    */
-  async createOrder(args: { cartItems: CartItem[]; shippingAddress: Record<string, any> }): Promise<Order> {
-    const { data: userData } = await supabase.auth.getUser();
-    const userId = userData.user?.id;
-    if (!userId) throw new Error("Please sign in");
+  async createOrder(args: {
+    cartItems: CartItem[];
+    shippingAddress: Record<string, any>;
+  }): Promise<Order> {
     if (!args.cartItems.length) throw new Error("Your bag is empty");
-    if (!args.shippingAddress?.address_line_1) throw new Error("Shipping address required");
-
-    // Re-validate each variant live (price/stock)
-    for (const it of args.cartItems) {
-      const { data: v, error } = await supabase
-        .from("product_variants")
-        .select("id, stock_quantity, is_active, price, product_id")
-        .eq("id", it.variant_id)
-        .single();
-      if (error) throw new Error(`Variant unavailable: ${it.variant_id}`);
-      if (!v || v.is_active === false) throw new Error(`Unavailable: ${it.variant?.sku ?? it.variant_id}`);
-      if ((v.stock_quantity ?? 0) < it.quantity) throw new Error(`Only ${v.stock_quantity} left for ${it.variant?.product?.name ?? "item"}`);
+    const sa = args.shippingAddress ?? {};
+    const shippingAddress = {
+      addressLine1:
+        sa.address_line_1 ?? sa.addressLine1 ?? sa.address_line1 ?? "",
+      addressLine2:
+        sa.address_line_2 ?? sa.addressLine2 ?? sa.address_line2 ?? null,
+      city: sa.city ?? "",
+      state: sa.state ?? null,
+      postalCode: sa.postal_code ?? sa.postalCode ?? null,
+      country: sa.country ?? "US",
+      phone: sa.phone ?? null,
+    };
+    if (!shippingAddress.addressLine1) {
+      throw new Error("Shipping address required");
     }
-
-    // Apply pending loyalty discount (e.g. 200-> $10, 400-> $25, 800 -> free shipping)
-    let pending: { amount: number; freeShipping: boolean } = { amount: 0, freeShipping: false };
-    try {
-      const { loyaltyService } = await import("@/features/loyalty/services/loyaltyService");
-      const p = await loyaltyService.getPendingDiscount();
-      pending = { amount: p.amount, freeShipping: p.freeShipping };
-    } catch {}
-
-    const totals = calculateCartTotals(args.cartItems, { discount: pending.amount, freeShipping: pending.freeShipping });
-
-    // Create order
-    const { data: order, error: oErr } = await supabase
-      .from("orders")
-      .insert({
-        user_id: userId,
-        status: "pending",
-        subtotal: totals.subtotal,
-        shipping_amount: totals.shipping,
-        discount_amount: totals.discount,
-        total: totals.total,
-        shipping_address: args.shippingAddress as any,
-      })
-      .select()
-      .single();
-    if (oErr) throw oErr;
-
-    // Create historical order items (preserve pricing)
-    const rows = args.cartItems.map((it) => {
-      const unit = resolveUnitPrice(it);
-      const productName = it.variant.product?.name ?? "Product";
-      const variantDesc = [it.variant.color, it.variant.size].filter(Boolean).join(" / ") || null;
-      return {
-        order_id: order.id,
-        product_id: it.variant.product_id,
-        variant_id: it.variant_id,
-        product_name: productName,
-        variant_description: variantDesc,
-        unit_price: unit,
+    const order = await api.post<ApiOrder>("/api/orders", {
+      items: args.cartItems.map((it) => ({
+        variantId: it.variant_id,
         quantity: it.quantity,
-      };
+      })),
+      shippingAddress,
     });
-
-    const { error: itErr } = await supabase.from("order_items").insert(rows as any);
-    if (itErr) {
-      // best effort rollback order if items fail
-      await supabase.from("orders").delete().eq("id", order.id);
-      throw itErr;
-    }
-
-    // Decrement stock (best effort, not transactional but acceptable for MVP)
-    for (const it of args.cartItems) {
-      const newStock = Math.max(0, (it.variant.stock_quantity ?? 0) - it.quantity);
-      await supabase.from("product_variants").update({ stock_quantity: newStock }).eq("id", it.variant_id);
-    }
-
-    // Clear cart
-    await supabase.from("cart_items").delete().eq("user_id", userId);
-
-    // Mark redeem as used (link to order) so it can't be reused
-    try {
-      const { loyaltyService } = await import("@/features/loyalty/services/loyaltyService");
-      if (pending.amount > 0 || pending.freeShipping) {
-        await loyaltyService.consumePendingDiscount(order.id);
-      }
-    } catch {}
-
-    // Earn loyalty points (1 per $1)
-    try {
-      const { loyaltyService } = await import("@/features/loyalty/services/loyaltyService");
-      await loyaltyService.earnPointsForOrder(order.id, Number(order.total));
-    } catch {}
-
-    // Create notification for order confirmed (respect prefs)
-    try {
-      const { data: prefs } = await supabase.from("notification_preferences").select("order_updates").eq("user_id", userId).maybeSingle();
-      const allow = prefs ? (prefs as any).order_updates !== false : true;
-      if (allow) {
-        await supabase.from("notifications").insert({
-          user_id: userId,
-          type: "order_confirmed",
-          title: "Order confirmed",
-          body: `Your order #${order.id.slice(0, 8).toUpperCase()} is confirmed. We'll notify when it ships.`,
-          data: { order_id: order.id, total: order.total },
-        } as any);
-      }
-    } catch {}
-
-    return order as Order;
+    return mapOrder(order) as Order;
   },
 };

@@ -11,20 +11,22 @@ export const notifKeys = {
 
 export function useNotificationsQuery() {
   const userId = useAuthStore((s) => s.user?.id);
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   return useQuery({
     queryKey: notifKeys.list(userId),
     queryFn: () => notificationService.list(),
-    enabled: !!userId,
+    enabled: isAuthenticated,
     staleTime: 1000 * 20,
   });
 }
 
 export function useUnreadCountQuery() {
   const userId = useAuthStore((s) => s.user?.id);
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   return useQuery({
     queryKey: notifKeys.count(userId),
     queryFn: () => notificationService.unreadCount(),
-    enabled: !!userId,
+    enabled: isAuthenticated,
     staleTime: 1000 * 15,
   });
 }
@@ -55,10 +57,11 @@ export function useMarkAllRead() {
 
 export function useNotificationPrefsQuery() {
   const userId = useAuthStore((s) => s.user?.id);
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   return useQuery({
     queryKey: notifKeys.prefs(userId),
     queryFn: () => notificationService.getPrefs(),
-    enabled: !!userId,
+    enabled: isAuthenticated,
     staleTime: 1000 * 60 * 2,
   });
 }

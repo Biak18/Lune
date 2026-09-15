@@ -4,7 +4,6 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { createClient } from "@supabase/supabase-js";
 import * as Crypto from "expo-crypto";
 import { polyfillWebCrypto } from "expo-standard-web-crypto";
-import { Platform } from "react-native";
 import "react-native-url-polyfill/auto";
 
 // Polyfill WebCrypto for Supabase PKCE S256 (Expo Go = JS only, no native rebuild)
@@ -60,11 +59,16 @@ const anonKey = SUPABASE_ANON_KEY || "placeholder-anon-key";
 export const supabase = createClient<Database>(url, anonKey, {
   auth: {
     storage: AsyncStorage,
-    autoRefreshToken: true,
-    persistSession: true,
+    // Commerce auth moved to DressShop.Api (JWT in SecureStore).
+    // Disable background session refresh so a stale stored Supabase
+    // session can never fire network calls on launch. The client is
+    // kept only for the AI Edge Function (anon key), which sends no
+    // user session.
+    autoRefreshToken: false,
+    persistSession: false,
     // Web needs to parse ?code=... from redirect URL to exchange for session.
     // Native uses WebBrowser.openAuthSessionAsync + manual exchange, so false there.
-    detectSessionInUrl: Platform.OS === "web",
+    detectSessionInUrl: false,
     flowType: "pkce",
   },
 });

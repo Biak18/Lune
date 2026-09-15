@@ -67,7 +67,7 @@ function Stat({ label, value, loading }: { label: string; value: string; loading
 
 export default function ProfileScreen() {
   const user = useAuthStore((s) => s.user);
-  const session = useAuthStore((s) => s.session);
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const logout = useLogoutMutation();
   const { data: isAdmin } = useIsAdmin();
   const { data: loyalty, isLoading: loyaltyLoading } = useLoyaltyAccount();
@@ -78,12 +78,12 @@ export default function ProfileScreen() {
     loyalty?.tier === "gold" || loyalty?.tier === "platinum" ? { style: "elegant", pageSize: 4 } : { style: "minimal", pageSize: 2 }
   );
 
-  const fullName = (user?.user_metadata?.full_name as string | undefined)?.trim();
+  const fullName = (user?.fullName ?? "").trim();
   const email = user?.email ?? "";
   const initials = getInitials(email, fullName);
-  const memberSince = user?.created_at ? new Date(user.created_at).toLocaleDateString("en-US", { month: "short", year: "numeric" }) : null;
+  const memberSince = user?.createdAt ? new Date(user.createdAt).toLocaleDateString("en-US", { month: "short", year: "numeric" }) : null;
 
-  if (!session) {
+  if (!isAuthenticated) {
     return (
       <SafeAreaView style={styles.safe} edges={["top", "bottom"]}>
         <ScrollView contentContainerStyle={styles.unauthContent} showsVerticalScrollIndicator={false} showsHorizontalScrollIndicator={false}>

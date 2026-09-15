@@ -33,7 +33,7 @@ export function AdminGuard({ children }: { children: React.ReactNode }) {
     return (
       <View style={styles.center}>
         <Text style={styles.title}>Not authorized</Text>
-        <Text style={styles.desc}>Your account is not an admin. Ask an admin to set profiles.role = &apos;admin&apos; for your user. Current: {user.email} ({user.id.slice(0, 8)}…)</Text>
+        <Text style={styles.desc}>Your account is not an admin. Ask an admin to set profiles.role = &apos;admin&apos; for your user. Current: {user.fullName ?? user.id.slice(0, 8)}…</Text>
         <Button title="Go to shop" onPress={() => router.replace("/(tabs)/shop" as any)} style={{ marginTop: spacing.lg }} />
         <Button title="My orders" variant="secondary" onPress={() => router.push("/orders" as any)} style={{ marginTop: 8 }} />
       </View>

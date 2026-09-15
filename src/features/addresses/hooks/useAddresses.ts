@@ -9,10 +9,11 @@ export const addressKeys = {
 
 export function useAddressesQuery() {
   const userId = useAuthStore((s) => s.user?.id);
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   return useQuery({
     queryKey: addressKeys.list(userId),
     queryFn: () => addressService.list(),
-    enabled: !!userId,
+    enabled: isAuthenticated,
     staleTime: 1000 * 60 * 2,
   });
 }

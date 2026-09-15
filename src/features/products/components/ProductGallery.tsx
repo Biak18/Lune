@@ -25,11 +25,18 @@ type Props = {
   hero?: boolean;
 };
 
-export function ProductGallery({ images, selectedColor, colorsList, hero = false }: Props) {
+export function ProductGallery({
+  images,
+  selectedColor,
+  colorsList,
+  hero = false,
+}: Props) {
   const { width: windowWidth } = useWindowDimensions();
   const horizontalPadding = hero ? 0 : spacing.xl * 2;
   const pagerWidth = windowWidth - horizontalPadding;
-  const heroHeight = hero ? Math.min(560, windowWidth * 1.25) : pagerWidth / 0.78;
+  const heroHeight = hero
+    ? Math.min(560, windowWidth * 1.25)
+    : pagerWidth / 0.78;
   const [activeIndex, setActiveIndex] = useState(0);
   const listRef = useRef<FlatList<ProductImage>>(null);
   const opacity = useSharedValue(1);
@@ -77,8 +84,21 @@ export function ProductGallery({ images, selectedColor, colorsList, hero = false
 
   if (sorted.length === 0) {
     return (
-      <View style={[styles.pagerWrap, hero && styles.pagerWrapHero, { width: pagerWidth, height: heroHeight }]}>
-        <View style={[styles.main, hero ? { width: pagerWidth, height: heroHeight } : { width: pagerWidth }]} />
+      <View
+        style={[
+          styles.pagerWrap,
+          hero && styles.pagerWrapHero,
+          { width: pagerWidth, height: heroHeight },
+        ]}
+      >
+        <View
+          style={[
+            styles.main,
+            hero
+              ? { width: pagerWidth, height: heroHeight }
+              : { width: pagerWidth },
+          ]}
+        />
       </View>
     );
   }
@@ -87,7 +107,12 @@ export function ProductGallery({ images, selectedColor, colorsList, hero = false
     <Animated.View style={[{ width: pagerWidth }, animatedStyle]}>
       <Image
         source={{ uri: item.image_url }}
-        style={[styles.main, hero ? { width: pagerWidth, height: heroHeight } : { width: pagerWidth }]}
+        style={[
+          styles.main,
+          hero
+            ? { width: pagerWidth, height: heroHeight }
+            : { width: pagerWidth },
+        ]}
         contentFit="cover"
         transition={220}
         cachePolicy="memory-disk"
@@ -126,7 +151,8 @@ export function ProductGallery({ images, selectedColor, colorsList, hero = false
             setActiveIndex(idx);
           }}
           renderItem={renderItem}
-         showsVerticalScrollIndicator={false} />
+          showsVerticalScrollIndicator={false}
+        />
         {/* Dots overlay */}
         {sorted.length > 1 && (
           <View style={styles.dots} pointerEvents="box-none">

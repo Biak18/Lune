@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars -- Google auth temporarily disabled */
 import { Button } from "@/components/ui/Button";
 import { FieldInput } from "@/components/ui/FieldInput";
 import { FormError } from "@/components/ui/FormError";
@@ -6,7 +5,7 @@ import { env } from "@/config/env";
 import { colors } from "@/design/colors";
 import { AuthHeader } from "@/features/auth/components/AuthHeader";
 import { DevAccountSwitcher } from "@/features/auth/components/DevAccountSwitcher";
-import { useGoogleAuthMutation, useLoginMutation } from "@/features/auth/hooks/useAuthMutations";
+import { useLoginMutation } from "@/features/auth/hooks/useAuthMutations";
 import { getAuthErrorMessage } from "@/utils/errors";
 import { loginSchema, type LoginFormValues } from "@/utils/validation";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -22,7 +21,7 @@ export default function LoginScreen() {
   const [showPassword, setShowPassword] = useState(false);
   const [providerError, setProviderError] = useState<string | null>(null);
   const login = useLoginMutation();
-  const googleAuth = useGoogleAuthMutation();
+  // const googleAuth = useGoogleAuthMutation();
 
   const {
     control,
@@ -40,17 +39,17 @@ export default function LoginScreen() {
     });
   };
 
-  const handleGooglePress = () => {
-    setProviderError(null);
-    googleAuth.mutate(undefined, {
-      onSuccess: () => router.replace("/"),
-      onError: (e) => setProviderError(getAuthErrorMessage(e)),
-    });
-  };
+  // const handleGooglePress = () => {
+  //   setProviderError(null);
+  //   googleAuth.mutate(undefined, {
+  //     onSuccess: () => router.replace("/"),
+  //     onError: (e) => setProviderError(getAuthErrorMessage(e)),
+  //   });
+  // };
 
-  const googleError = googleAuth.isError ? getAuthErrorMessage(googleAuth.error) : null;
+  // const googleError = googleAuth.isError ? getAuthErrorMessage(googleAuth.error) : null;
   const formError = login.isError ? getAuthErrorMessage(login.error) : null;
-  const isEnvMissing = !env.isSupabaseConfigured();
+  const isEnvMissing = !env.isApiConfigured();
 
   return (
     <SafeAreaView style={styles.safe} edges={["top", "bottom"]}>
@@ -62,8 +61,11 @@ export default function LoginScreen() {
         enableOnAndroid
         extraScrollHeight={24}
         enableAutomaticScroll
-       showsHorizontalScrollIndicator={false}>
-        <Animated.View entering={FadeInUp.duration(480).springify().damping(16)}>
+        showsHorizontalScrollIndicator={false}
+      >
+        <Animated.View
+          entering={FadeInUp.duration(480).springify().damping(16)}
+        >
           <AuthHeader
             title="Welcome back"
             subtitle="Sign in to continue your boutique experience."
@@ -71,94 +73,112 @@ export default function LoginScreen() {
         </Animated.View>
 
         {isEnvMissing ? (
-          <Animated.View entering={FadeInUp.delay(80).duration(420).springify()}>
+          <Animated.View
+            entering={FadeInUp.delay(80).duration(420).springify()}
+          >
             <View style={styles.envWarning}>
               <Text style={styles.envWarningText}>
-                Supabase is not configured. Add EXPO_PUBLIC_SUPABASE_URL and
-                EXPO_PUBLIC_SUPABASE_ANON_KEY to your .env to enable authentication.
+                API is not configured. Add EXPO_PUBLIC_API_URL to your .env to
+                enable authentication.
               </Text>
             </View>
           </Animated.View>
         ) : null}
 
         <View style={styles.form}>
-        <Animated.View entering={FadeInUp.delay(100).duration(420).springify()}>
-          <FormError message={providerError ?? googleError ?? formError} />
-        </Animated.View>
+          <Animated.View
+            entering={FadeInUp.delay(100).duration(420).springify()}
+          >
+            <FormError
+              message={providerError ?? /* googleError ?? */ formError}
+            />
+          </Animated.View>
 
-        <Animated.View entering={FadeInUp.delay(140).duration(420).springify()}>
-          <Controller
-            control={control}
-            name="email"
-            render={({ field: { value, onChange, onBlur } }) => (
-              <FieldInput
-                label="Email"
-                placeholder="you@example.com"
-                autoCapitalize="none"
-                autoCorrect={false}
-                keyboardType="email-address"
-                textContentType="emailAddress"
-                autoComplete="email"
-                value={value}
-                onChangeText={onChange}
-                onBlur={onBlur}
-                error={errors.email?.message}
-                editable={!login.isPending}
-              />
-            )}
-          />
-        </Animated.View>
+          <Animated.View
+            entering={FadeInUp.delay(140).duration(420).springify()}
+          >
+            <Controller
+              control={control}
+              name="email"
+              render={({ field: { value, onChange, onBlur } }) => (
+                <FieldInput
+                  label="Email"
+                  placeholder="you@example.com"
+                  autoCapitalize="none"
+                  autoCorrect={false}
+                  keyboardType="email-address"
+                  textContentType="emailAddress"
+                  autoComplete="email"
+                  value={value}
+                  onChangeText={onChange}
+                  onBlur={onBlur}
+                  error={errors.email?.message}
+                  editable={!login.isPending}
+                />
+              )}
+            />
+          </Animated.View>
 
-        <Animated.View entering={FadeInUp.delay(200).duration(420).springify()}>
-          <Controller
-            control={control}
-            name="password"
-            render={({ field: { value, onChange, onBlur } }) => (
-              <FieldInput
-                label="Password"
-                placeholder="Enter your password"
-                secureTextEntry={!showPassword}
-                textContentType="password"
-                autoComplete="password"
-                value={value}
-                onChangeText={onChange}
-                onBlur={onBlur}
-                error={errors.password?.message}
-                editable={!login.isPending}
-                rightElement={
-                  <Pressable
-                    onPress={() => setShowPassword((v) => !v)}
-                    style={styles.toggle}
-                    accessibilityRole="button"
-                    accessibilityLabel={showPassword ? "Hide password" : "Show password"}
-                  >
-                    <Text style={styles.toggleText}>{showPassword ? "Hide" : "Show"}</Text>
-                  </Pressable>
-                }
-              />
-            )}
-          />
-        </Animated.View>
+          <Animated.View
+            entering={FadeInUp.delay(200).duration(420).springify()}
+          >
+            <Controller
+              control={control}
+              name="password"
+              render={({ field: { value, onChange, onBlur } }) => (
+                <FieldInput
+                  label="Password"
+                  placeholder="Enter your password"
+                  secureTextEntry={!showPassword}
+                  textContentType="password"
+                  autoComplete="password"
+                  value={value}
+                  onChangeText={onChange}
+                  onBlur={onBlur}
+                  error={errors.password?.message}
+                  editable={!login.isPending}
+                  rightElement={
+                    <Pressable
+                      onPress={() => setShowPassword((v) => !v)}
+                      style={styles.toggle}
+                      accessibilityRole="button"
+                      accessibilityLabel={
+                        showPassword ? "Hide password" : "Show password"
+                      }
+                    >
+                      <Text style={styles.toggleText}>
+                        {showPassword ? "Hide" : "Show"}
+                      </Text>
+                    </Pressable>
+                  }
+                />
+              )}
+            />
+          </Animated.View>
 
-        <Animated.View entering={FadeInUp.delay(260).duration(420).springify()}>
-          <Link href="/auth/forgot-password" asChild>
-            <Pressable style={styles.forgotLink}>
-              <Text style={styles.forgotText}>Forgot password?</Text>
-            </Pressable>
-          </Link>
-        </Animated.View>
+          <Animated.View
+            entering={FadeInUp.delay(260).duration(420).springify()}
+          >
+            <Link href="/auth/forgot-password" asChild>
+              <Pressable style={styles.forgotLink}>
+                <Text style={styles.forgotText}>Forgot password?</Text>
+              </Pressable>
+            </Link>
+          </Animated.View>
 
-        <Animated.View entering={FadeInUp.delay(320).duration(420).springify()}>
-          <Button
-            title="Sign in"
-            onPress={handleSubmit(onSubmit)}
-            loading={login.isPending}
-            disabled={isEnvMissing}
-            accessibilityLabel="Sign in"
-          />
-        </Animated.View>
+          <Animated.View
+            entering={FadeInUp.delay(320).duration(420).springify()}
+          >
+            <Button
+              title="Sign in"
+              onPress={handleSubmit(onSubmit)}
+              loading={login.isPending}
+              disabled={isEnvMissing}
+              accessibilityLabel="Sign in"
+            />
+          </Animated.View>
 
-        {/* Google auth temporarily disabled
+          {/* Google auth temporarily disabled
         <Animated.View entering={FadeInUp.delay(380).duration(420).springify()}>
           <Divider label="or" />
         </Animated.View>
@@ -175,20 +195,25 @@ export default function LoginScreen() {
         </Animated.View>
         */}
 
-        <Animated.View entering={FadeInUp.delay(500).duration(420).springify()} style={styles.footer}>
-          <Text style={styles.footerText}>Don&apos;t have an account?</Text>
-          <Link href="/auth/register" asChild>
-            <Pressable>
-              <Text style={styles.link}>Create account</Text>
-            </Pressable>
-          </Link>
-        </Animated.View>
-
-        {__DEV__ ? (
-          <Animated.View entering={FadeInUp.delay(560).duration(420).springify()}>
-            <DevAccountSwitcher />
+          <Animated.View
+            entering={FadeInUp.delay(500).duration(420).springify()}
+            style={styles.footer}
+          >
+            <Text style={styles.footerText}>Don&apos;t have an account?</Text>
+            <Link href="/auth/register" asChild>
+              <Pressable>
+                <Text style={styles.link}>Create account</Text>
+              </Pressable>
+            </Link>
           </Animated.View>
-        ) : null}
+
+          {__DEV__ ? (
+            <Animated.View
+              entering={FadeInUp.delay(560).duration(420).springify()}
+            >
+              <DevAccountSwitcher />
+            </Animated.View>
+          ) : null}
         </View>
       </KeyboardAwareScrollView>
     </SafeAreaView>

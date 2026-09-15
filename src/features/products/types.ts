@@ -15,6 +15,7 @@ export type ProductsQueryParams = {
   page?: number;
   pageSize?: number;
   categoryId?: string;
+  ids?: string[];
   categorySlug?: string;
   search?: string;
   style?: string;

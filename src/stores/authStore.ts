@@ -1,30 +1,80 @@
 import { create } from "zustand";
-import type { Session, User } from "@supabase/supabase-js";
+
+export type AuthTokens = {
+  accessToken: string;
+  refreshToken: string;
+  expiresIn: number;
+};
+
+export type AuthProfile = {
+  id: string;
+  fullName: string | null;
+  avatarUrl: string | null;
+  role: string;
+  email: string | null;
+  createdAt: string | null;
+  updatedAt: string | null;
+};
 
 type AuthState = {
-  session: Session | null;
-  user: User | null;
+  accessToken: string | null;
+  refreshToken: string | null;
+  expiresIn: number | null;
+  user: AuthProfile | null;
+
   isLoading: boolean;
   isInitialized: boolean;
-  setSession: (session: Session | null) => void;
-  setUser: (user: User | null) => void;
+  isAuthenticated: boolean;
+
+  setTokens: (tokens: AuthTokens) => void;
+  setUser: (user: AuthProfile | null) => void;
   setLoading: (loading: boolean) => void;
   setInitialized: (initialized: boolean) => void;
   reset: () => void;
 };
 
 export const useAuthStore = create<AuthState>((set) => ({
-  session: null,
+  accessToken: null,
+  refreshToken: null,
+  expiresIn: null,
   user: null,
+
   isLoading: true,
   isInitialized: false,
-  setSession: (session) =>
+  isAuthenticated: false,
+
+  setTokens: ({ accessToken, refreshToken, expiresIn }) =>
     set({
-      session,
-      user: session?.user ?? null,
+      accessToken,
+      refreshToken,
+      expiresIn,
+      isAuthenticated: true,
+      isLoading: false,
     }),
-  setUser: (user) => set({ user }),
-  setLoading: (isLoading) => set({ isLoading }),
-  setInitialized: (isInitialized) => set({ isInitialized }),
-  reset: () => set({ session: null, user: null, isLoading: false, isInitialized: true }),
+
+  setUser: (user) =>
+    set({
+      user,
+    }),
+
+  setLoading: (isLoading) =>
+    set({
+      isLoading,
+    }),
+
+  setInitialized: (isInitialized) =>
+    set({
+      isInitialized,
+    }),
+
+  reset: () =>
+    set({
+      accessToken: null,
+      refreshToken: null,
+      expiresIn: null,
+      user: null,
+      isLoading: false,
+      isInitialized: true,
+      isAuthenticated: false,
+    }),
 }));

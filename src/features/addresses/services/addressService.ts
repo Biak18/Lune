@@ -1,58 +1,91 @@
-import { supabase } from "@/lib/supabase";
+import { api } from "@/lib/api";
 import type { Tables } from "@/types/database";
 
 export type Address = Tables<"addresses">;
 export type AddressInsert = Omit<Tables<"addresses">, "id" | "created_at" | "updated_at"> & { id?: string };
 
+type ApiAddress = {
+  id: string;
+  label?: string | null;
+  recipientName: string;
+  phone?: string | null;
+  addressLine1: string;
+  addressLine2?: string | null;
+  city: string;
+  state?: string | null;
+  postalCode?: string | null;
+  country: string;
+  isDefault: boolean;
+  createdAt: string;
+  updatedAt: string;
+};
+
+function mapAddress(a: ApiAddress): Address {
+  return {
+    id: a.id,
+    user_id: "",
+    label: a.label ?? null,
+    recipient_name: a.recipientName,
+    phone: a.phone ?? null,
+    address_line_1: a.addressLine1,
+    address_line_2: a.addressLine2 ?? null,
+    city: a.city,
+    state: a.state ?? null,
+    postal_code: a.postalCode ?? null,
+    country: a.country,
+    is_default: a.isDefault,
+    created_at: a.createdAt,
+    updated_at: a.updatedAt,
+  } as unknown as Address;
+}
+
+function toApiPayload(payload: any) {
+  return {
+    label: payload.label ?? null,
+    recipientName: payload.recipient_name ?? payload.recipientName ?? "",
+    phone: payload.phone ?? null,
+    addressLine1: payload.address_line_1 ?? payload.addressLine1 ?? "",
+    addressLine2: payload.address_line_2 ?? payload.addressLine2 ?? null,
+    city: payload.city ?? "",
+    state: payload.state ?? null,
+    postalCode: payload.postal_code ?? payload.postalCode ?? null,
+    country: payload.country ?? "US",
+    isDefault: payload.is_default ?? payload.isDefault ?? false,
+  };
+}
+
 export const addressService = {
   async list(): Promise<Address[]> {
-    const { data: userData } = await supabase.auth.getUser();
-    const userId = userData.user?.id;
-    if (!userId) return [];
-    const { data, error } = await supabase
-      .from("addresses")
-      .select("*")
-      .eq("user_id", userId)
-      .order("is_default", { ascending: false })
-      .order("created_at", { ascending: false });
-    if (error) throw error;
-    return data ?? [];
+    try {
+      const data = await api.get<ApiAddress[]>("/api/addresses");
+      return (data ?? []).map(mapAddress);
+    } catch (e) {
+      if (e instanceof Error && e.message.includes("401")) return [];
+      throw e;
+    }
   },
 
   async create(payload: Omit<AddressInsert, "user_id">): Promise<Address> {
-    const { data: userData } = await supabase.auth.getUser();
-    const userId = userData.user?.id;
-    if (!userId) throw new Error("Please sign in");
-    // If is_default true, unset others first
-    if (payload.is_default) {
-      await supabase.from("addresses").update({ is_default: false }).eq("user_id", userId).eq("is_default", true);
-    }
-    const { data, error } = await supabase
-      .from("addresses")
-      .insert({ ...payload, user_id: userId } as any)
-      .select()
-      .single();
-    if (error) throw error;
-    return data as Address;
+    const data = await api.post<ApiAddress>(
+      "/api/addresses",
+      toApiPayload(payload),
+    );
+    return mapAddress(data);
   },
 
   async update(id: string, payload: Partial<Omit<Address, "id" | "user_id">>): Promise<Address> {
-    const { data, error } = await supabase.from("addresses").update(payload as any).eq("id", id).select().single();
-    if (error) throw error;
-    return data as Address;
+    const data = await api.put<ApiAddress>(
+      `/api/addresses/${id}`,
+      toApiPayload(payload),
+    );
+    return mapAddress(data);
   },
 
   async remove(id: string): Promise<void> {
-    const { error } = await supabase.from("addresses").delete().eq("id", id);
-    if (error) throw error;
+    await api.delete(`/api/addresses/${id}`);
   },
 
   async setDefault(id: string): Promise<void> {
-    const { data: userData } = await supabase.auth.getUser();
-    const userId = userData.user?.id;
-    if (!userId) throw new Error("Please sign in");
-    await supabase.from("addresses").update({ is_default: false }).eq("user_id", userId);
-    const { error } = await supabase.from("addresses").update({ is_default: true }).eq("id", id).eq("user_id", userId);
-    if (error) throw error;
+    await api.patch(`/api/addresses/${id}/default`);
   },
 };

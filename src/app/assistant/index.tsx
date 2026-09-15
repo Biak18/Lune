@@ -139,9 +139,9 @@ export default function AssistantScreen() {
         push({ id: `a-ai-${Date.now()}`, role: "assistant", text: aiMsg });
       }
 
-      const occ = intent.occasion ?? undefined;
-      const sty = intent.style ?? undefined;
-      const col = intent.color ?? undefined;
+      const occ = intent?.occasion ?? undefined;
+      const sty = intent?.style ?? undefined;
+      const col = intent?.color ?? undefined;
       if (occ) setOccasion(occ);
       if (sty) setStyle(sty);
       if (col) setColorPref(col);

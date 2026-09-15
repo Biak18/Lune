@@ -9,10 +9,11 @@ export const cartKeys = {
 
 export function useCartQuery() {
   const userId = useAuthStore((s) => s.user?.id);
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   return useQuery({
     queryKey: cartKeys.list(userId),
     queryFn: () => cartService.getCart(),
-    enabled: !!userId,
+    enabled: isAuthenticated,
     staleTime: 1000 * 30,
   });
 }
