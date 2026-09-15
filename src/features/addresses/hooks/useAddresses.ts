@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { addressService } from "../services/addressService";
+import type { Address } from "../services/addressService";
 import { useAuthStore } from "@/stores/authStore";
 
 export const addressKeys = {
@@ -44,7 +45,23 @@ export function useSetDefaultAddress() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (id: string) => addressService.setDefault(id),
-    onSuccess: () => {
+    // Optimistic: flip the default flag in place so the badge, radio, and
+    // border move instantly. List order is stable (screen sorts
+    // chronologically), so cards never jump while the request is in flight.
+    onMutate: async (id) => {
+      const uid = useAuthStore.getState().user?.id;
+      const key = addressKeys.list(uid);
+      await qc.cancelQueries({ queryKey: key });
+      const previous = qc.getQueryData<Address[]>(key);
+      qc.setQueryData<Address[]>(key, (old) =>
+        (old ?? []).map((a) => ({ ...a, is_default: a.id === id })),
+      );
+      return { previous, key };
+    },
+    onError: (_e, _id, context) => {
+      if (context?.previous) qc.setQueryData(context.key, context.previous);
+    },
+    onSettled: () => {
       const uid = useAuthStore.getState().user?.id;
       qc.invalidateQueries({ queryKey: addressKeys.list(uid) });
     },
