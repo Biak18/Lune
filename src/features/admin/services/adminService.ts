@@ -24,6 +24,9 @@ export const adminService = {
     const data = await api.get<any[]>("/api/admin/orders", { limit: 50 });
     return (data ?? []).map((o) => ({
       id: o.id,
+      // Backend order DTO currently carries no customer reference; map it
+      // defensively so the UI can show it if the API adds it later.
+      user_id: o.userId ?? o.user_id ?? null,
       status: o.status,
       subtotal: o.subtotal,
       shipping_amount: o.shippingAmount,

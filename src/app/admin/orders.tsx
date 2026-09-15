@@ -3,10 +3,10 @@ import { radius, spacing } from "@/design/spacing";
 import { AdminGuard } from "@/features/admin/components/AdminGuard";
 import { adminService } from "@/features/admin/services/adminService";
 import { OrderStatusControl } from "@/features/orders/components/OrderStatusControl";
+import { FlashList } from "@shopify/flash-list";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { router } from "expo-router";
 import { useState } from "react";
-import { FlashList } from "@shopify/flash-list";
 import {
   ActivityIndicator,
   Pressable,
@@ -28,15 +28,22 @@ function AdminOrderRow({ order }: { order: any }) {
       qc.invalidateQueries({ queryKey: ["orders", "detail", vars.id] });
     },
   });
-
+  const itemCount = Array.isArray(order.items) ? order.items.length : 0;
   return (
     <View style={styles.card}>
       <View style={styles.cardInfo}>
         <Text style={styles.id} numberOfLines={1}>
-          #{order.id.slice(0, 8).toUpperCase()} ${Number(order.total).toFixed(2)}
+          #{String(order.id ?? "").slice(0, 8).toUpperCase()} $
+          {Number(order.total ?? 0).toFixed(2)}
         </Text>
         <Text style={styles.meta} numberOfLines={1}>
-          {new Date(order.created_at).toLocaleString()} {order.user_id.slice(0, 8)}…
+          {order.created_at
+            ? new Date(order.created_at).toLocaleString()
+            : "Date unavailable"}
+          {order.user_id
+            ? ` · ${String(order.user_id).slice(0, 8)}…`
+            : ""}
+          {` · ${itemCount} item${itemCount === 1 ? "" : "s"}`}
         </Text>
         <Pressable onPress={() => router.push(`/orders/${order.id}` as any)}>
           <Text style={styles.link}>View order</Text>
@@ -44,11 +51,15 @@ function AdminOrderRow({ order }: { order: any }) {
       </View>
 
       <View style={styles.cardControls}>
-        <Text style={styles.label}>Status: {order.status.replace(/_/g, " ")}</Text>
+        <Text style={styles.label}>
+          Status: {String(order.status ?? "").replace(/_/g, " ")}
+        </Text>
         <OrderStatusControl
           instanceKey={order.id}
           currentStatus={order.status}
-          onStatusChange={(nextStatus) => update.mutate({ id: order.id, status: nextStatus })}
+          onStatusChange={(nextStatus) =>
+            update.mutate({ id: order.id, status: nextStatus })
+          }
           disabled={update.isPending}
         />
       </View>
@@ -62,29 +73,61 @@ export default function AdminOrdersScreen() {
     queryKey: ["admin", "orders-list"],
     queryFn: () => adminService.getAllOrders(),
   });
-  const filtered = (data ?? []).filter((o: any) => (statusFilter ? o.status === statusFilter : true));
-  const statuses: (string | null)[] = [null, "pending", "confirmed", "processing", "shipped", "delivered", "cancelled"];
+  const filtered = (data ?? []).filter((o: any) =>
+    statusFilter ? o.status === statusFilter : true,
+  );
+  const statuses: (string | null)[] = [
+    null,
+    "pending",
+    "confirmed",
+    "processing",
+    "shipped",
+    "delivered",
+    "cancelled",
+  ];
 
   return (
     <AdminGuard>
       <SafeAreaView style={styles.root} edges={["top"]}>
         <View style={styles.header}>
-          <Pressable onPress={() => router.back()} style={[styles.back, { marginTop: 4 }]} hitSlop={8}>
+          <Pressable
+            onPress={() => router.back()}
+            style={[styles.back, { marginTop: 4 }]}
+            hitSlop={8}
+          >
             <Text style={styles.backText}>← Admin</Text>
           </Pressable>
           <Text style={styles.heading}>Orders</Text>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8, paddingRight: spacing.xl }} showsVerticalScrollIndicator={false} style={{ marginTop: 8 }}>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={{ gap: 8, paddingRight: spacing.xl }}
+            showsVerticalScrollIndicator={false}
+            style={{ marginTop: 8 }}
+          >
             {statuses.map((s) => (
               <Pressable
                 key={String(s)}
                 onPress={() => setStatusFilter(s)}
-                style={[styles.filterChip, statusFilter === s && styles.filterChipActive]}
+                style={[
+                  styles.filterChip,
+                  statusFilter === s && styles.filterChipActive,
+                ]}
               >
-                <Text style={[styles.filterText, statusFilter === s && styles.filterTextActive]}>{s ?? "All"}</Text>
+                <Text
+                  style={[
+                    styles.filterText,
+                    statusFilter === s && styles.filterTextActive,
+                  ]}
+                >
+                  {s ?? "All"}
+                </Text>
               </Pressable>
             ))}
           </ScrollView>
-          <Text style={styles.sub}>{filtered.length} shown {data?.length ?? 0} total</Text>
+          <Text style={styles.sub}>
+            {filtered.length} shown {data?.length ?? 0} total
+          </Text>
         </View>
 
         {isLoading ? (
@@ -105,7 +148,7 @@ export default function AdminOrdersScreen() {
             <FlashList
               data={filtered}
               keyExtractor={(o: any) => o.id}
-                contentContainerStyle={{
+              contentContainerStyle={{
                 padding: spacing.xl,
                 paddingBottom: 32,
               }}
@@ -227,7 +270,15 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  filterChipActive: { backgroundColor: colors.foreground, borderColor: colors.foreground },
-  filterText: { fontSize: 11, fontWeight: "700", color: colors.foreground, textTransform: "capitalize" },
+  filterChipActive: {
+    backgroundColor: colors.foreground,
+    borderColor: colors.foreground,
+  },
+  filterText: {
+    fontSize: 11,
+    fontWeight: "700",
+    color: colors.foreground,
+    textTransform: "capitalize",
+  },
   filterTextActive: { color: colors.surface },
 });
