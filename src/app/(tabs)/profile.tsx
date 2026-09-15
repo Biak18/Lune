@@ -4,6 +4,8 @@ import { colors } from "@/design/colors";
 import { spacing } from "@/design/spacing";
 import { fontFamily } from "@/design/typography";
 import { useIsAdmin } from "@/features/admin/hooks/useIsAdmin";
+import { BellShake } from "@/features/notifications/components/BellShake";
+import { useUnreadCountQuery } from "@/features/notifications/hooks/useNotifications";
 import { DevAccountSwitcher } from "@/features/auth/components/DevAccountSwitcher";
 import { useLogoutMutation } from "@/features/auth/hooks/useAuthMutations";
 import { LoyaltyCard } from "@/features/loyalty/components/LoyaltyCard";
@@ -74,6 +76,8 @@ export default function ProfileScreen() {
   const { data: tx } = useLoyaltyTx();
   const { data: orders, isLoading: ordersLoading } = useOrdersQuery();
   const { data: wishlistIds, isLoading: wishlistLoading } = useFavoriteIdsQuery();
+  const { data: unreadCount } = useUnreadCountQuery();
+  const hasUnread = (unreadCount ?? 0) > 0;
   const { data: exclusive } = useProductsQuery(
     loyalty?.tier === "gold" || loyalty?.tier === "platinum" ? { style: "elegant", pageSize: 4 } : { style: "minimal", pageSize: 2 }
   );
@@ -122,8 +126,10 @@ export default function ProfileScreen() {
             <View style={styles.dot} />
             <Text style={styles.season}>Account</Text>
           </View>
-          <Pressable onPress={() => router.push("/notifications" as any)} hitSlop={10} style={styles.bellBtn} accessibilityLabel="Notifications">
-            <Ionicons name="notifications-outline" size={18} color={colors.foreground} />
+          <Pressable onPress={() => router.push("/notifications" as any)} hitSlop={10} style={styles.bellBtn} accessibilityLabel={`Notifications${hasUnread ? " with unread items" : ""}`}>
+            <BellShake active={hasUnread}>
+              <Ionicons name={hasUnread ? "notifications" : "notifications-outline"} size={18} color={colors.foreground} />
+            </BellShake>
           </Pressable>
         </View>
 

@@ -3,13 +3,16 @@ import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { colors } from "@/design/colors";
 import { useUnreadCountQuery } from "../hooks/useNotifications";
+import { BellShake } from "./BellShake";
 
 export function NotificationBell({ size = 22 }: { size?: number }) {
   const { data: count } = useUnreadCountQuery();
   const unread = count ?? 0;
   return (
     <Pressable onPress={() => router.push("/notifications" as any)} hitSlop={8} accessibilityRole="button" accessibilityLabel={`Notifications${unread ? ` ${unread} unread` : ""}`} style={styles.wrap}>
-      <Ionicons name={unread ? "notifications" : "notifications-outline"} size={size} color={colors.foreground} />
+      <BellShake active={unread > 0}>
+        <Ionicons name={unread ? "notifications" : "notifications-outline"} size={size} color={colors.foreground} />
+      </BellShake>
       {unread > 0 && (
         <View style={styles.badge}>
           <Text style={styles.badgeText}>{unread > 9 ? "9+" : String(unread)}</Text>
