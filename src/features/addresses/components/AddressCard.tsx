@@ -1,4 +1,4 @@
-import { View, Text, Pressable, StyleSheet } from "react-native";
+import { View, Text, Pressable, StyleSheet, ActivityIndicator } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { colors } from "@/design/colors";
 import { radius } from "@/design/spacing";
@@ -7,17 +7,28 @@ import type { Address } from "../services/addressService";
 type Props = {
   address: Address;
   selected?: boolean;
+  pending?: boolean;
   onSelect?: () => void;
   onSetDefault?: () => void;
   onDelete?: () => void;
 };
 
-export function AddressCard({ address, selected, onSelect, onSetDefault, onDelete }: Props) {
+export function AddressCard({ address, selected, pending, onSelect, onSetDefault, onDelete }: Props) {
   return (
-    <Pressable onPress={onSelect} style={[styles.card, selected && styles.selected]} accessibilityRole="button" accessibilityState={{ selected: !!selected }}>
+    <Pressable
+      onPress={onSelect}
+      disabled={pending}
+      style={[styles.card, selected && styles.selected, pending && styles.pending]}
+      accessibilityRole="button"
+      accessibilityState={{ selected: !!selected, busy: !!pending }}
+    >
       <View style={styles.topRow}>
         <View style={[styles.radio, selected && styles.radioSelected]}>
-          {selected && <View style={styles.radioDot} />}
+          {pending ? (
+            <ActivityIndicator size="small" color={colors.foreground} />
+          ) : (
+            selected && <View style={styles.radioDot} />
+          )}
         </View>
         <View style={{ flex: 1 }}>
           <View style={{ flexDirection: "row", gap: 6, alignItems: "center", flexWrap: "wrap" }}>
@@ -62,6 +73,10 @@ const styles = StyleSheet.create({
   selected: {
     borderColor: colors.foreground,
     backgroundColor: colors.surface,
+    borderWidth: 1.5,
+  },
+  pending: {
+    opacity: 0.7,
   },
   topRow: {
     flexDirection: "row",

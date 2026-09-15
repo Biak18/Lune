@@ -1,7 +1,7 @@
 import { View, Text, StyleSheet, Pressable, Alert, ActivityIndicator } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { router } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { colors } from "@/design/colors";
@@ -73,6 +73,30 @@ export default function AddressesScreen() {
     }
   };
 
+  const handleSelectDefault = (id: string) => {
+    // Drop taps while a switch is in flight (also blocks nested-pressable
+    // double fire from the inner "Set default" button).
+    if (setDefault.isPending) return;
+    const target = list.find((a) => a.id === id);
+    try {
+      void Haptics.selectionAsync();
+    } catch {}
+    if (!target || target.is_default) return;
+    setDefault.mutate(id, {
+      onSuccess: async () => {
+        try {
+          await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+        } catch {}
+      },
+      onError: async (e) => {
+        try {
+          await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+        } catch {}
+        Alert.alert("Could not set default", String((e as Error)?.message ?? "Try again"));
+      },
+    });
+  };
+
   const handleDelete = (id: string) => {
     Alert.alert("Remove address?", "This cannot be undone.", [
       { text: "Cancel", style: "cancel" },
@@ -123,7 +147,16 @@ export default function AddressesScreen() {
     );
   }
 
-  const list = addresses ?? [];
+  // Stable chronological order: cards never reshuffle when the default
+  // changes (the badge, radio, and border move instead). Sorting a copy so
+  // the cached query data is never mutated.
+  const list = useMemo(() => {
+    const timeOf = (a: Address) => {
+      const t = new Date(a.created_at ?? "").getTime();
+      return Number.isNaN(t) ? 0 : t;
+    };
+    return [...(addresses ?? [])].sort((x, y) => timeOf(x) - timeOf(y));
+  }, [addresses]);
 
   return (
     <SafeAreaView style={styles.root} edges={["top"]}>
@@ -187,8 +220,9 @@ export default function AddressesScreen() {
                 <AddressCard
                   address={a}
                   selected={!!a.is_default}
-                  onSelect={() => setDefault.mutateAsync(a.id)}
-                  onSetDefault={() => setDefault.mutateAsync(a.id)}
+                  pending={setDefault.isPending && setDefault.variables === a.id}
+                  onSelect={() => handleSelectDefault(a.id)}
+                  onSetDefault={() => handleSelectDefault(a.id)}
                   onDelete={() => handleDelete(a.id)}
                 />
                 <View style={{ flexDirection: "row", gap: 8 }}>
