@@ -36,7 +36,7 @@ export default function AddressesScreen() {
         city: values.city,
         state: values.state || null,
         postal_code: values.postal_code || null,
-        country: values.country || "US",
+        country: values.country || "MM",
         is_default: true,
       } as any);
       try { await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success); } catch {}
@@ -61,7 +61,7 @@ export default function AddressesScreen() {
           city: values.city,
           state: values.state || null,
           postal_code: values.postal_code || null,
-          country: values.country || "US",
+          country: values.country || "MM",
         } as any,
       });
       if (values.is_default) await setDefault.mutateAsync(editing.id);
@@ -159,7 +159,7 @@ export default function AddressesScreen() {
                       city: editing.city,
                       state: editing.state ?? "",
                       postal_code: editing.postal_code ?? "",
-                      country: editing.country ?? "US",
+                      country: editing.country ?? "MM",
                       is_default: editing.is_default,
                     }
                   : undefined

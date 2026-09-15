@@ -56,7 +56,7 @@ export function AddressForm({ onSubmit, submitting, defaultValues }: Props) {
         render={({ field: { value, onChange, onBlur } }) => (
           <FieldInput
             label="Full name"
-            placeholder="Jane Doe"
+            placeholder="Su Su Aye"
             value={value}
             onChangeText={onChange}
             onBlur={onBlur}
@@ -71,7 +71,7 @@ export function AddressForm({ onSubmit, submitting, defaultValues }: Props) {
         render={({ field: { value, onChange, onBlur } }) => (
           <FieldInput
             label="Phone (optional)"
-            placeholder="+1 555 0100"
+            placeholder="+95 9 123 456 789"
             value={value ?? ""}
             onChangeText={onChange}
             onBlur={onBlur}
@@ -100,7 +100,7 @@ export function AddressForm({ onSubmit, submitting, defaultValues }: Props) {
         render={({ field: { value, onChange, onBlur } }) => (
           <FieldInput
             label="Address line 1"
-            placeholder="123 Market St"
+            placeholder="No. 123, Anawrahta Road"
             value={value}
             onChangeText={onChange}
             onBlur={onBlur}
@@ -114,7 +114,7 @@ export function AddressForm({ onSubmit, submitting, defaultValues }: Props) {
         render={({ field: { value, onChange, onBlur } }) => (
           <FieldInput
             label="Address line 2 (optional)"
-            placeholder="Apt 4B"
+            placeholder="Room 402, 4th Floor"
             value={value ?? ""}
             onChangeText={onChange}
             onBlur={onBlur}
@@ -145,8 +145,8 @@ export function AddressForm({ onSubmit, submitting, defaultValues }: Props) {
             name="state"
             render={({ field: { value, onChange, onBlur } }) => (
               <FieldInput
-                label="State"
-                placeholder="Yangon"
+                label="State / Region"
+                placeholder="Yangon Region"
                 value={value ?? ""}
                 onChangeText={onChange}
                 onBlur={onBlur}
@@ -164,7 +164,7 @@ export function AddressForm({ onSubmit, submitting, defaultValues }: Props) {
             render={({ field: { value, onChange, onBlur } }) => (
               <FieldInput
                 label="Postal code"
-                placeholder="10001"
+                placeholder="11181"
                 value={value ?? ""}
                 onChangeText={onChange}
                 onBlur={onBlur}
@@ -180,7 +180,7 @@ export function AddressForm({ onSubmit, submitting, defaultValues }: Props) {
             render={({ field: { value, onChange, onBlur } }) => (
               <FieldInput
                 label="Country"
-                placeholder="US"
+                placeholder="MM"
                 value={value ?? ""}
                 onChangeText={onChange}
                 onBlur={onBlur}

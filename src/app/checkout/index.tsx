@@ -64,7 +64,7 @@ export default function CheckoutScreen() {
         city: values.city,
         state: values.state || null,
         postal_code: values.postal_code || null,
-        country: values.country || "US",
+        country: values.country || "MM",
         is_default: true,
       } as any);
       setSelectedId(addr.id);

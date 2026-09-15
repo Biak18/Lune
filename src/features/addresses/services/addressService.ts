@@ -49,7 +49,7 @@ function toApiPayload(payload: any) {
     city: payload.city ?? "",
     state: payload.state ?? null,
     postalCode: payload.postal_code ?? payload.postalCode ?? null,
-    country: payload.country ?? "US",
+    country: payload.country ?? "MM",
     isDefault: payload.is_default ?? payload.isDefault ?? false,
   };
 }

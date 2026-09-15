@@ -117,7 +117,7 @@ export const orderService = {
       city: sa.city ?? "",
       state: sa.state ?? null,
       postalCode: sa.postal_code ?? sa.postalCode ?? null,
-      country: sa.country ?? "US",
+      country: sa.country ?? "MM",
       phone: sa.phone ?? null,
     };
     if (!shippingAddress.addressLine1) {
