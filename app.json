@@ -44,9 +44,15 @@
     "extra": {
       "router": {},
       "eas": {
-        "projectId": "2bc0c538-e006-4bf6-9ecf-01b042f3286f"
+        "projectId": "c285ba07-b726-46ff-9e05-a3337dd01149"
       }
     },
-    "owner": "biak18"
+    "owner": "biak18",
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/c285ba07-b726-46ff-9e05-a3337dd01149"
+    }
   }
 }
