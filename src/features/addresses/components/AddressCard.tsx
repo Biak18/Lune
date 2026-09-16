@@ -1,7 +1,14 @@
-import { View, Text, Pressable, StyleSheet, ActivityIndicator } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
 import { colors } from "@/design/colors";
 import { radius } from "@/design/spacing";
+import { Ionicons } from "@expo/vector-icons";
+import {
+  ActivityIndicator,
+  Pressable,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
+import Animated, { useReducedMotion, ZoomIn } from "react-native-reanimated";
 import type { Address } from "../services/addressService";
 
 type Props = {
@@ -13,35 +20,68 @@ type Props = {
   onDelete?: () => void;
 };
 
-export function AddressCard({ address, selected, pending, onSelect, onSetDefault, onDelete }: Props) {
+export function AddressCard({
+  address,
+  selected,
+  pending,
+  onSelect,
+  onSetDefault,
+  onDelete,
+}: Props) {
   return (
     <Pressable
       onPress={onSelect}
       disabled={pending}
-      style={[styles.card, selected && styles.selected, pending && styles.pending]}
+      style={[
+        styles.card,
+        selected && styles.selected,
+        pending && styles.pending,
+      ]}
       accessibilityRole="button"
       accessibilityState={{ selected: !!selected, busy: !!pending }}
     >
       <View style={styles.topRow}>
         <View style={[styles.radio, selected && styles.radioSelected]}>
           {pending ? (
-            <ActivityIndicator size="small" color={colors.foreground} />
+            <View
+              style={{
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              <ActivityIndicator size={12} color={colors.foreground} />
+            </View>
           ) : (
-            selected && <View style={styles.radioDot} />
+            selected && <PumpingDot />
           )}
         </View>
         <View style={{ flex: 1 }}>
-          <View style={{ flexDirection: "row", gap: 6, alignItems: "center", flexWrap: "wrap" }}>
+          <View
+            style={{
+              flexDirection: "row",
+              gap: 6,
+              alignItems: "center",
+              flexWrap: "wrap",
+            }}
+          >
             <Text style={styles.name}>{address.recipient_name}</Text>
-            {address.label ? <Text style={styles.label}>{address.label}</Text> : null}
-            {address.is_default ? <Text style={styles.badge}>DEFAULT</Text> : null}
+            {address.label ? (
+              <Text style={styles.label}>{address.label}</Text>
+            ) : null}
+            {address.is_default ? (
+              <Text style={styles.badge}>DEFAULT</Text>
+            ) : null}
           </View>
           <Text style={styles.line}>
             {address.address_line_1}
-            {address.address_line_2 ? `, ${address.address_line_2}` : ""}, {address.city}
-            {address.state ? `, ${address.state}` : ""} {address.postal_code ?? ""} {address.country}
+            {address.address_line_2 ? `, ${address.address_line_2}` : ""},{" "}
+            {address.city}
+            {address.state ? `, ${address.state}` : ""}{" "}
+            {address.postal_code ?? ""} {address.country}
           </Text>
-          {address.phone ? <Text style={styles.phone}>{address.phone}</Text> : null}
+          {address.phone ? (
+            <Text style={styles.phone}>{address.phone}</Text>
+          ) : null}
         </View>
       </View>
       <View style={styles.actions}>
@@ -51,13 +91,33 @@ export function AddressCard({ address, selected, pending, onSelect, onSetDefault
           </Pressable>
         )}
         {onDelete && (
-          <Pressable onPress={onDelete} style={[styles.actionBtn, styles.deleteBtn]}>
+          <Pressable
+            onPress={onDelete}
+            style={[styles.actionBtn, styles.deleteBtn]}
+          >
             <Ionicons name="trash-outline" size={12} color={colors.error} />
-            <Text style={[styles.actionText, { color: colors.error }]}>Remove</Text>
+            <Text style={[styles.actionText, { color: colors.error }]}>
+              Remove
+            </Text>
           </Pressable>
         )}
       </View>
     </Pressable>
+  );
+}
+
+function PumpingDot() {
+  const reducedMotion = useReducedMotion();
+
+  return (
+    <Animated.View
+      entering={
+        reducedMotion
+          ? undefined
+          : ZoomIn.springify().damping(12).stiffness(400).duration(350)
+      }
+      style={styles.radioDot}
+    />
   );
 }
 
