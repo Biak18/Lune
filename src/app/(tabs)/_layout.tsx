@@ -61,7 +61,7 @@ export default function TabsLayout() {
           title: "Shop",
           tabBarIcon: ({ focused, color, size }) => (
             <Ionicons
-              name={focused ? "grid" : "grid-outline"}
+              name={focused ? "storefront" : "storefront-outline"}
               size={size}
               color={color}
             />

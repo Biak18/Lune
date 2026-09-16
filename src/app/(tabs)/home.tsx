@@ -7,8 +7,8 @@ import { fontFamily } from "@/design/typography";
 import { NotificationBell } from "@/features/notifications/components/NotificationBell";
 import { ProductCard } from "@/features/products/components/ProductCard";
 import {
-    useCategoriesQuery,
-    useProductsQuery,
+  useCategoriesQuery,
+  useProductsQuery,
 } from "@/features/products/hooks/useProducts";
 import { RecommendationCarousel } from "@/features/recommendations/components/RecommendationCarousel";
 import { useRecentlyViewedProducts } from "@/features/recommendations/hooks/useRecommendations";
@@ -23,9 +23,16 @@ export default function HomeScreen() {
     style: "elegant",
     pageSize: 4,
   });
-  const { data: newArrivals, isLoading: loadingNew } = useProductsQuery({ sort: "newest", pageSize: 4 });
-  const { data: bestSellers, isLoading: loadingBest } = useProductsQuery({ sort: "top_rated", pageSize: 4 });
-  const { data: recentProds, isLoading: loadingRecent } = useRecentlyViewedProducts();
+  const { data: newArrivals, isLoading: loadingNew } = useProductsQuery({
+    sort: "newest",
+    pageSize: 4,
+  });
+  const { data: bestSellers, isLoading: loadingBest } = useProductsQuery({
+    sort: "top_rated",
+    pageSize: 4,
+  });
+  const { data: recentProds, isLoading: loadingRecent } =
+    useRecentlyViewedProducts();
 
   return (
     <Screen contentStyle={styles.content} padded={false}>
@@ -37,19 +44,7 @@ export default function HomeScreen() {
           <Text style={styles.season}>FW 2026</Text>
         </View>
         <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
-          <NotificationBell size={18} />
-          <Pressable
-            onPress={() => router.push("/shop" as any)}
-            hitSlop={8}
-            style={styles.shopLink}
-          >
-            <Text style={styles.headerLink}>Shop</Text>
-            <Ionicons
-              name="arrow-forward"
-              size={12}
-              color={colors.foreground}
-            />
-          </Pressable>
+          <NotificationBell size={24} />
         </View>
       </View>
 
@@ -110,8 +105,7 @@ export default function HomeScreen() {
                   <Image
                     source={{
                       uri:
-                        c.image_url ??
-                        "https://picsum.photos/seed/cat/200/200",
+                        c.image_url ?? "https://picsum.photos/seed/cat/200/200",
                     }}
                     style={styles.catImage}
                     contentFit="cover"
@@ -220,10 +214,17 @@ export default function HomeScreen() {
       ) : null}
 
       {/* Empty catalog hint */}
-      {!loadingFeat && !loadingNew && !loadingBest && !featured?.data?.length && !newArrivals?.data?.length && !bestSellers?.data?.length ? (
+      {!loadingFeat &&
+      !loadingNew &&
+      !loadingBest &&
+      !featured?.data?.length &&
+      !newArrivals?.data?.length &&
+      !bestSellers?.data?.length ? (
         <View style={styles.emptyCatalog}>
           <Text style={styles.emptyCatalogTitle}>No collections available</Text>
-          <Text style={styles.emptyCatalogSub}>Products are currently hidden</Text>
+          <Text style={styles.emptyCatalogSub}>
+            Products are currently hidden
+          </Text>
         </View>
       ) : null}
 
@@ -232,7 +233,9 @@ export default function HomeScreen() {
         <View style={styles.discoverHeader}>
           <Text style={styles.discoverEyebrow}>Discover</Text>
           <Text style={styles.discoverTitle}>Find your perfect piece</Text>
-          <Text style={styles.discoverDesc}>Answer two questions or chat with our stylist</Text>
+          <Text style={styles.discoverDesc}>
+            Answer two questions or chat with our stylist
+          </Text>
         </View>
         <View style={styles.discoverActions}>
           <Pressable
@@ -277,7 +280,7 @@ export default function HomeScreen() {
 
 const styles = StyleSheet.create({
   content: {
-    padding: spacing.xl,
+    paddingHorizontal: spacing.xl,
     gap: 28,
     paddingBottom: 32,
   },
@@ -303,24 +306,6 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     letterSpacing: 0.8,
     color: colors.muted,
-  },
-  shopLink: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 4,
-    paddingHorizontal: 10,
-    height: 30,
-    borderRadius: 999,
-    backgroundColor: colors.surface,
-    borderWidth: 1,
-    borderColor: colors.border,
-  },
-  headerLink: {
-    fontSize: 11,
-    fontWeight: "800",
-    letterSpacing: 0.7,
-    textTransform: "uppercase",
-    color: colors.foreground,
   },
   hero: {
     height: 440,
@@ -435,7 +420,8 @@ const styles = StyleSheet.create({
     color: colors.foreground,
     textAlign: "center",
   },
-  occChip: { // kept for legacy, Shop by Occasion removed
+  occChip: {
+    // kept for legacy, Shop by Occasion removed
     paddingHorizontal: 14,
     height: 34,
     borderRadius: 999,
