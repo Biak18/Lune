@@ -1,4 +1,5 @@
 import { Button } from "@/components/ui/Button";
+import { LoadingState } from "@/components/ui/LoadingState";
 import { Screen } from "@/components/ui/Screen";
 import { colors } from "@/design/colors";
 import { radius, spacing } from "@/design/spacing";
@@ -17,7 +18,7 @@ import * as Haptics from "expo-haptics";
 import { Image } from "expo-image";
 import { router } from "expo-router";
 import { useMemo, useState } from "react";
-import { ActivityIndicator, Alert, Keyboard, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { Alert, Keyboard, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 
 export default function CheckoutScreen() {
   const user = useAuthStore((s) => s.user);
@@ -137,12 +138,7 @@ export default function CheckoutScreen() {
   }
 
   if (cartLoading || addrLoading) {
-    return (
-      <Screen centered>
-        <ActivityIndicator color={colors.foreground} />
-        <Text style={styles.desc}>Preparing checkout…</Text>
-      </Screen>
-    );
+    return <LoadingState message="Preparing checkout…" />;
   }
 
   if (cartError || addrError) {

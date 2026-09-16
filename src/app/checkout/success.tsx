@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/Button";
 import { LottieAnimation } from "@/components/ui/LottieAnimation";
+import { LoadingState } from "@/components/ui/LoadingState";
 import { Screen } from "@/components/ui/Screen";
 import { colors } from "@/design/colors";
 import { radius } from "@/design/spacing";
@@ -15,12 +16,7 @@ export default function CheckoutSuccessScreen() {
   const { data: order, isLoading, isError } = useOrderQuery(orderId ?? "");
 
   if (isLoading) {
-    return (
-      <Screen centered>
-        <Text style={styles.title}>Order confirmed</Text>
-        <Text style={styles.desc}>We are preparing your order…</Text>
-      </Screen>
-    );
+    return <LoadingState message="We are preparing your order…" />;
   }
 
   if (isError || !order) {

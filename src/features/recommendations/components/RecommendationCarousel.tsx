@@ -1,6 +1,6 @@
-import { Skeleton } from "@/components/ui/Skeleton";
+import { ProductCardSkeleton } from "@/components/ui/Skeleton";
 import { colors } from "@/design/colors";
-import { radius, spacing } from "@/design/spacing";
+import { spacing } from "@/design/spacing";
 import { ProductCard } from "@/features/products/components/ProductCard";
 import type { ProductWithRelations } from "@/features/products/types";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
@@ -22,10 +22,7 @@ export function RecommendationCarousel({ title, subtitle, products, isLoading, o
         {subtitle ? <Text style={styles.sub}>{subtitle}</Text> : null}
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 12 }} showsVerticalScrollIndicator={false}>
           {[1, 2, 3].map((i) => (
-            <View key={i} style={{ width: 160, gap: 8 }}>
-              <Skeleton style={{ aspectRatio: 0.78, borderRadius: radius.lg }} />
-              <Skeleton style={{ height: 12, width: "70%" }} />
-            </View>
+            <ProductCardSkeleton key={i} lines={1} style={{ width: 160 }} />
           ))}
         </ScrollView>
       </View>

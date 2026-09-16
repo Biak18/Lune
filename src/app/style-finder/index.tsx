@@ -6,7 +6,7 @@ import { colors } from "@/design/colors";
 import { spacing, radius } from "@/design/spacing";
 import { useProductsQuery } from "@/features/products/hooks/useProducts";
 import { ProductCard } from "@/features/products/components/ProductCard";
-import { Skeleton } from "@/components/ui/Skeleton";
+import { ProductCardSkeleton } from "@/components/ui/Skeleton";
 import { Button } from "@/components/ui/Button";
 import * as Haptics from "expo-haptics";
 
@@ -138,22 +138,16 @@ export default function StyleFinderScreen() {
 
             {isLoading ? (
               <View style={{ gap: 12 }}>
-                <View style={{ flexDirection: "row", gap: 12 }}>
-                  {[1, 2].map((i) => (
-                    <View key={`s-${i}`} style={{ flex: 1, gap: 8 }}>
-                      <Skeleton style={{ aspectRatio: 0.78, borderRadius: radius.lg }} />
-                      <Skeleton style={{ height: 12, width: "70%" }} />
-                    </View>
-                  ))}
-                </View>
-                <View style={{ flexDirection: "row", gap: 12 }}>
-                  {[3, 4].map((i) => (
-                    <View key={`s-${i}`} style={{ flex: 1, gap: 8 }}>
-                      <Skeleton style={{ aspectRatio: 0.78, borderRadius: radius.lg }} />
-                      <Skeleton style={{ height: 12, width: "70%" }} />
-                    </View>
-                  ))}
-                </View>
+              <View style={{ flexDirection: "row", gap: 12 }}>
+                {[1, 2].map((i) => (
+                  <ProductCardSkeleton key={`s-${i}`} lines={1} style={{ flex: 1 }} />
+                ))}
+              </View>
+              <View style={{ flexDirection: "row", gap: 12 }}>
+                {[3, 4].map((i) => (
+                  <ProductCardSkeleton key={`s-${i}`} lines={1} style={{ flex: 1 }} />
+                ))}
+              </View>
               </View>
             ) : isError ? (
               <View style={styles.center}>

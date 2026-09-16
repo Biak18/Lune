@@ -1,4 +1,5 @@
 import { Button } from "@/components/ui/Button";
+import { LoadingState } from "@/components/ui/LoadingState";
 import { Screen } from "@/components/ui/Screen";
 import { colors } from "@/design/colors";
 import { radius, spacing } from "@/design/spacing";
@@ -10,7 +11,7 @@ import { useCancelOrder, useOrderQuery } from "@/features/orders/hooks/useOrders
 import { formatStatus } from "@/features/orders/utils/formatStatus";
 import * as Haptics from "expo-haptics";
 import { router, useLocalSearchParams } from "expo-router";
-import { ActivityIndicator, Alert, Pressable, StyleSheet, Text, View } from "react-native";
+import { Alert, Pressable, StyleSheet, Text, View } from "react-native";
 
 export default function OrderDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -20,12 +21,7 @@ export default function OrderDetailScreen() {
   const canCancel = order ? ["pending", "confirmed"].includes(order.status) : false;
 
   if (isLoading) {
-    return (
-      <Screen centered>
-        <ActivityIndicator color={colors.foreground} />
-        <Text style={styles.desc}>Loading order…</Text>
-      </Screen>
-    );
+    return <LoadingState message="Loading order…" />;
   }
 
   if (isError) {

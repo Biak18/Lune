@@ -1,9 +1,9 @@
 import { Button } from "@/components/ui/Button";
 import { Screen } from "@/components/ui/Screen";
 import { Reveal } from "@/components/ui/Reveal";
-import { Skeleton } from "@/components/ui/Skeleton";
+import { ProductCardSkeleton } from "@/components/ui/Skeleton";
 import { colors } from "@/design/colors";
-import { radius, spacing } from "@/design/spacing";
+import { spacing } from "@/design/spacing";
 import { fontFamily } from "@/design/typography";
 import { useAddToCart } from "@/features/cart/hooks/useCart";
 import { ProductCard } from "@/features/products/components/ProductCard";
@@ -20,11 +20,7 @@ function WishlistSkeleton() {
   return (
     <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 12, padding: spacing.xl }}>
       {Array.from({ length: 4 }).map((_, i) => (
-        <View key={i} style={{ width: "48%", gap: 8 }}>
-          <Skeleton style={{ aspectRatio: 0.78, borderRadius: radius.lg }} />
-          <Skeleton style={{ height: 12, borderRadius: 6 }} />
-          <Skeleton style={{ height: 12, width: "60%", borderRadius: 6 }} />
-        </View>
+        <ProductCardSkeleton key={i} style={{ width: "48%" }} />
       ))}
     </View>
   );

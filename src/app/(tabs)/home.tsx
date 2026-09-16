@@ -1,6 +1,6 @@
 import { LottieAnimation } from "@/components/ui/LottieAnimation";
 import { Screen } from "@/components/ui/Screen";
-import { Skeleton } from "@/components/ui/Skeleton";
+import { ProductCardSkeleton, Skeleton } from "@/components/ui/Skeleton";
 import { colors } from "@/design/colors";
 import { radius, spacing } from "@/design/spacing";
 import { fontFamily } from "@/design/typography";
@@ -137,10 +137,7 @@ export default function HomeScreen() {
           </View>
           <View style={{ flexDirection: "row", gap: spacing.lg }}>
             {[1, 2].map((i) => (
-              <View key={i} style={{ flex: 1, gap: 8 }}>
-                <Skeleton style={{ aspectRatio: 0.78, borderRadius: radius.lg }} />
-                <Skeleton style={{ height: 12, width: "60%" }} />
-              </View>
+              <ProductCardSkeleton key={i} lines={1} style={{ flex: 1 }} />
             ))}
           </View>
         </View>
@@ -171,10 +168,7 @@ export default function HomeScreen() {
           </View>
           <View style={{ flexDirection: "row", gap: spacing.lg }}>
             {[1, 2].map((i) => (
-              <View key={i} style={{ flex: 1, gap: 8 }}>
-                <Skeleton style={{ aspectRatio: 0.78, borderRadius: radius.lg }} />
-                <Skeleton style={{ height: 12, width: "60%" }} />
-              </View>
+              <ProductCardSkeleton key={i} lines={1} style={{ flex: 1 }} />
             ))}
           </View>
         </View>
@@ -205,10 +199,7 @@ export default function HomeScreen() {
           </View>
           <View style={{ flexDirection: "row", gap: spacing.lg }}>
             {[1, 2].map((i) => (
-              <View key={i} style={{ flex: 1, gap: 8 }}>
-                <Skeleton style={{ aspectRatio: 0.78, borderRadius: radius.lg }} />
-                <Skeleton style={{ height: 12, width: "60%" }} />
-              </View>
+              <ProductCardSkeleton key={i} lines={1} style={{ flex: 1 }} />
             ))}
           </View>
         </View>

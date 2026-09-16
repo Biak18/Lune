@@ -1,4 +1,4 @@
-import { Skeleton } from "@/components/ui/Skeleton";
+import { ProductCardSkeleton } from "@/components/ui/Skeleton";
 import { colors } from "@/design/colors";
 import { spacing } from "@/design/spacing";
 import { FlashList } from "@shopify/flash-list";
@@ -43,11 +43,7 @@ export function ProductGrid({
     return (
       <View style={styles.grid}>
         {Array.from({ length: 6 }).map((_, i) => (
-          <View key={i} style={styles.skeletonCard}>
-            <Skeleton style={{ aspectRatio: 0.78, borderRadius: 14 }} />
-            <Skeleton style={{ height: 12, width: "70%" }} />
-            <Skeleton style={{ height: 12, width: "40%" }} />
-          </View>
+          <ProductCardSkeleton key={i} style={styles.skeletonCard} />
         ))}
       </View>
     );
