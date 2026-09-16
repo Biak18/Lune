@@ -1,5 +1,6 @@
 import { colors } from "@/design/colors";
 import { radius, spacing } from "@/design/spacing";
+import { Screen } from "@/components/ui/Screen";
 import { AdminGuard } from "@/features/admin/components/AdminGuard";
 import { adminService } from "@/features/admin/services/adminService";
 import { productService } from "@/features/products/services/productService";
@@ -19,7 +20,6 @@ import {
   TextInput,
   View,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
 
 function slugify(s: string) {
   return s
@@ -116,11 +116,11 @@ export default function AdminProductsScreen() {
 
   return (
     <AdminGuard>
-      <SafeAreaView style={styles.root} edges={["top"]}>
+      <Screen scrollable={false} padded={false} contentStyle={styles.root}>
         <View style={styles.header}>
           <Pressable
             onPress={() => router.back()}
-            style={[styles.back, { marginTop: 4 }]}
+            style={styles.back}
             hitSlop={8}
           >
             <Text style={styles.backText}>← Admin</Text>
@@ -326,7 +326,7 @@ export default function AdminProductsScreen() {
             />
           </View>
         )}
-      </SafeAreaView>
+      </Screen>
     </AdminGuard>
   );
 }
@@ -338,14 +338,13 @@ const styles = StyleSheet.create({
   },
   header: {
     paddingHorizontal: spacing.xl,
-    paddingTop: spacing.xl,
+    paddingTop: 8,
     gap: 6,
   },
   heading: {
     fontSize: 22,
     fontWeight: "700",
     color: colors.foreground,
-    marginTop: 4,
   },
   back: {
     alignSelf: "flex-start",

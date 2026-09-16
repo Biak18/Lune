@@ -1,4 +1,5 @@
 import { Button } from "@/components/ui/Button";
+import { Screen } from "@/components/ui/Screen";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { colors } from "@/design/colors";
 import { radius, spacing } from "@/design/spacing";
@@ -33,7 +34,6 @@ import * as Haptics from "expo-haptics";
 import { router, useLocalSearchParams } from "expo-router";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, useWindowDimensions, View } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
 
 /** Quiet detail row used inside the consolidated details card. */
 function DetailRow({ label, text }: { label: string; text: string }) {
@@ -169,7 +169,7 @@ export default function ProductScreen() {
 
   if (isLoading) {
     return (
-      <SafeAreaView style={styles.root} edges={["top"]}>
+      <Screen scrollable={false} padded={false} contentStyle={styles.root}>
         <View>
           <Skeleton style={styles.skeletonHero} />
           <View style={styles.skeletonBody}>
@@ -179,12 +179,12 @@ export default function ProductScreen() {
             <Skeleton style={{ height: 44, borderRadius: 999 }} />
           </View>
         </View>
-      </SafeAreaView>
+      </Screen>
     );
   }
   if (isError) {
     return (
-      <SafeAreaView style={styles.center} edges={["top"]}>
+      <Screen centered>
         <Text style={styles.errorTitle}>We couldn&apos;t load this dress.</Text>
         <Text style={styles.errorSub}>{String((error as Error)?.message ?? "Try again")}</Text>
         <Pressable onPress={() => refetch()} style={styles.retryBtn}>
@@ -193,17 +193,17 @@ export default function ProductScreen() {
         <Pressable onPress={() => router.back()}>
           <Text style={styles.link}>Go back</Text>
         </Pressable>
-      </SafeAreaView>
+      </Screen>
     );
   }
   if (!product) {
     return (
-      <SafeAreaView style={styles.center} edges={["top"]}>
+      <Screen centered>
         <Text style={styles.errorTitle}>Not found</Text>
         <Pressable onPress={() => router.back()}>
           <Text style={styles.link}>Go back</Text>
         </Pressable>
-      </SafeAreaView>
+      </Screen>
     );
   }
 
@@ -211,10 +211,10 @@ export default function ProductScreen() {
   const showVariantSection = hasVariants && (colorsList.length > 0 || sizesList.length > 0);
 
   return (
-    <SafeAreaView style={styles.root} edges={["top"]}>
+    <Screen scrollable={false} padded={false} contentStyle={styles.root}>
       <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false} showsHorizontalScrollIndicator={false}>
         {/* HERO full-bleed gallery */}
-        <View style={[styles.hero, { width: windowWidth, marginHorizontal: -spacing.xl, marginTop: -spacing.xl }]}>
+        <View style={[styles.hero, { width: windowWidth, marginHorizontal: -spacing.xl }]}>
           <ProductGallery hero images={product.images} selectedColor={selectedColor} colorsList={colorsList} />
           <View style={styles.heroTop} pointerEvents="box-none">
             <Pressable
@@ -447,7 +447,7 @@ export default function ProductScreen() {
           ) : null}
         </View>
       </View>
-    </SafeAreaView>
+    </Screen>
   );
 }
 
@@ -457,17 +457,10 @@ const styles = StyleSheet.create({
     backgroundColor: colors.background,
   },
   scroll: {
-    padding: spacing.xl,
+    paddingHorizontal: spacing.xl,
+    paddingTop: 8,
     gap: 20,
     paddingBottom: 32,
-  },
-  center: {
-    flex: 1,
-    backgroundColor: colors.background,
-    alignItems: "center",
-    justifyContent: "center",
-    padding: spacing.xl,
-    gap: 8,
   },
   errorTitle: {
     fontSize: 16,

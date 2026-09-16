@@ -1,13 +1,13 @@
 import { Button } from "@/components/ui/Button";
 import { LottieAnimation } from "@/components/ui/LottieAnimation";
+import { Screen } from "@/components/ui/Screen";
 import { colors } from "@/design/colors";
-import { radius, spacing } from "@/design/spacing";
+import { radius } from "@/design/spacing";
 import { fontFamily } from "@/design/typography";
 import { useOrderQuery } from "@/features/orders/hooks/useOrders";
 import { formatStatus } from "@/features/orders/utils/formatStatus";
 import { router, useLocalSearchParams } from "expo-router";
 import { Pressable, StyleSheet, Text, View } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function CheckoutSuccessScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -16,16 +16,16 @@ export default function CheckoutSuccessScreen() {
 
   if (isLoading) {
     return (
-      <SafeAreaView style={styles.center} edges={["top"]}>
+      <Screen centered>
         <Text style={styles.title}>Order confirmed</Text>
         <Text style={styles.desc}>We are preparing your order…</Text>
-      </SafeAreaView>
+      </Screen>
     );
   }
 
   if (isError || !order) {
     return (
-      <SafeAreaView style={styles.center} edges={["top"]}>
+      <Screen centered>
         <Text style={styles.title}>Order placed</Text>
         <Text style={styles.desc}>
           Your order was created. You can find it in your orders.
@@ -35,14 +35,14 @@ export default function CheckoutSuccessScreen() {
         <Pressable onPress={() => router.replace("/(tabs)/shop" as any)} style={{ marginTop: 12 }}>
           <Text style={styles.link}>Continue shopping</Text>
         </Pressable>
-      </SafeAreaView>
+      </Screen>
     );
   }
 
   const shortId = order.id.replace(/-/g, "").slice(0, 8).toUpperCase();
 
   return (
-    <SafeAreaView style={styles.root} edges={["top"]}>
+    <Screen>
       <View style={styles.content}>
         <LottieAnimation
           source={require("@/assets/lottie/order-seal.json")}
@@ -84,29 +84,16 @@ export default function CheckoutSuccessScreen() {
           />
         </View>
       </View>
-    </SafeAreaView>
+    </Screen>
   );
 }
 
 const styles = StyleSheet.create({
-  root: {
-    flex: 1,
-    backgroundColor: colors.background,
-    padding: spacing.xl,
-  },
   content: {
     flex: 1,
     alignItems: "center",
     justifyContent: "center",
     gap: 6,
-  },
-  center: {
-    flex: 1,
-    backgroundColor: colors.background,
-    alignItems: "center",
-    justifyContent: "center",
-    padding: spacing.xl,
-    gap: 8,
   },
   seal: {
     width: 240,

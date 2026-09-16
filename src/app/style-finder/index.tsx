@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { View, Text, ScrollView, Pressable, StyleSheet, FlatList } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { Screen } from "@/components/ui/Screen";
 import { router } from "expo-router";
 import { colors } from "@/design/colors";
 import { spacing, radius } from "@/design/spacing";
@@ -56,9 +56,9 @@ export default function StyleFinderScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.root} edges={["top"]}>
+    <Screen scrollable={false} padded={false} contentStyle={styles.root}>
       <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false} showsHorizontalScrollIndicator={false}>
-        <Pressable onPress={() => (step === 0 ? router.back() : setStep((s) => (s === 2 ? 1 : 0) as any))} style={[styles.back, { marginTop: 4 }]} hitSlop={8}>
+        <Pressable onPress={() => (step === 0 ? router.back() : setStep((s) => (s === 2 ? 1 : 0) as any))} style={styles.back} hitSlop={8}>
           <Text style={styles.backText}>← {step === 0 ? "Back" : "Previous"}</Text>
         </Pressable>
 
@@ -206,7 +206,7 @@ export default function StyleFinderScreen() {
           />
         )}
       </View>
-    </SafeAreaView>
+    </Screen>
   );
 }
 
@@ -216,7 +216,8 @@ const styles = StyleSheet.create({
     backgroundColor: colors.background,
   },
   scroll: {
-    padding: spacing.xl,
+    paddingHorizontal: spacing.xl,
+    paddingTop: 8,
     gap: 20,
     paddingBottom: 32,
   },

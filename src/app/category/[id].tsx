@@ -1,3 +1,4 @@
+import { Screen } from "@/components/ui/Screen";
 import { colors } from "@/design/colors";
 import { spacing } from "@/design/spacing";
 import { fontFamily } from "@/design/typography";
@@ -5,7 +6,6 @@ import { ProductGrid } from "@/features/products/components/ProductGrid";
 import { useCategoriesQuery, useProductsInfiniteQuery } from "@/features/products/hooks/useProducts";
 import { router, useLocalSearchParams } from "expo-router";
 import { Pressable, StyleSheet, Text, View } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function CategoryScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -15,8 +15,8 @@ export default function CategoryScreen() {
   const products = query.data?.pages.flatMap((p) => p.data) ?? [];
 
   return (
-    <SafeAreaView style={styles.root} edges={["top"]}>
-      <Pressable onPress={() => router.back()} style={[styles.back, { marginTop: 4 }]} hitSlop={8} accessibilityRole="button" accessibilityLabel="Go back">
+    <Screen scrollable={false} padded={false} contentStyle={styles.root}>
+      <Pressable onPress={() => router.back()} style={styles.back} hitSlop={8} accessibilityRole="button" accessibilityLabel="Go back">
         <Text style={styles.backText}>← Back</Text>
       </Pressable>
       <Text style={styles.title}>{category?.name ?? "Category"}</Text>
@@ -36,7 +36,7 @@ export default function CategoryScreen() {
           isFetchingNextPage={query.isFetchingNextPage}
         />
       </View>
-    </SafeAreaView>
+    </Screen>
   );
 }
 
@@ -44,7 +44,9 @@ const styles = StyleSheet.create({
   root: {
     flex: 1,
     backgroundColor: colors.background,
-    padding: spacing.xl,
+    paddingHorizontal: spacing.xl,
+    paddingTop: 8,
+    paddingBottom: spacing.xl,
     gap: 12,
   },
   back: {

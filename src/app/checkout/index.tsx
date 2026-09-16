@@ -1,4 +1,5 @@
 import { Button } from "@/components/ui/Button";
+import { Screen } from "@/components/ui/Screen";
 import { colors } from "@/design/colors";
 import { radius, spacing } from "@/design/spacing";
 import { fontFamily } from "@/design/typography";
@@ -16,9 +17,7 @@ import * as Haptics from "expo-haptics";
 import { Image } from "expo-image";
 import { router } from "expo-router";
 import { useMemo, useState } from "react";
-import { ActivityIndicator, Alert, Keyboard, Pressable, StyleSheet, Text, View } from "react-native";
-import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { ActivityIndicator, Alert, Keyboard, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 
 export default function CheckoutScreen() {
   const user = useAuthStore((s) => s.user);
@@ -126,59 +125,54 @@ export default function CheckoutScreen() {
 
   if (!user) {
     return (
-      <SafeAreaView style={styles.center} edges={["top"]}>
+      <Screen centered>
         <Text style={styles.title}>Checkout</Text>
         <Text style={styles.desc}>Please sign in to continue to checkout.</Text>
         <Button title="Sign in" onPress={() => router.push("/auth/login" as any)} style={{ marginTop: 16 }} />
         <Pressable onPress={() => router.back()} style={{ marginTop: 12 }}>
           <Text style={styles.link}>Go back</Text>
         </Pressable>
-      </SafeAreaView>
+      </Screen>
     );
   }
 
   if (cartLoading || addrLoading) {
     return (
-      <SafeAreaView style={styles.center} edges={["top"]}>
+      <Screen centered>
         <ActivityIndicator color={colors.foreground} />
         <Text style={styles.desc}>Preparing checkout…</Text>
-      </SafeAreaView>
+      </Screen>
     );
   }
 
   if (cartError || addrError) {
     return (
-      <SafeAreaView style={styles.center} edges={["top"]}>
+      <Screen centered>
         <Text style={styles.title}>We couldn&apos;t load checkout.</Text>
         <Text style={styles.desc}>{String((cartErr as Error)?.message ?? (addrErr as Error)?.message ?? "Try again")}</Text>
         <Button title="Retry" onPress={() => { refetchCart(); refetchAddr(); }} style={{ marginTop: 12 }} />
-      </SafeAreaView>
+      </Screen>
     );
   }
 
   if (!cartItems?.length) {
     return (
-      <SafeAreaView style={styles.center} edges={["top"]}>
+      <Screen centered>
         <Text style={styles.title}>Your bag is empty</Text>
         <Text style={styles.desc}>Add items to continue to checkout.</Text>
         <Button title="Shop now" onPress={() => router.push("/(tabs)/shop" as any)} style={{ marginTop: 16 }} />
-      </SafeAreaView>
+      </Screen>
     );
   }
 
   return (
-    <SafeAreaView style={styles.root} edges={["top"]}>
-      <KeyboardAwareScrollView
+    <Screen scrollable={false} padded={false} contentStyle={styles.root}>
+      <ScrollView
         style={{ flex: 1 }}
         contentContainerStyle={styles.scroll}
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
-        enableOnAndroid={false}
-        enableAutomaticScroll={false}
-        extraScrollHeight={0}
-        keyboardOpeningTime={0}
-        enableResetScrollToCoords={false}
-       showsHorizontalScrollIndicator={false}>
+        showsHorizontalScrollIndicator={false}>
         <Pressable onPress={() => router.back()} style={styles.back} hitSlop={8} accessibilityRole="button" accessibilityLabel="Back to bag">
           <Text style={styles.backText}>← Back to bag</Text>
         </Pressable>
@@ -281,7 +275,7 @@ export default function CheckoutScreen() {
           freeShippingThreshold={totals.freeShippingThreshold}
           discount={totals.discount}
         />
-      </KeyboardAwareScrollView>
+      </ScrollView>
 
       <View style={styles.footer}>
         <View style={{ gap: 6 }}>
@@ -296,7 +290,7 @@ export default function CheckoutScreen() {
           {!selectedAddress && <Text style={styles.footerHint}>Select a shipping address to continue</Text>}
         </View>
       </View>
-    </SafeAreaView>
+    </Screen>
   );
 }
 
@@ -306,17 +300,10 @@ const styles = StyleSheet.create({
     backgroundColor: colors.background,
   },
   scroll: {
-    padding: spacing.xl,
+    paddingHorizontal: spacing.xl,
+    paddingTop: 8,
     gap: 20,
     paddingBottom: 32,
-  },
-  center: {
-    flex: 1,
-    backgroundColor: colors.background,
-    alignItems: "center",
-    justifyContent: "center",
-    padding: spacing.xl,
-    gap: 8,
   },
   title: {
     fontSize: 20,

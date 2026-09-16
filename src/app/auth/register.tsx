@@ -2,6 +2,7 @@
 import { Button } from "@/components/ui/Button";
 import { FieldInput } from "@/components/ui/FieldInput";
 import { FormError } from "@/components/ui/FormError";
+import { Screen } from "@/components/ui/Screen";
 import { PasswordRequirements } from "@/components/ui/PasswordRequirements";
 import { env } from "@/config/env";
 import { colors } from "@/design/colors";
@@ -14,9 +15,7 @@ import { router } from "expo-router";
 import { useState } from "react";
 import { Controller, useForm, useWatch } from "react-hook-form";
 import { Pressable, StyleSheet, Text, View } from "react-native";
-import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import Animated, { FadeInUp } from "react-native-reanimated";
-import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function RegisterScreen() {
   const [showPassword, setShowPassword] = useState(false);
@@ -67,16 +66,7 @@ export default function RegisterScreen() {
   const isEnvMissing = !env.isApiConfigured();
 
   return (
-    <SafeAreaView style={styles.safe} edges={["top", "bottom"]}>
-      <KeyboardAwareScrollView
-        style={styles.flex}
-        contentContainerStyle={styles.content}
-        keyboardShouldPersistTaps="handled"
-        showsVerticalScrollIndicator={false}
-        enableOnAndroid
-        extraScrollHeight={24}
-        enableAutomaticScroll
-       showsHorizontalScrollIndicator={false}>
+    <Screen centered>
         <Animated.View entering={FadeInUp.duration(480).springify().damping(16)}>
           <AuthHeader
             title="Create account"
@@ -230,26 +220,11 @@ export default function RegisterScreen() {
           </Pressable>
         </Animated.View>
         </View>
-      </KeyboardAwareScrollView>
-    </SafeAreaView>
+    </Screen>
   );
 }
 
 const styles = StyleSheet.create({
-  safe: {
-    flex: 1,
-    backgroundColor: colors.background,
-  },
-  flex: {
-    flex: 1,
-    backgroundColor: colors.background,
-  },
-  content: {
-    flexGrow: 1,
-    justifyContent: "center",
-    paddingHorizontal: 24,
-    paddingVertical: 24,
-  },
   form: {
     gap: 16,
     paddingTop: 24,

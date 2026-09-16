@@ -277,6 +277,19 @@ Do not duplicate validation rules across multiple components when avoidable.
 
 Build reusable components.
 
+Every route screen must use the shared `Screen` component
+(`src/components/ui/Screen.tsx`) as its shell. `Screen` owns the
+single top inset (safe area + `paddingTop: 8`).
+
+- Do not add `SafeAreaView`, root `paddingTop`, header `paddingTop`,
+  back-button `marginTop`, or heading `marginTop` on top of it.
+- `scrollable={false} padded={false}` for `FlashList` pages and
+  full-bleed layouts (e.g. product hero); pass layout via `contentStyle`.
+- `<Screen centered>` for loading / error / empty / unauth states.
+- Exceptions (document with a `NOTE` comment): chat-style keyboard
+  handling (`assistant`) and keyboard-aware form scrolling
+  (`addresses`), which `Screen` cannot provide.
+
 Example:
 
 ```text

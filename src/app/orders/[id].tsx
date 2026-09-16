@@ -1,4 +1,5 @@
 import { Button } from "@/components/ui/Button";
+import { Screen } from "@/components/ui/Screen";
 import { colors } from "@/design/colors";
 import { radius, spacing } from "@/design/spacing";
 import { fontFamily } from "@/design/typography";
@@ -9,8 +10,7 @@ import { useCancelOrder, useOrderQuery } from "@/features/orders/hooks/useOrders
 import { formatStatus } from "@/features/orders/utils/formatStatus";
 import * as Haptics from "expo-haptics";
 import { router, useLocalSearchParams } from "expo-router";
-import { ActivityIndicator, Alert, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { ActivityIndicator, Alert, Pressable, StyleSheet, Text, View } from "react-native";
 
 export default function OrderDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -21,43 +21,42 @@ export default function OrderDetailScreen() {
 
   if (isLoading) {
     return (
-      <SafeAreaView style={styles.center} edges={["top"]}>
+      <Screen centered>
         <ActivityIndicator color={colors.foreground} />
         <Text style={styles.desc}>Loading order…</Text>
-      </SafeAreaView>
+      </Screen>
     );
   }
 
   if (isError) {
     return (
-      <SafeAreaView style={styles.center} edges={["top"]}>
+      <Screen centered>
         <Text style={styles.title}>We couldn&apos;t load this order.</Text>
         <Text style={styles.desc}>{String((error as Error)?.message ?? "Try again")}</Text>
         <Button title="Retry" onPress={() => refetch()} style={{ marginTop: 12 }} />
         <Pressable onPress={() => router.back()} style={{ marginTop: 8 }}>
           <Text style={styles.link}>Go back</Text>
         </Pressable>
-      </SafeAreaView>
+      </Screen>
     );
   }
 
   if (!order) {
     return (
-      <SafeAreaView style={styles.center} edges={["top"]}>
+      <Screen centered>
         <Text style={styles.title}>Order not found</Text>
         <Pressable onPress={() => router.back()}>
           <Text style={styles.link}>Go back</Text>
         </Pressable>
-      </SafeAreaView>
+      </Screen>
     );
   }
 
   const items = (order as any).items ?? [];
 
   return (
-    <SafeAreaView style={styles.root} edges={["top"]}>
-      <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false} showsHorizontalScrollIndicator={false}>
-        <Pressable onPress={() => router.back()} style={[styles.back, { marginTop: 4 }]} hitSlop={8}>
+    <Screen padded={false} contentStyle={styles.scroll}>
+      <Pressable onPress={() => router.back()} style={styles.back} hitSlop={8}>
           <Text style={styles.backText}>← Back to orders</Text>
         </Pressable>
 
@@ -118,28 +117,16 @@ export default function OrderDetailScreen() {
         <OrderItemsList items={items} />
 
         <DeliveryInfo shippingAddress={order.shipping_address as any} createdAt={order.created_at} />
-      </ScrollView>
-    </SafeAreaView>
+    </Screen>
   );
 }
 
 const styles = StyleSheet.create({
-  root: {
-    flex: 1,
-    backgroundColor: colors.background,
-  },
   scroll: {
-    padding: spacing.xl,
+    paddingHorizontal: spacing.xl,
+    paddingTop: 8,
     gap: 16,
     paddingBottom: 32,
-  },
-  center: {
-    flex: 1,
-    backgroundColor: colors.background,
-    alignItems: "center",
-    justifyContent: "center",
-    padding: spacing.xl,
-    gap: 8,
   },
   title: {
     fontSize: 16,

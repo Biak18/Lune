@@ -1,4 +1,5 @@
 import { Button } from "@/components/ui/Button";
+import { Screen } from "@/components/ui/Screen";
 import { Reveal } from "@/components/ui/Reveal";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { colors } from "@/design/colors";
@@ -45,7 +46,7 @@ export default function WishlistScreen() {
 
   if (!user) {
     return (
-      <View style={styles.center}>
+      <Screen centered>
         <Text style={styles.title}>Wishlist</Text>
         <Text style={styles.sub}>Sign in to save your favorites</Text>
         <Text style={styles.desc}>Create a wishlist that follows you across sessions.</Text>
@@ -57,31 +58,31 @@ export default function WishlistScreen() {
         <Pressable onPress={() => router.push("/shop" as any)} style={{ marginTop: 12 }}>
           <Text style={styles.link}>Continue browsing</Text>
         </Pressable>
-      </View>
+      </Screen>
     );
   }
 
   if (isLoading) {
     return (
-      <View style={styles.root}>
+      <Screen scrollable={false} padded={false} contentStyle={styles.root}>
         <View style={styles.header}>
           <Text style={styles.headerTitle}>Wishlist</Text>
         </View>
         <WishlistSkeleton />
-      </View>
+      </Screen>
     );
   }
 
   if (isError) {
     return (
-      <View style={styles.center}>
+      <Screen centered>
         <Text style={styles.sub}>We couldn&apos;t load your wishlist.</Text>
         <Text style={styles.desc}>{String((error as Error)?.message ?? "Try again")}</Text>
         <Button title={isRefetching ? "Retrying…" : "Retry"} onPress={() => refetch()} style={{ marginTop: 12 }} />
         <Pressable onPress={() => router.push("/shop" as any)} style={{ marginTop: 8 }}>
           <Text style={styles.link}>Browse shop</Text>
         </Pressable>
-      </View>
+      </Screen>
     );
   }
 
@@ -89,7 +90,7 @@ export default function WishlistScreen() {
 
   if (list.length === 0) {
     return (
-      <View style={styles.center}>
+      <Screen centered>
         <View style={styles.emptyIconWrap}>
           <Ionicons name="heart-outline" size={24} color={colors.muted} />
         </View>
@@ -101,12 +102,12 @@ export default function WishlistScreen() {
           onPress={() => router.push("/shop" as any)}
           style={{ marginTop: spacing.lg }}
         />
-      </View>
+      </Screen>
     );
   }
 
   return (
-    <View style={styles.root}>
+    <Screen scrollable={false} padded={false} contentStyle={styles.root}>
       <Reveal index={0} style={styles.header}>
         <Text style={styles.headerTitle}>Wishlist</Text>
         <Text style={styles.count}>{list.length} {list.length === 1 ? "item" : "items"}</Text>
@@ -174,7 +175,7 @@ export default function WishlistScreen() {
           }}
          showsVerticalScrollIndicator={false} showsHorizontalScrollIndicator={false} />
       </Reveal>
-    </View>
+    </Screen>
   );
 }
 
@@ -188,7 +189,6 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "baseline",
     paddingHorizontal: spacing.xl,
-    paddingTop: spacing.xl,
     paddingBottom: 12,
   },
   headerTitle: {
@@ -204,14 +204,6 @@ const styles = StyleSheet.create({
     letterSpacing: 0.7,
     textTransform: "uppercase",
     color: colors.muted,
-  },
-  center: {
-    flex: 1,
-    backgroundColor: colors.background,
-    padding: spacing.xl,
-    justifyContent: "center",
-    alignItems: "center",
-    gap: 8,
   },
   emptyIconWrap: {
     width: 64,

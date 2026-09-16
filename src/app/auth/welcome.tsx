@@ -9,9 +9,9 @@ import { Pressable, StyleSheet, Text, View } from "react-native";
 
 export default function WelcomeScreen() {
   return (
-    <>
+    <Screen padded={false}>
       <AuthTopBar />
-      <Screen>
+      <View style={styles.body}>
         <AuthArt />
 
         <AuthHeader
@@ -32,12 +32,16 @@ export default function WelcomeScreen() {
             </Text>
           </Pressable>
         </View>
-      </Screen>
-    </>
+      </View>
+    </Screen>
   );
 }
 
 const styles = StyleSheet.create({
+  body: {
+    paddingHorizontal: 24,
+    paddingTop: 8,
+  },
   form: {
     marginTop: 28,
     gap: 14,

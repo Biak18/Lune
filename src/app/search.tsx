@@ -1,3 +1,4 @@
+import { Screen } from "@/components/ui/Screen";
 import { colors } from "@/design/colors";
 import { spacing } from "@/design/spacing";
 import { fontFamily } from "@/design/typography";
@@ -8,7 +9,6 @@ import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 import { router } from "expo-router";
 import { useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function SearchScreen() {
   const [q, setQ] = useState("");
@@ -19,8 +19,8 @@ export default function SearchScreen() {
   const hasSearched = q.trim().length > 0;
 
   return (
-    <SafeAreaView style={styles.root} edges={["top"]}>
-      <View style={{ padding: spacing.xl, gap: 12 }}>
+    <Screen scrollable={false} padded={false}>
+      <View style={styles.header}>
         <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
           <Text style={styles.title}>Search</Text>
           <Text onPress={() => router.back()} style={styles.cancel}>
@@ -54,14 +54,15 @@ export default function SearchScreen() {
           />
         )}
       </View>
-    </SafeAreaView>
+    </Screen>
   );
 }
 
 const styles = StyleSheet.create({
-  root: {
-    flex: 1,
-    backgroundColor: colors.background,
+  header: {
+    paddingHorizontal: spacing.xl,
+    paddingTop: 8,
+    gap: 12,
   },
   title: {
     fontSize: 28,

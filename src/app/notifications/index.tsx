@@ -1,4 +1,5 @@
 import { Button } from "@/components/ui/Button";
+import { Screen } from "@/components/ui/Screen";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { colors } from "@/design/colors";
 import { radius, spacing } from "@/design/spacing";
@@ -10,7 +11,6 @@ import { FlashList } from "@shopify/flash-list";
 import * as Haptics from "expo-haptics";
 import { router } from "expo-router";
 import { ActivityIndicator, Pressable, RefreshControl, StyleSheet, Switch, Text, View } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
 
 function relativeTime(iso: string) {
   const diff = Date.now() - new Date(iso).getTime();
@@ -57,35 +57,35 @@ export default function NotificationsScreen() {
 
   if (!user) {
     return (
-      <SafeAreaView style={styles.center} edges={["top"]}>
+      <Screen centered>
         <Text style={styles.title}>Notifications</Text>
         <Text style={styles.desc}>Sign in to see order updates, back-in-stock and price drops.</Text>
         <Button title="Sign in" onPress={() => router.push("/auth/login" as any)} style={{ marginTop: 16 }} />
-      </SafeAreaView>
+      </Screen>
     );
   }
 
   if (isLoading) {
     return (
-      <SafeAreaView style={styles.root} edges={["top"]}>
+      <Screen scrollable={false} padded={false} contentStyle={styles.root}>
         <View style={styles.header}>
-          <Pressable onPress={() => router.back()} style={[styles.back, { marginTop: 4 }]} hitSlop={8}>
+          <Pressable onPress={() => router.back()} style={styles.back} hitSlop={8}>
             <Text style={styles.backText}>← Back</Text>
           </Pressable>
           <Text style={styles.heading}>Notifications</Text>
         </View>
         <NotifSkeleton />
-      </SafeAreaView>
+      </Screen>
     );
   }
 
   if (isError) {
     return (
-      <SafeAreaView style={styles.center} edges={["top"]}>
+      <Screen centered>
         <Text style={styles.title}>We couldn&apos;t load notifications.</Text>
         <Text style={styles.desc}>{String((error as Error)?.message ?? "Try again")}</Text>
         <Button title="Retry" onPress={() => refetch()} style={{ marginTop: 12 }} />
-      </SafeAreaView>
+      </Screen>
     );
   }
 
@@ -93,9 +93,9 @@ export default function NotificationsScreen() {
   const unread = list.filter((n) => !n.is_read).length;
 
   return (
-    <SafeAreaView style={styles.root} edges={["top"]}>
+    <Screen scrollable={false} padded={false} contentStyle={styles.root}>
       <View style={styles.header}>
-        <Pressable onPress={() => router.back()} style={[styles.back, { marginTop: 4 }]} hitSlop={8}>
+        <Pressable onPress={() => router.back()} style={styles.back} hitSlop={8}>
           <Text style={styles.backText}>← Back</Text>
         </Pressable>
         <Text style={styles.heading}>Notifications</Text>
@@ -196,7 +196,7 @@ export default function NotificationsScreen() {
           />
         </View>
       )}
-    </SafeAreaView>
+    </Screen>
   );
 }
 
@@ -207,7 +207,7 @@ const styles = StyleSheet.create({
   },
   header: {
     paddingHorizontal: spacing.xl,
-    paddingTop: spacing.xl,
+    paddingTop: 8,
     gap: 6,
   },
   heading: {
@@ -215,7 +215,6 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     letterSpacing: -0.6,
     color: colors.foreground,
-    marginTop: 4,
   },
   headerRow: {
     flexDirection: "row",
@@ -281,14 +280,6 @@ const styles = StyleSheet.create({
     fontSize: 11,
     color: colors.muted,
     marginTop: 2,
-  },
-  center: {
-    flex: 1,
-    backgroundColor: colors.background,
-    padding: spacing.xl,
-    justifyContent: "center",
-    alignItems: "center",
-    gap: 8,
   },
   centerInline: {
     padding: spacing.xl,

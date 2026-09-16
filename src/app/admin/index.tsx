@@ -1,5 +1,5 @@
-import { View, Text, ScrollView, Pressable, StyleSheet, ActivityIndicator } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { View, Text, Pressable, StyleSheet, ActivityIndicator } from "react-native";
+import { Screen } from "@/components/ui/Screen";
 import { router } from "expo-router";
 import { useQuery } from "@tanstack/react-query";
 import { AdminGuard } from "@/features/admin/components/AdminGuard";
@@ -28,9 +28,8 @@ export default function AdminDashboard() {
 
   return (
     <AdminGuard>
-      <SafeAreaView style={styles.root} edges={["top"]}>
-        <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false} showsHorizontalScrollIndicator={false}>
-          <Pressable onPress={() => router.back()} style={[styles.back, { marginTop: 4 }]} hitSlop={8}>
+      <Screen padded={false} contentStyle={styles.scroll}>
+          <Pressable onPress={() => router.back()} style={styles.back} hitSlop={8}>
             <Text style={styles.backText}>← Back</Text>
           </Pressable>
 
@@ -83,19 +82,15 @@ export default function AdminDashboard() {
               </Pressable>
             </>
           )}
-        </ScrollView>
-      </SafeAreaView>
+      </Screen>
     </AdminGuard>
   );
 }
 
 const styles = StyleSheet.create({
-  root: {
-    flex: 1,
-    backgroundColor: colors.background,
-  },
   scroll: {
-    padding: spacing.xl,
+    paddingHorizontal: spacing.xl,
+    paddingTop: 8,
     gap: 16,
     paddingBottom: 32,
   },

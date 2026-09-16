@@ -1,4 +1,5 @@
 import { Button } from "@/components/ui/Button";
+import { Screen } from "@/components/ui/Screen";
 import { LottieAnimation } from "@/components/ui/LottieAnimation";
 import { Reveal } from "@/components/ui/Reveal";
 import { Skeleton } from "@/components/ui/Skeleton";
@@ -50,7 +51,7 @@ export default function CartScreen() {
 
   if (!user) {
     return (
-      <View style={styles.center}>
+      <Screen centered>
         <Text style={styles.title}>Your bag</Text>
         <Text style={styles.sub}>Sign in to view your bag</Text>
         <Text style={styles.desc}>Your selected size and color are saved once you are signed in.</Text>
@@ -62,28 +63,28 @@ export default function CartScreen() {
         <Pressable onPress={() => router.push("/shop" as any)} style={{ marginTop: 12 }}>
           <Text style={styles.link}>Continue shopping</Text>
         </Pressable>
-      </View>
+      </Screen>
     );
   }
 
   if (isLoading) {
     return (
-      <View style={styles.root}>
+      <Screen scrollable={false} padded={false} contentStyle={styles.root}>
         <View style={styles.header}>
           <Text style={styles.headerTitle}>Your bag</Text>
         </View>
         <CartSkeleton />
-      </View>
+      </Screen>
     );
   }
 
   if (isError) {
     return (
-      <View style={styles.center}>
+      <Screen centered>
         <Text style={styles.sub}>We couldn&apos;t load your bag.</Text>
         <Text style={styles.desc}>{String((error as Error)?.message ?? "Try again")}</Text>
         <Button title={isRefetching ? "Retrying…" : "Retry"} onPress={() => refetch()} style={{ marginTop: 12 }} />
-      </View>
+      </Screen>
     );
   }
 
@@ -98,7 +99,7 @@ export default function CartScreen() {
 
   if (list.length === 0) {
     return (
-      <View style={styles.center}>
+      <Screen centered>
         <LottieAnimation
           source={require("@/assets/lottie/hanger-sway.json")}
           loop
@@ -114,12 +115,12 @@ export default function CartScreen() {
           onPress={() => router.push("/shop" as any)}
           style={{ marginTop: spacing.lg }}
         />
-      </View>
+      </Screen>
     );
   }
 
   return (
-    <View style={styles.root}>
+    <Screen scrollable={false} padded={false} contentStyle={styles.root}>
       <Reveal index={0} style={styles.header}>
         <Text style={styles.headerTitle}>Your bag</Text>
         <Text style={styles.count}>{totals.itemCount} {totals.itemCount === 1 ? "item" : "items"}</Text>
@@ -169,7 +170,7 @@ export default function CartScreen() {
           }
          showsVerticalScrollIndicator={false} showsHorizontalScrollIndicator={false} />
       </Reveal>
-    </View>
+    </Screen>
   );
 }
 
@@ -183,7 +184,6 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "baseline",
     paddingHorizontal: spacing.xl,
-    paddingTop: spacing.xl,
     paddingBottom: 12,
   },
   headerTitle: {
@@ -199,14 +199,6 @@ const styles = StyleSheet.create({
     letterSpacing: 0.7,
     textTransform: "uppercase",
     color: colors.muted,
-  },
-  center: {
-    flex: 1,
-    backgroundColor: colors.background,
-    padding: spacing.xl,
-    justifyContent: "center",
-    alignItems: "center",
-    gap: 8,
   },
   emptyArt: {
     width: 150,

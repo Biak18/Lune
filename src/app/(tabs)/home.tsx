@@ -1,4 +1,5 @@
 import { LottieAnimation } from "@/components/ui/LottieAnimation";
+import { Screen } from "@/components/ui/Screen";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { colors } from "@/design/colors";
 import { radius, spacing } from "@/design/spacing";
@@ -27,12 +28,7 @@ export default function HomeScreen() {
   const { data: recentProds, isLoading: loadingRecent } = useRecentlyViewedProducts();
 
   return (
-    <ScrollView
-      style={styles.root}
-      contentContainerStyle={styles.content}
-      showsVerticalScrollIndicator={false}
-      showsHorizontalScrollIndicator={false}
-    >
+    <Screen contentStyle={styles.content} padded={false}>
       {/* Header minimal wordmark + actions */}
       <View style={styles.header}>
         <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
@@ -284,15 +280,11 @@ export default function HomeScreen() {
           onSeeAll={() => router.push("/(tabs)/shop" as any)}
         />
       )}
-    </ScrollView>
+    </Screen>
   );
 }
 
 const styles = StyleSheet.create({
-  root: {
-    flex: 1,
-    backgroundColor: colors.background,
-  },
   content: {
     padding: spacing.xl,
     gap: 28,
@@ -302,7 +294,6 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    paddingTop: 4,
   },
   wordmark: {
     fontSize: 13,

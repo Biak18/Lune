@@ -1,4 +1,5 @@
 import { Button } from "@/components/ui/Button";
+import { Screen } from "@/components/ui/Screen";
 import { Reveal } from "@/components/ui/Reveal";
 import { colors } from "@/design/colors";
 import { spacing } from "@/design/spacing";
@@ -18,8 +19,7 @@ import { useFavoriteIdsQuery } from "@/features/wishlist/hooks/useWishlist";
 import { useAuthStore } from "@/stores/authStore";
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
-import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { Pressable, StyleSheet, Text, View } from "react-native";
 
 function getInitials(email?: string, fullName?: string) {
   if (fullName?.trim()) {
@@ -89,9 +89,8 @@ export default function ProfileScreen() {
 
   if (!isAuthenticated) {
     return (
-      <SafeAreaView style={styles.safe} edges={["top", "bottom"]}>
-        <ScrollView contentContainerStyle={styles.unauthContent} showsVerticalScrollIndicator={false} showsHorizontalScrollIndicator={false}>
-          <View style={styles.unauthHeader}>
+      <Screen centered>
+        <View style={styles.unauthHeader}>
             <Text style={styles.wordmark}>LUNE</Text>
             <View style={styles.dot} />
             <Text style={styles.season}>Account</Text>
@@ -111,14 +110,12 @@ export default function ProfileScreen() {
               <Ionicons name="arrow-forward" size={12} color={colors.muted} />
             </Pressable>
           </View>
-        </ScrollView>
-      </SafeAreaView>
+      </Screen>
     );
   }
 
   return (
-    <SafeAreaView style={styles.safe} edges={["top"]}>
-      <ScrollView style={{ flex: 1 }} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false} showsHorizontalScrollIndicator={false}>
+    <Screen contentStyle={styles.content} padded={false}>
         {/* Header wordmark + bell */}
         <View style={styles.header}>
           <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
@@ -232,21 +229,18 @@ export default function ProfileScreen() {
           </Pressable>
           <Text style={styles.footerHint}>LUNE FW 2026 Editorial boutique</Text>
         </Reveal>
-      </ScrollView>
-    </SafeAreaView>
+    </Screen>
   );
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: colors.background },
   content: {
     paddingHorizontal: spacing.xl,
-    paddingTop: spacing.lg,
     paddingBottom: 32,
     gap: 28,
     backgroundColor: colors.background,
   },
-  header: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", paddingTop: 4 },
+  header: { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
   wordmark: { fontSize: 13, letterSpacing: 2.08, fontWeight: "800", color: colors.foreground },
   dot: { width: 4, height: 4, borderRadius: 2, backgroundColor: colors.clay },
   season: { fontSize: 11, fontWeight: "600", letterSpacing: 0.8, color: colors.muted },
@@ -286,7 +280,6 @@ const styles = StyleSheet.create({
   signOutPill: { flexDirection: "row", gap: 6, alignItems: "center", paddingHorizontal: 16, height: 36, borderRadius: 999, backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border },
   signOutText: { fontSize: 11, fontWeight: "700", letterSpacing: 0.6, textTransform: "uppercase", color: colors.muted },
   footerHint: { fontSize: 10, color: colors.muted, letterSpacing: 0.3 },
-  unauthContent: { flexGrow: 1, paddingHorizontal: spacing.xl, paddingTop: spacing.xl, paddingBottom: 32, gap: 24, justifyContent: "center", backgroundColor: colors.background },
   unauthHeader: { flexDirection: "row", alignItems: "center", gap: 10, justifyContent: "center" },
   unauthHero: { alignItems: "center", gap: 10, paddingVertical: 8 },
   unauthIconWrap: { width: 64, height: 64, borderRadius: 32, backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border, alignItems: "center", justifyContent: "center" },

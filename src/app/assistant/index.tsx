@@ -207,9 +207,11 @@ export default function AssistantScreen() {
   const busy = isParsing || isAiThinking;
 
   return (
+    // NOTE: intentionally not using Screen — chat input relies on
+    // react-native-keyboard-controller's KeyboardAvoidingView below.
     <SafeAreaView style={styles.root} edges={["top"]}>
       <View style={styles.header}>
-        <Pressable onPress={() => router.back()} style={[styles.back, { marginTop: 4 }]} hitSlop={8}>
+        <Pressable onPress={() => router.back()} style={styles.back} hitSlop={8}>
           <Text style={styles.backText}>← Back</Text>
         </Pressable>
         <Text style={styles.heading}>AI Fashion Assistant</Text>
@@ -322,7 +324,7 @@ const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: colors.background },
   header: {
     paddingHorizontal: spacing.xl,
-    paddingTop: spacing.xl,
+    paddingTop: 8,
     gap: 4,
     borderBottomWidth: 1,
     borderBottomColor: colors.border,
@@ -331,7 +333,7 @@ const styles = StyleSheet.create({
   },
   back: { alignSelf: "flex-start", paddingVertical: 4 },
   backText: { fontSize: 11, fontWeight: "800", letterSpacing: 0.6, textTransform: "uppercase", color: colors.foreground },
-  heading: { fontSize: 20, fontWeight: "700", color: colors.foreground, marginTop: 4 },
+  heading: { fontSize: 20, fontWeight: "700", color: colors.foreground },
   sub: { fontSize: 11, color: colors.muted },
   disclaimer: { fontSize: 10, color: colors.mutedLight, fontStyle: "italic", lineHeight: 13 },
   messages: { padding: spacing.xl, gap: 14, paddingBottom: 24 },

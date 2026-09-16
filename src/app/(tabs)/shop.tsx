@@ -212,7 +212,6 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
     paddingHorizontal: spacing.xl,
-    paddingTop: spacing.xl,
     paddingBottom: 12,
   },
   title: {

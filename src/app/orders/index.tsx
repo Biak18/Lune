@@ -1,4 +1,5 @@
 import { Button } from "@/components/ui/Button";
+import { Screen } from "@/components/ui/Screen";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { colors } from "@/design/colors";
 import { radius, spacing } from "@/design/spacing";
@@ -10,7 +11,6 @@ import { Ionicons } from "@expo/vector-icons";
 import { FlashList } from "@shopify/flash-list";
 import { router } from "expo-router";
 import { Pressable, RefreshControl, StyleSheet, Text, View } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
 
 function OrdersSkeleton() {
   return (
@@ -28,17 +28,17 @@ export default function OrdersScreen() {
 
   if (!user) {
     return (
-      <SafeAreaView style={styles.center} edges={["top"]}>
+      <Screen centered>
         <Text style={styles.title}>Orders</Text>
         <Text style={styles.desc}>Sign in to view your purchase history.</Text>
         <Button title="Sign in" onPress={() => router.push("/auth/login" as any)} style={{ marginTop: 16 }} />
-      </SafeAreaView>
+      </Screen>
     );
   }
 
   if (isLoading) {
     return (
-      <SafeAreaView style={styles.root} edges={["top"]}>
+      <Screen scrollable={false} padded={false} contentStyle={styles.root}>
         <View style={styles.header}>
           <Pressable onPress={() => router.back()} style={styles.back} hitSlop={8}>
             <Text style={styles.backText}>← Back</Text>
@@ -46,17 +46,17 @@ export default function OrdersScreen() {
           <Text style={styles.heading}>Orders</Text>
         </View>
         <OrdersSkeleton />
-      </SafeAreaView>
+      </Screen>
     );
   }
 
   if (isError) {
     return (
-      <SafeAreaView style={styles.center} edges={["top"]}>
+      <Screen centered>
         <Text style={styles.title}>We couldn&apos;t load orders.</Text>
         <Text style={styles.desc}>{String((error as Error)?.message ?? "Try again")}</Text>
         <Button title={isRefetching ? "Retrying…" : "Retry"} onPress={() => refetch()} style={{ marginTop: 12 }} />
-      </SafeAreaView>
+      </Screen>
     );
   }
 
@@ -64,19 +64,19 @@ export default function OrdersScreen() {
 
   if (list.length === 0) {
     return (
-      <SafeAreaView style={styles.center} edges={["top"]}>
+      <Screen centered>
         <View style={styles.emptyIconWrap}>
           <Ionicons name="receipt-outline" size={24} color={colors.muted} />
         </View>
         <Text style={styles.title}>No orders yet</Text>
         <Text style={styles.desc}>Your purchases will appear here with tracking and delivery info.</Text>
         <Button title="Start shopping" onPress={() => router.replace("/(tabs)/shop" as any)} style={{ marginTop: 16 }} />
-      </SafeAreaView>
+      </Screen>
     );
   }
 
   return (
-    <SafeAreaView style={styles.root} edges={["top"]}>
+    <Screen scrollable={false} padded={false} contentStyle={styles.root}>
       <View style={styles.header}>
         <Pressable onPress={() => router.back()} style={styles.back} hitSlop={8}>
           <Text style={styles.backText}>← Back</Text>
@@ -101,7 +101,7 @@ export default function OrdersScreen() {
           renderItem={({ item }) => <OrderCard order={item} onPress={() => router.push(`/orders/${item.id}` as any)} />}
         />
       </View>
-    </SafeAreaView>
+    </Screen>
   );
 }
 
@@ -112,7 +112,7 @@ const styles = StyleSheet.create({
   },
   header: {
     paddingHorizontal: spacing.xl,
-    paddingTop: spacing.xl,
+    paddingTop: 8,
     gap: 6,
   },
   heading: {
@@ -121,7 +121,6 @@ const styles = StyleSheet.create({
     letterSpacing: -0.6,
     color: colors.foreground,
     fontFamily: fontFamily.display,
-    marginTop: 4,
   },
   count: {
     fontSize: 11,
@@ -129,14 +128,6 @@ const styles = StyleSheet.create({
     letterSpacing: 0.7,
     textTransform: "uppercase",
     color: colors.muted,
-  },
-  center: {
-    flex: 1,
-    backgroundColor: colors.background,
-    padding: spacing.xl,
-    justifyContent: "center",
-    alignItems: "center",
-    gap: 8,
   },
   emptyIconWrap: {
     width: 64,
