@@ -107,7 +107,7 @@ export default function CartScreen() {
         />
         <Text style={styles.title}>Your bag is empty.</Text>
         <Text style={styles.desc}>
-          Add a dress with your size and color — it&apos;ll appear here for
+          Add a dress with your size and color, and it&apos;ll appear here for
           checkout.
         </Text>
         <Button

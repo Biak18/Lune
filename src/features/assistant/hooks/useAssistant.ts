@@ -8,7 +8,7 @@ export function useAssistant() {
     {
       id: "m0",
       role: "assistant",
-      text: "Hi! I'm your Dress Shop stylist — powered by Gemini. Tell me the occasion, style, or vibe and I'll curate picks for you.",
+      text: "Hi! I'm your Dress Shop stylist powered by Gemini. Tell me the occasion, style, or vibe and I'll curate picks for you.",
     },
   ]);
   const historyRef = useRef<ChatMessage[]>([]);
@@ -40,7 +40,7 @@ export function useAssistant() {
       // If streamingText was not used (non-streaming fallback already wrote via callback), ensure full captured
       if (!full && streamingText) full = streamingText;
 
-      const assistantMsg: Msg = { id: `a-${Date.now()}`, role: "assistant", text: full.trim() || "Here to help — try asking for a wedding guest dress in beige, minimal style." };
+      const assistantMsg: Msg = { id: `a-${Date.now()}`, role: "assistant", text: full.trim() || "Here to help. Try asking for a wedding guest dress in beige, minimal style." };
       setMessages((m) => [...m, assistantMsg]);
       historyRef.current = [...historyRef.current, { role: "user" as const, content: trimmed }, { role: "assistant" as const, content: assistantMsg.text }].slice(-16);
     } catch (e) {
@@ -48,7 +48,7 @@ export function useAssistant() {
       setError(msg);
       setMessages((m) => [
         ...m,
-        { id: `a-err-${Date.now()}`, role: "assistant", text: "Sorry — my stylist is briefly offline. Try the Style Finder chips or retry in a moment." },
+        { id: `a-err-${Date.now()}`, role: "assistant", text: "Sorry, my stylist is briefly offline. Try the Style Finder chips or retry in a moment." },
       ]);
     } finally {
       setIsThinking(false);
@@ -62,7 +62,7 @@ export function useAssistant() {
       {
         id: "m0",
         role: "assistant",
-        text: "Hi! I'm your Dress Shop stylist — powered by Gemini. Tell me the occasion, style, or vibe and I'll curate picks for you.",
+      text: "Hi! I'm your Dress Shop stylist powered by Gemini. Tell me the occasion, style, or vibe and I'll curate picks for you.",
       },
     ]);
     setError(null);

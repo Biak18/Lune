@@ -84,7 +84,7 @@ export const assistantService = {
               const sty = typeof obj.style === "string" ? obj.style : null;
               const col = typeof obj.color === "string" ? obj.color : null;
               const parts = [occ, sty, col].filter(Boolean).join(" ");
-              if (parts) text = `Lovely ${parts} — here are my curated picks for you.`;
+              if (parts) text = `Lovely ${parts}. Here are my curated picks for you.`;
             } else {
               text = remaining;
             }

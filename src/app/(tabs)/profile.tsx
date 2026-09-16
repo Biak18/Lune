@@ -61,7 +61,7 @@ function MenuRow({
 function Stat({ label, value, loading }: { label: string; value: string; loading?: boolean }) {
   return (
     <View style={styles.stat}>
-      <Text style={styles.statValue}>{loading ? "—" : value}</Text>
+      <Text style={styles.statValue}>{loading ? "…" : value}</Text>
       <Text style={styles.statLabel}>{label}</Text>
     </View>
   );

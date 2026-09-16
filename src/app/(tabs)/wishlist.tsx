@@ -92,7 +92,7 @@ export default function WishlistScreen() {
         </View>
         <Text style={styles.title}>Wishlist</Text>
         <Text style={styles.sub}>Your wishlist is empty.</Text>
-        <Text style={styles.desc}>Save styles you love — tap the heart on any product to keep it here.</Text>
+        <Text style={styles.desc}>Save styles you love. Tap the heart on any product to keep it here.</Text>
         <Button
           title="Explore products"
           onPress={() => router.push("/shop" as any)}

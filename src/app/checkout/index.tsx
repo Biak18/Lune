@@ -246,7 +246,7 @@ export default function CheckoutScreen() {
             </View>
             <View style={{ flex: 1 }}>
               <Text style={styles.paymentTitle}>Pay on delivery</Text>
-              <Text style={styles.paymentDesc}>Cash or UPI on delivery — no payment needed now</Text>
+              <Text style={styles.paymentDesc}>Cash or UPI on delivery. No payment needed now</Text>
             </View>
           </View>
           <Text style={styles.paymentHint}>Order total is verified server side</Text>

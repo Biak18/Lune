@@ -50,7 +50,7 @@ export const authService = {
     const data = normalizeAuthPayload(raw);
 
     if (!data.accessToken || !data.refreshToken) {
-      throw new Error("Sign in failed — server returned an empty token.");
+      throw new Error("Sign in failed. The server returned an empty token.");
     }
 
     await authStorage.saveTokens(data.accessToken, data.refreshToken);

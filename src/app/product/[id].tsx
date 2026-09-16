@@ -413,7 +413,7 @@ export default function ProductScreen() {
           {selectedVariant && price != null && !justAdded ? (
             <Text style={styles.footerMeta}>
               {[selectedVariant.color, selectedVariant.size].filter(Boolean).join(" · ")}
-              {" — $"}
+              {" · $"}
               {Number(price).toFixed(0)}
             </Text>
           ) : null}
@@ -434,7 +434,7 @@ export default function ProductScreen() {
               accessibilityLabel="View bag"
             >
               <Text style={styles.addedText}>
-                Added — {[selectedVariant.color, selectedVariant.size].filter(Boolean).join(" · ")}
+                Added · {[selectedVariant.color, selectedVariant.size].filter(Boolean).join(" · ")}
               </Text>
               <Text style={styles.addedLink}>View bag</Text>
             </Pressable>
