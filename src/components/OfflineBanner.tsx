@@ -1,23 +1,14 @@
 import { colors } from "@/design/colors";
 import { useNetInfo } from "@react-native-community/netinfo";
-import { useEffect, useRef } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import Animated, { FadeInDown, FadeOutUp } from "react-native-reanimated";
 
 export function OfflineBanner() {
   const net = useNetInfo();
-  const wasOffline = useRef(false);
 
   const isOffline = net.isConnected === false || net.isInternetReachable === false;
 
-  useEffect(() => {
-    if (isOffline) wasOffline.current = true;
-  }, [isOffline]);
-
   if (!isOffline) {
-    if (!wasOffline.current) return null;
-    // briefly show reconnected then fade out is handled by exit animation of previous render;
-    // we just hide after connection restored — TanStack will refetch via refetchOnReconnect
     return null;
   }
 

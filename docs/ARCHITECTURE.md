@@ -1,6 +1,8 @@
 # ARCHITECTURE.md
 
-# Dress Shop — Technical Architecture
+# LUNE (Dress Shop) — Technical Architecture
+
+> Brand: LUNE premium boutique (see `PRODUCT.md`). Paper-and-ink palette with clay accent, Newsreader serif. Checkout is currently Cash/UPI on delivery (COD) only; payment abstraction is reserved for later.
 
 ## 1. Architecture Overview
 
@@ -74,55 +76,67 @@ The application follows a layered mobile architecture.
 
 # 3. Directory Structure
 
-Recommended structure:
+Actual structure (routes live under `src/app`):
 
 ```text
 dress-shop/
 │
-├── app/
-│   ├── _layout.tsx
-│   ├── index.tsx
-│   │
-│   ├── (tabs)/
-│   │   ├── _layout.tsx
-│   │   ├── home.tsx
-│   │   ├── shop.tsx
-│   │   ├── wishlist.tsx
-│   │   ├── cart.tsx
-│   │   └── profile.tsx
-│   │
-│   ├── auth/
-│   │   ├── login.tsx
-│   │   ├── register.tsx
-│   │   └── forgot-password.tsx
-│   │
-│   ├── product/
-│   │   └── [id].tsx
-│   │
-│   ├── category/
-│   │   └── [id].tsx
-│   │
-│   ├── search.tsx
-│   │
-│   ├── checkout/
-│   │   ├── index.tsx
-│   │   ├── address.tsx
-│   │   └── success.tsx
-│   │
-│   └── orders/
-│       ├── index.tsx
-│       └── [id].tsx
-│
 ├── src/
+│   ├── app/
+│   │   ├── _layout.tsx
+│   │   ├── index.tsx
+│   │   │
+│   │   ├── (tabs)/
+│   │   │   ├── _layout.tsx
+│   │   │   ├── home.tsx
+│   │   │   ├── shop.tsx
+│   │   │   ├── cart.tsx
+│   │   │   ├── wishlist.tsx
+│   │   │   └── profile.tsx
+│   │   │
+│   │   ├── auth/
+│   │   │   ├── _layout.tsx
+│   │   │   ├── welcome.tsx
+│   │   │   ├── login.tsx
+│   │   │   ├── register.tsx
+│   │   │   └── forgot-password.tsx
+│   │   │
+│   │   ├── product/
+│   │   │   └── [id].tsx
+│   │   │
+│   │   ├── category/
+│   │   │   └── [id].tsx
+│   │   │
+│   │   ├── search.tsx
+│   │   ├── style-finder/index.tsx
+│   │   ├── assistant/index.tsx
+│   │   ├── notifications/index.tsx
+│   │   ├── addresses/index.tsx
+│   │   │
+│   │   ├── checkout/
+│   │   │   ├── index.tsx
+│   │   │   └── success.tsx
+│   │   │
+│   │   ├── orders/
+│   │   │   ├── index.tsx
+│   │   │   └── [id].tsx
+│   │   │
+│   │   └── admin/
+│   │       ├── index.tsx
+│   │       ├── products.tsx
+│   │       ├── orders.tsx
+│   │       └── inventory.tsx
+│   │
 │   ├── components/
 │   ├── features/
 │   ├── hooks/
 │   ├── lib/
-│   ├── services/
+│   ├── providers/
 │   ├── stores/
 │   ├── types/
-│   ├── constants/
 │   ├── config/
+│   ├── design/
+│   ├── theme/
 │   └── utils/
 │
 ├── assets/
@@ -143,11 +157,13 @@ dress-shop/
 └── AGENTS.md
 ```
 
+Note: there is no `checkout/address.tsx` — address selection/creation lives inside `checkout/index.tsx` plus `addresses/index.tsx`.
+
 ---
 
 # 4. Routing Architecture
 
-Expo Router owns navigation.
+Expo Router (under `src/app`) owns navigation.
 
 Route files should primarily:
 
@@ -160,7 +176,7 @@ Avoid putting large amounts of business logic inside route files.
 Example:
 
 ```text
-app/product/[id].tsx
+src/app/product/[id].tsx
         │
         ↓
 ProductScreen
@@ -175,7 +191,7 @@ ProductScreen
 
 # 5. Feature Architecture
 
-Features should be organized by domain.
+Features should be organized by domain (under `src/features`).
 
 ```text
 src/features/
@@ -192,10 +208,16 @@ src/features/
 ├── categories/
 ├── wishlist/
 ├── cart/
-├── checkout/
 ├── orders/
 ├── profile/
-└── reviews/
+├── reviews/
+├── addresses/
+├── notifications/
+├── loyalty/
+├── admin/
+├── assistant/
+├── recommendations/
+└── outfit/
 ```
 
 A feature should contain its domain-specific logic rather than scattering it across unrelated folders.
@@ -464,6 +486,8 @@ Do not calculate historical order totals from current product prices.
 
 # 15. Order State Machine
 
+Matches `PRD §18` / `DATA` / DB check (`orders_status_check`):
+
 ```text
 pending
    │
@@ -481,9 +505,11 @@ out_for_delivery
    │
    ↓
 delivered
+
+cancelled (terminal, from pending/confirmed/processing)
 ```
 
-Cancellation should only occur in allowed states.
+Cancellation should only occur in allowed states. The timeline UI treats `cancelled` as terminal.
 
 ---
 

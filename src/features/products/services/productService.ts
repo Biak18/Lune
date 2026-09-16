@@ -1,5 +1,6 @@
 import { api } from "@/lib/api";
 import type {
+  Category,
   PaginatedProducts,
   ProductsQueryParams,
   ProductWithRelations,
@@ -69,7 +70,7 @@ type ApiPaginated = {
 
 const DEFAULT_PAGE_SIZE = 10;
 
-function mapCategory(c: ApiCategory | null | undefined): any {
+function mapCategory(c: ApiCategory | null | undefined): Category | null {
   if (!c) return null;
   return {
     id: c.id,
@@ -81,7 +82,7 @@ function mapCategory(c: ApiCategory | null | undefined): any {
     is_active: c.isActive,
     created_at: c.createdAt,
     updated_at: c.updatedAt,
-  };
+  } as Category;
 }
 
 function mapProduct(p: ApiProduct): ProductWithRelations {
@@ -143,9 +144,11 @@ function mapProduct(p: ApiProduct): ProductWithRelations {
 }
 
 export const productService = {
-  async getCategories() {
+  async getCategories(): Promise<Category[]> {
     const data = await api.get<ApiCategory[]>("/api/categories");
-    return (data ?? []).map(mapCategory);
+    return (data ?? [])
+      .map(mapCategory)
+      .filter((c): c is Category => c !== null);
   },
 
   async getProducts(

@@ -39,18 +39,20 @@ function mapAddress(a: ApiAddress): Address {
   } as unknown as Address;
 }
 
-function toApiPayload(payload: any) {
+type AddressPayload = Record<string, unknown>;
+
+function toApiPayload(payload: AddressPayload) {
   return {
-    label: payload.label ?? null,
-    recipientName: payload.recipient_name ?? payload.recipientName ?? "",
-    phone: payload.phone ?? null,
-    addressLine1: payload.address_line_1 ?? payload.addressLine1 ?? "",
-    addressLine2: payload.address_line_2 ?? payload.addressLine2 ?? null,
-    city: payload.city ?? "",
-    state: payload.state ?? null,
-    postalCode: payload.postal_code ?? payload.postalCode ?? null,
-    country: payload.country ?? "MM",
-    isDefault: payload.is_default ?? payload.isDefault ?? false,
+    label: (payload["label"] as string | null | undefined) ?? null,
+    recipientName: (payload["recipient_name"] as string | undefined) ?? (payload["recipientName"] as string | undefined) ?? "",
+    phone: (payload["phone"] as string | null | undefined) ?? null,
+    addressLine1: (payload["address_line_1"] as string | undefined) ?? (payload["addressLine1"] as string | undefined) ?? "",
+    addressLine2: (payload["address_line_2"] as string | null | undefined) ?? (payload["addressLine2"] as string | null | undefined) ?? null,
+    city: (payload["city"] as string | undefined) ?? "",
+    state: (payload["state"] as string | null | undefined) ?? null,
+    postalCode: (payload["postal_code"] as string | null | undefined) ?? (payload["postalCode"] as string | null | undefined) ?? null,
+    country: (payload["country"] as string | undefined) ?? "MM",
+    isDefault: (payload["is_default"] as boolean | undefined) ?? (payload["isDefault"] as boolean | undefined) ?? false,
   };
 }
 

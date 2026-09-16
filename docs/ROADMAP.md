@@ -1,6 +1,31 @@
 # ROADMAP.md
 
-# Dress Shop — Development Roadmap
+# Dress Shop (LUNE) — Development Roadmap
+
+## 0. Implementation Status (2026-09-16)
+
+```text
+Phase 0 Foundation        DONE
+Phase 1 Database          DONE
+Phase 2 Auth              DONE (COD boutique, pay on delivery)
+Phase 3 Catalog           DONE
+Phase 4 Variants          DONE
+Phase 5 Wishlist          DONE
+Phase 6 Cart              DONE
+Phase 7 Checkout          DONE (COD only, no checkout/address.tsx — inside checkout/index.tsx)
+Phase 8 Orders            DONE (includes cancelled + out_for_delivery)
+Phase 9 Polish            IN PROGRESS (skeletons/errors/empty done; a11y/keyboard/offline partial)
+Phase 10 Reviews          DONE (early)
+Phase 11 Style Finder     DONE (deterministic, early)
+Phase 13 Notifications    DONE (early)
+Phase 14 Admin            DONE (early, same-app secondary persona)
+Phase 15 Recommendations  DONE (recently viewed + recommendations, early)
+Phase 16 AI Assistant     DONE (early)
+Phase 17 Loyalty          DONE (early)
+Phase 12 Complete Look    PARTIAL (CompleteTheLook + recommendations exist, no shoes/bags collections)
+```
+
+Note: post-MVP phases were built ahead of MVP sign-off. MVP checkout is Cash/UPI on delivery.
 
 ## 1. Roadmap Philosophy
 

@@ -50,13 +50,13 @@ export default function AdminInventoryScreen() {
           <View style={{ flex: 1 }}>
             <FlashList
               data={data ?? []}
-              keyExtractor={(v: any) => v.id}
+              keyExtractor={(v) => v.id}
                 contentContainerStyle={{ padding: spacing.xl, paddingBottom: 32 }}
               ItemSeparatorComponent={() => <View style={{ height: 8 }} />}
-              renderItem={({ item }: any) => (
+              renderItem={({ item }) => (
                 <View style={[styles.card, item.stock_quantity === 0 && styles.oosCard]}>
                   <View style={{ flex: 1, gap: 4 }}>
-                    <Text style={styles.name}>{(item.product as any)?.name ?? item.sku}</Text>
+                    <Text style={styles.name}>{item.product?.name ?? item.sku}</Text>
                     <Text style={styles.meta}>{item.sku} {item.color ?? "?"} / {item.size ?? "?"}</Text>
                     <View style={{ flexDirection: "row", gap: 6, marginTop: 4 }}>
                       <Pressable

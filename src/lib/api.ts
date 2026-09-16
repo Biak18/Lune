@@ -109,15 +109,16 @@ const refreshAccessToken = async (): Promise<string | null> => {
  * Backend is ASP.NET (PascalCase records) serialized to camelCase.
  * Accept both casings so a serializer change doesn't save undefined.
  */
-export function normalizeAuthPayload(raw: any): {
+export function normalizeAuthPayload(raw: unknown): {
   accessToken: string;
   refreshToken: string;
   expiresIn: number;
 } {
+  const r = raw as Record<string, unknown> | null | undefined;
   return {
-    accessToken: raw?.accessToken ?? raw?.AccessToken ?? "",
-    refreshToken: raw?.refreshToken ?? raw?.RefreshToken ?? "",
-    expiresIn: raw?.expiresIn ?? raw?.ExpiresIn ?? 3600,
+    accessToken: (r?.["accessToken"] as string | undefined) ?? (r?.["AccessToken"] as string | undefined) ?? "",
+    refreshToken: (r?.["refreshToken"] as string | undefined) ?? (r?.["RefreshToken"] as string | undefined) ?? "",
+    expiresIn: (r?.["expiresIn"] as number | undefined) ?? (r?.["ExpiresIn"] as number | undefined) ?? 3600,
   };
 }
 
@@ -126,25 +127,26 @@ export function normalizeAuthPayload(raw: any): {
  * { title, detail, status, instance, type }
  * Prefer `detail` (the human message) over `title`.
  */
-function extractErrorMessage(body: any, status: number): string {
+function extractErrorMessage(body: unknown, status: number): string {
   if (!body || typeof body !== "object") {
     return `Request failed: ${status}`;
   }
-  if (typeof body.detail === "string" && body.detail.trim()) {
-    return body.detail;
+  const b = body as Record<string, unknown>;
+  if (typeof b["detail"] === "string" && (b["detail"] as string).trim()) {
+    return b["detail"] as string;
   }
   // FluentValidation may return { errors: { Email: [...] } }
-  if (body.errors && typeof body.errors === "object") {
-    const msgs = Object.values(body.errors)
+  if (b["errors"] && typeof b["errors"] === "object") {
+    const msgs = Object.values(b["errors"] as Record<string, unknown>)
       .flat()
-      .filter((v) => typeof v === "string") as string[];
+      .filter((v): v is string => typeof v === "string");
     if (msgs.length) return msgs.join(" ");
   }
-  if (typeof body.title === "string" && body.title.trim()) {
-    return body.title;
+  if (typeof b["title"] === "string" && (b["title"] as string).trim()) {
+    return b["title"] as string;
   }
-  if (typeof body.message === "string" && body.message.trim()) {
-    return body.message;
+  if (typeof b["message"] === "string" && (b["message"] as string).trim()) {
+    return b["message"] as string;
   }
   return `Request failed: ${status}`;
 }

@@ -2,7 +2,7 @@ import { colors } from "@/design/colors";
 import { radius, spacing } from "@/design/spacing";
 import { Screen } from "@/components/ui/Screen";
 import { AdminGuard } from "@/features/admin/components/AdminGuard";
-import { adminService } from "@/features/admin/services/adminService";
+import { adminService, type AdminCategory } from "@/features/admin/services/adminService";
 import { productService } from "@/features/products/services/productService";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import * as Haptics from "expo-haptics";
@@ -33,13 +33,13 @@ export default function AdminProductsScreen() {
   const qc = useQueryClient();
   const [catName, setCatName] = useState("");
   const [catSlug, setCatSlug] = useState("");
-  const [editingCat, setEditingCat] = useState<any | null>(null);
+  const [editingCat, setEditingCat] = useState<AdminCategory | null>(null);
 
   const { data, isLoading, isError, error, refetch } = useQuery({
     queryKey: ["admin", "products-list"],
     queryFn: async () => {
       const res = await productService.getProducts({ page: 0, pageSize: 50 });
-      return res.data.map((p: any) => ({
+      return res.data.map((p) => ({
         id: p.id,
         name: p.name,
         slug: p.slug,
@@ -178,7 +178,7 @@ export default function AdminProductsScreen() {
             showsVerticalScrollIndicator={false}
             style={{ marginTop: 8 }}
           >
-            {(categories ?? []).map((c: any) => (
+            {(categories ?? []).map((c) => (
               <View
                 key={c.id}
                 style={[styles.catChip, !c.is_active && { opacity: 0.6 }]}
@@ -282,7 +282,7 @@ export default function AdminProductsScreen() {
           <View style={{ flex: 1 }}>
             <FlashList
               data={data ?? []}
-              keyExtractor={(it: any) => it.id}
+              keyExtractor={(it) => it.id}
                 contentContainerStyle={{
                 padding: spacing.xl,
                 paddingBottom: 32,
@@ -295,7 +295,7 @@ export default function AdminProductsScreen() {
                   </Text>
                 </View>
               }
-              renderItem={({ item }: any) => (
+              renderItem={({ item }) => (
                 <View style={styles.card}>
                   <View style={{ flex: 1, gap: 4 }}>
                     <Text style={styles.name} numberOfLines={1}>

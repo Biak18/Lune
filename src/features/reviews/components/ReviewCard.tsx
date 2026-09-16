@@ -16,7 +16,7 @@ export function ReviewCard({ review, onEdit, onDelete }: Props) {
   const isOwner = user?.id === review.user_id;
   const date = new Date(review.created_at).toLocaleDateString();
   const verified = !!review.order_item_id;
-  const name = (review as any).profile?.full_name ?? "Customer";
+  const name = review.profile?.full_name ?? "Customer";
 
   return (
     <View style={styles.card}>

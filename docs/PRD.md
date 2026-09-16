@@ -1,6 +1,8 @@
 # PRD.md
 
-# Dress Shop — Product Requirements Document
+# LUNE (Dress Shop) — Product Requirements Document
+
+> Brand: LUNE (see `PRODUCT.md`). Current checkout is Cash/UPI pay on delivery (COD) only.
 
 ## 1. Product Overview
 
@@ -337,6 +339,7 @@ Confirmation
 ```
 
 Payment implementation should be abstracted so the application can support a real payment provider later.
+Current scope: Cash/UPI on delivery only (no online payment).
 
 ---
 

@@ -50,11 +50,11 @@ export const reviewService = {
 
   async getAverage(productId: string): Promise<{ avg: number; count: number }> {
     try {
-      const res = await api.get<{ average: number; count: number }>(
+      const res = await api.get<{ average?: number; avg?: number; count?: number }>(
         `${base}/products/${productId}/reviews/summary`,
       );
       return {
-        avg: (res as any).average ?? (res as any).avg ?? 0,
+        avg: res.average ?? res.avg ?? 0,
         count: res.count ?? 0,
       };
     } catch {

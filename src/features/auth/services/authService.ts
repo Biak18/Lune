@@ -16,27 +16,29 @@ export type RegisterResultDto = {
   emailConfirmationRequired: boolean;
 };
 
-function normalizeRegister(raw: any): RegisterResultDto {
+function normalizeRegister(raw: unknown): RegisterResultDto {
+  const r = raw as Record<string, unknown> | null | undefined;
   return {
-    accessToken: raw?.accessToken ?? raw?.AccessToken ?? null,
-    refreshToken: raw?.refreshToken ?? raw?.RefreshToken ?? null,
-    expiresIn: raw?.expiresIn ?? raw?.ExpiresIn ?? 0,
+    accessToken: (r?.["accessToken"] as string | null | undefined) ?? (r?.["AccessToken"] as string | null | undefined) ?? null,
+    refreshToken: (r?.["refreshToken"] as string | null | undefined) ?? (r?.["RefreshToken"] as string | null | undefined) ?? null,
+    expiresIn: (r?.["expiresIn"] as number | undefined) ?? (r?.["ExpiresIn"] as number | undefined) ?? 0,
     emailConfirmationRequired:
-      raw?.emailConfirmationRequired ??
-      raw?.EmailConfirmationRequired ??
+      (r?.["emailConfirmationRequired"] as boolean | undefined) ??
+      (r?.["EmailConfirmationRequired"] as boolean | undefined) ??
       false,
   };
 }
 
-function normalizeProfile(raw: any): AuthProfileDto {
+function normalizeProfile(raw: unknown): AuthProfileDto {
+  const r = raw as Record<string, unknown> | null | undefined;
   return {
-    id: String(raw?.id ?? raw?.Id ?? ""),
-    fullName: raw?.fullName ?? raw?.FullName ?? null,
-    avatarUrl: raw?.avatarUrl ?? raw?.AvatarUrl ?? null,
-    role: raw?.role ?? raw?.Role ?? "customer",
-    email: raw?.email ?? raw?.Email ?? null,
-    createdAt: raw?.createdAt ?? raw?.CreatedAt ?? "",
-    updatedAt: raw?.updatedAt ?? raw?.UpdatedAt ?? "",
+    id: String(r?.["id"] ?? r?.["Id"] ?? ""),
+    fullName: (r?.["fullName"] as string | null | undefined) ?? (r?.["FullName"] as string | null | undefined) ?? null,
+    avatarUrl: (r?.["avatarUrl"] as string | null | undefined) ?? (r?.["AvatarUrl"] as string | null | undefined) ?? null,
+    role: (r?.["role"] as string | undefined) ?? (r?.["Role"] as string | undefined) ?? "customer",
+    email: (r?.["email"] as string | null | undefined) ?? (r?.["Email"] as string | null | undefined) ?? null,
+    createdAt: (r?.["createdAt"] as string | undefined) ?? (r?.["CreatedAt"] as string | undefined) ?? "",
+    updatedAt: (r?.["updatedAt"] as string | undefined) ?? (r?.["UpdatedAt"] as string | undefined) ?? "",
   };
 }
 

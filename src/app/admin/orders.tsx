@@ -2,7 +2,7 @@ import { colors } from "@/design/colors";
 import { radius, spacing } from "@/design/spacing";
 import { Screen } from "@/components/ui/Screen";
 import { AdminGuard } from "@/features/admin/components/AdminGuard";
-import { adminService } from "@/features/admin/services/adminService";
+import { adminService, type AdminOrder } from "@/features/admin/services/adminService";
 import { OrderStatusControl } from "@/features/orders/components/OrderStatusControl";
 import { FlashList } from "@shopify/flash-list";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -17,7 +17,7 @@ import {
   View,
 } from "react-native";
 
-function AdminOrderRow({ order }: { order: any }) {
+function AdminOrderRow({ order }: { order: AdminOrder }) {
   const qc = useQueryClient();
   const update = useMutation({
     mutationFn: ({ id, status }: { id: string; status: string }) =>
@@ -73,7 +73,7 @@ export default function AdminOrdersScreen() {
     queryKey: ["admin", "orders-list"],
     queryFn: () => adminService.getAllOrders(),
   });
-  const filtered = (data ?? []).filter((o: any) =>
+  const filtered = (data ?? []).filter((o) =>
     statusFilter ? o.status === statusFilter : true,
   );
   const statuses: (string | null)[] = [
@@ -147,13 +147,13 @@ export default function AdminOrdersScreen() {
           <View style={{ flex: 1 }}>
             <FlashList
               data={filtered}
-              keyExtractor={(o: any) => o.id}
+              keyExtractor={(o) => o.id}
               contentContainerStyle={{
                 padding: spacing.xl,
                 paddingBottom: 32,
               }}
               ItemSeparatorComponent={() => <View style={{ height: 10 }} />}
-              renderItem={({ item }: any) => <AdminOrderRow order={item} />}
+              renderItem={({ item }) => <AdminOrderRow order={item} />}
             />
           </View>
         )}
