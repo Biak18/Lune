@@ -11,8 +11,8 @@ function getEnv(key: string, fallback?: string): string | undefined {
 
 export const env = {
   apiUrl:
-    getEnv("EXPO_PUBLIC_API_URL", "https://dressshopapi-production.up.railway.app") ??
-    "https://dressshopapi-production.up.railway.app",
+    getEnv("EXPO_PUBLIC_API_URL", "https://dressshopapi.onrender.com") ??
+    "https://dressshopapi.onrender.com",
   supabaseUrl: getEnv("EXPO_PUBLIC_SUPABASE_URL", "") ?? "",
   supabaseAnonKey: getEnv("EXPO_PUBLIC_SUPABASE_ANON_KEY", "") ?? "",
   // Netlify VPN proxy for regions where direct Supabase is blocked
@@ -21,8 +21,8 @@ export const env = {
   isApiConfigured: () => {
     return Boolean(
       process.env.EXPO_PUBLIC_API_URL ||
-        // fallback default keeps existing Railway deployment working
-        true,
+      // fallback default keeps existing Railway deployment working
+      true,
     );
   },
   isSupabaseConfigured: () => {
